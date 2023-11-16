@@ -1,14 +1,46 @@
-import requests
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
 
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException, TimeoutException
+
 # import time
 import logging
+import random
+import time
 
 # from datetime import datetime
 from fake_useragent import UserAgent
+
+
+def random_delay(min_seconds=0.90, max_seconds=1.30):
+    """
+    Generates a random delay between min_seconds and max_seconds
+    """
+    time.sleep(random.uniform(min_seconds, max_seconds))
+
+
+def get_driver():
+    options = webdriver.ChromeOptions()
+    options.add_argument("start-maximized")
+
+    args = [f"user-agent={UserAgent().random}", "--headless"]
+
+    for arg in args:
+        options.add_argument(arg)
+
+    driver = webdriver.Chrome(
+        service=ChromeService(ChromeDriverManager().install()), options=options
+    )
+
+    return driver
 
 
 def log_setup():
@@ -47,15 +79,31 @@ search = {
 }
 
 
-# Function to handle the scraping logic
-def scrape_olx(url):
-    headers = {"User-Agent": UserAgent().random}
-    try:
-        response = requests.get(url, headers=headers)
-        # will throw an error if the HTTP request returned an unsuccessful status code
-        response.raise_for_status()
+def element_with_attribute(driver, tag, attribute, value):
+    elements = driver.find_elements(By.TAG_NAME, tag)
+    return next(
+        (element for element in elements if element.get_attribute(attribute) == value),
+        None,
+    )
 
-        soup = BeautifulSoup(response.content, "html.parser")
+
+# Function to handle the scraping logic
+def scrape_olx(url, driver):
+    try:
+        try:
+            driver.get(url)
+        except WebDriverException as e:
+            logging.error(f"Connection issue encountered: {e}")
+            # Attempt to refresh the page or handle the error as needed
+            driver.refresh()
+
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, '[data-testid="listing-grid"]')
+            )
+        )
+
+        soup = BeautifulSoup(driver.page_source, "html.parser")
         offers_listings = soup.select_one('[data-testid="listing-grid"]')
 
         offers = offers_listings.select('[data-testid="l-card"]')
@@ -77,42 +125,143 @@ def scrape_olx(url):
             if not offer_url.startswith("http"):
                 offer_url = search["domain"] + offer_url
 
-            response_offer = requests.get(offer_url, headers=headers)
-            response_offer.raise_for_status()
-            soup_offer = BeautifulSoup(response_offer.content, "html.parser")
+            random_delay()  # Human behavior, anti-anti-bot
 
-            if subdomain["olx"] in offer_url:
-                data = get_offer_from_olx(offer_url, soup_offer)
+            driver.execute_script(f"window.open('{offer_url}', '_blank');")
+            driver.switch_to.window(driver.window_handles[1])
 
-            elif subdomain["otodom"] in offer_url:
-                data = get_offer_from_otodom(offer_url)
+            try:
+                if subdomain["olx"] in offer_url:
+                    data = get_offer_from_olx(offer_url, driver)
 
-            else:
-                raise RequestException(f"Unrecognized URL: {offer_url}")
+                elif subdomain["otodom"] in offer_url:
+                    data = get_offer_from_otodom(offer_url, driver)
 
+                else:
+                    raise RequestException(f"Unrecognized URL: {offer_url}")
+
+            except ConditionNotMetException as e:
+                logging.error(f"Failed to process {offer_url}: {e}")
+
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
             break
+
         return data
 
-    except requests.HTTPError as http_err:
-        logging.error(f"HTTP error occurred: {http_err}")
-    except Exception as err:
-        logging.error(f"Other error occurred: {err}")
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
 
 
-def get_offer_from_otodom(offer_url):
+class ConditionNotMetException(Exception):
+    """Exception raised when a condition is not met repeatedly."""
+
+    pass
+
+
+def wait_for_conditions(driver, *conditions, timeout=5, max_retries=5):
+    """
+    Waits for all specified conditions to be met within a given timeout. Raises an
+    exception if any condition is not met 5 times consecutively.
+    """
+    for condition in conditions:
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                WebDriverWait(driver, timeout).until(condition)
+                break  # Condition met, exit retry loop
+            except TimeoutException:
+                retry_count += 1
+                logging.warning(
+                    f"Condition not met, retrying... Attempt: {retry_count}"
+                )
+                if retry_count == max_retries:
+                    raise ConditionNotMetException(
+                        f"Condition failed {max_retries} times."
+                    )
+                driver.refresh()
+    return True
+
+
+def get_offer_from_olx(offer_url, driver):
+    wait_for_conditions(
+        driver,
+        EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="main"]')),
+        lambda driver: element_with_attribute(
+            driver, "img", "src", "/app/static/media/staticmap.65e20ad98.svg"
+        )
+        is not None,
+    )
+
+    soup_offer = BeautifulSoup(driver.page_source, "html.parser")
+
+    description = soup_offer.select_one('[data-testid="main"]')
+
+    listing_details = description.find("ul", class_="css-sfcl1s").find_all("li")
+
+    location_paragraphs = soup_offer.find(
+        "img", src="/app/static/media/staticmap.65e20ad98.svg"
+    )
+
+    record = {
+        "link": offer_url,
+        "date": safe_get_text(description.select_one('[data-cy="ad-posted-at"]')),
+        "location": location_paragraphs.get("alt") if location_paragraphs else None,
+        "title": safe_get_text(description.select_one('[data-cy="ad_title"]')),
+        "price": safe_get_text(
+            description.select_one('[data-testid="ad-price-container"]')
+        ),
+        "ownership": safe_get_text(listing_details[0]),
+        "floor_level": safe_get_text(listing_details[1]),
+        "is_furnished": safe_get_text(listing_details[2]),
+        "building_type": safe_get_text(listing_details[3]),
+        "square_meters": safe_get_text(listing_details[4]),
+        "number_of_rooms": safe_get_text(listing_details[5]),
+        "rent": safe_get_text(listing_details[6]),
+        "summary_description": safe_get_text(
+            description.select_one('[data-cy="ad_description"]')
+        ),
+    }
+
+    return record
+
+
+def get_offer_from_otodom(offer_url, driver):
+    wait_for_conditions(
+        driver,
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, '[data-testid="ad.top-information.table"]')
+        ),
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, '[data-testid="ad.additional-information.table"]')
+        ),
+        EC.presence_of_element_located((By.CSS_SELECTOR, '[data-cy="adPageAdTitle"')),
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, 'data-testid="map-link-container"')
+        ),
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, '[data-cy="adPageHeaderPrice"]')
+        ),
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, '[data-testid="content-container"]')
+        ),
+    )
+
+    soup_offer = BeautifulSoup(driver.page_source, "html.parser")
+
     main_points = offer_url.select_one('[data-testid="ad.top-information.table"]')
 
-    additional_points = offer_url.select_one(
+    additional_points = soup_offer.select_one(
         '[data-testid="ad.additional-information.table"]'
     )
 
     record = {
         "link": offer_url,
-        "title": safe_get_text(offer_url.select_one('[data-cy="adPageAdTitle"')),
-        "loaction": safe_get_text(
-            offer_url.select_one('data-testid="map-link-container"')
+        "title": safe_get_text(soup_offer.select_one('[data-cy="adPageAdTitle"')),
+        "location": safe_get_text(
+            soup_offer.select_one('data-testid="map-link-container"')
         ),
-        "price": safe_get_text(offer_url.select_one('[data-cy="adPageHeaderPrice"]')),
+        "price": safe_get_text(soup_offer.select_one('[data-cy="adPageHeaderPrice"]')),
         "square_meters": safe_get_text(
             main_points.select_one('[data-testid="table-value-area"]')
         ),
@@ -147,7 +296,7 @@ def get_offer_from_otodom(offer_url):
             main_points.select_one('[data-testid="table-value-construction_status"]')
         ),
         "summary_description": safe_get_text(
-            offer_url.select_one('[data-testid="content-container"]')
+            soup_offer.select_one('[data-testid="content-container"]')
         ),
         "ownership": safe_get_text(
             additional_points.select_one('[data-testid="table-value-advertiser_type"]')
@@ -193,59 +342,22 @@ def get_offer_from_otodom(offer_url):
     return data
 
 
-def get_offer_from_olx(offer_url, soup_offer):
-    description = soup_offer.select_one('[data-testid="main"]')
-
-    listing_details = description.find("ul", class_="css-sfcl1s").find_all("li")
-
-    location_paragraphs = soup_offer.find(
-        "img", src="/app/static/media/staticmap.65e20ad98.svg"
-    )
-
-    record = {
-        "link": offer_url,
-        "date": safe_get_text(description.select_one('[data-cy="ad-posted-at"]')),
-        "location": location_paragraphs,
-        "title": safe_get_text(description.select_one('[data-cy="ad_title"]')),
-        "price": safe_get_text(
-            description.select_one('[data-testid="ad-price-container"]')
-        ),
-        "ownership": safe_get_text(listing_details[0]),
-        "floor_level": safe_get_text(listing_details[1]),
-        "is_furnished": safe_get_text(listing_details[2]),
-        "building_type": safe_get_text(listing_details[3]),
-        "square_meters": safe_get_text(listing_details[4]),
-        "number_of_rooms": safe_get_text(listing_details[5]),
-        "rent": safe_get_text(listing_details[6]),
-        "summary_description": safe_get_text(
-            description.select_one('[data-cy="ad_description"]')
-        ),
-    }
-
-    return record
-
-
-# Function to save data to CSV
 def save_to_csv(data, filename="data.csv"):
     df = pd.DataFrame([data])
     df.to_csv(filename, mode="a", index=False, header=not pd.read_csv(filename).empty)
 
 
-# Main function to control the scraping process
 def main():
     log_setup()
+    driver = get_driver()
 
-    # URL to scrape - replace with the specific URL you are interested in
-    url = f'{search["domain"]}/{search["category"]}q-{search["location"]}/'
-    # Scrape the data
-    data = scrape_olx(url)
-    print(data)
-    # Save to CSV
-    # save_to_csv(data)
-    # Wait a bit before the next request
-    # time.sleep(1)  # Sleep for 1 second
+    try:
+        url = f'{search["domain"]}/{search["category"]}q-{search["location"]}/'
+        data = scrape_olx(url, driver)
+        print(data)
+    finally:
+        driver.quit()
 
 
 if __name__ == "__main__":
-    # Run the main function
     main()
