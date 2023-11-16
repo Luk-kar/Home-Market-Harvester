@@ -82,161 +82,10 @@ def scrape_olx(url):
             soup_offer = BeautifulSoup(response_offer.content, "html.parser")
 
             if subdomain["olx"] in offer_url:
-                description = soup_offer.select_one('[data-testid="main"]')
-
-                listing_details = description.find("ul", class_="css-sfcl1s").find_all(
-                    "li"
-                )
-
-                location_paragraphs = soup_offer.find(
-                    "img", src="/app/static/media/staticmap.65e20ad98.svg"
-                )
-
-                record = {
-                    "link": offer_url,
-                    "date": safe_get_text(
-                        description.select_one('[data-cy="ad-posted-at"]')
-                    ),
-                    "location": location_paragraphs,
-                    "title": safe_get_text(
-                        description.select_one('[data-cy="ad_title"]')
-                    ),
-                    "price": safe_get_text(
-                        description.select_one('[data-testid="ad-price-container"]')
-                    ),
-                    "ownership": safe_get_text(listing_details[0]),
-                    "floor_level": safe_get_text(listing_details[1]),
-                    "is_furnished": safe_get_text(listing_details[2]),
-                    "building_type": safe_get_text(listing_details[3]),
-                    "square_meters": safe_get_text(listing_details[4]),
-                    "number_of_rooms": safe_get_text(listing_details[5]),
-                    "rent": safe_get_text(listing_details[6]),
-                    "summary_description": safe_get_text(
-                        description.select_one('[data-cy="ad_description"]')
-                    ),
-                }
-
-                data = record
+                data = get_offer_from_olx(offer_url, soup_offer)
 
             elif subdomain["otodom"] in offer_url:
-                main_points = offer_url.select_one(
-                    '[data-testid="ad.top-information.table"]'
-                )
-
-                additional_points = offer_url.select_one(
-                    '[data-testid="ad.additional-information.table"]'
-                )
-
-                record = {
-                    "link": offer_url,
-                    "title": safe_get_text(
-                        offer_url.select_one('[data-cy="adPageAdTitle"')
-                    ),
-                    "loaction": safe_get_text(
-                        offer_url.select_one('data-testid="map-link-container"')
-                    ),
-                    "price": safe_get_text(
-                        offer_url.select_one('[data-cy="adPageHeaderPrice"]')
-                    ),
-                    "square_meters": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-area"]')
-                    ),
-                    "rent": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-rent"')
-                    ),
-                    "number_of_rooms": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-rooms_num"]')
-                    ),
-                    "deposit": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-deposit"]')
-                    ),
-                    "floor_level": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-floor"]')
-                    ),
-                    "building_type": safe_get_text(
-                        main_points.select_one(
-                            '[data-testid="table-value-building_type"]'
-                        )
-                    ),
-                    "available_from": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-free_from"]')
-                    ),
-                    "balcony_garden_terrace": safe_get_text(
-                        main_points.select_one('[data-testid="table-value-outdoor"]')
-                    ),
-                    "remote service": safe_get_text(
-                        main_points.select_one(
-                            # the test-id is not provided
-                            '[aria-label="Obsługa zdalna"]'
-                        )
-                    ),
-                    "completion": safe_get_text(
-                        main_points.select_one(
-                            '[data-testid="table-value-construction_status"]'
-                        )
-                    ),
-                    "summary_description": safe_get_text(
-                        offer_url.select_one('[data-testid="content-container"]')
-                    ),
-                    "ownership": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-advertiser_type"]'
-                        )
-                    ),
-                    "rent_to_students": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-rent_to_students"]'
-                        )
-                    ),
-                    "equipment": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-equipment_types"]'
-                        )
-                    ),
-                    "media_types": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-media_types"]'
-                        )
-                    ),
-                    "heating": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-heating"]'
-                        )
-                    ),
-                    "security": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-security_types"]'
-                        )
-                    ),
-                    "windows": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-windows_type"]'
-                        )
-                    ),
-                    "elevator": safe_get_text(
-                        additional_points.select_one('[data-testid="table-value-lift"]')
-                    ),
-                    "parking_space": safe_get_text(
-                        additional_points.select_one('[data-testid="table-value-car"]')
-                    ),
-                    "build_year": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-build_year"]'
-                        )
-                    ),
-                    "building_material": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-building_material"]'
-                        )
-                    ),
-                    "additional_information": safe_get_text(
-                        additional_points.select_one(
-                            '[data-testid="table-value-extras_types"]'
-                        )
-                    ),
-                }
-
-                data = record
+                data = get_offer_from_otodom(offer_url)
 
             else:
                 raise RequestException(f"Unrecognized URL: {offer_url}")
@@ -248,6 +97,132 @@ def scrape_olx(url):
         logging.error(f"HTTP error occurred: {http_err}")
     except Exception as err:
         logging.error(f"Other error occurred: {err}")
+
+
+def get_offer_from_otodom(offer_url):
+    main_points = offer_url.select_one('[data-testid="ad.top-information.table"]')
+
+    additional_points = offer_url.select_one(
+        '[data-testid="ad.additional-information.table"]'
+    )
+
+    record = {
+        "link": offer_url,
+        "title": safe_get_text(offer_url.select_one('[data-cy="adPageAdTitle"')),
+        "loaction": safe_get_text(
+            offer_url.select_one('data-testid="map-link-container"')
+        ),
+        "price": safe_get_text(offer_url.select_one('[data-cy="adPageHeaderPrice"]')),
+        "square_meters": safe_get_text(
+            main_points.select_one('[data-testid="table-value-area"]')
+        ),
+        "rent": safe_get_text(
+            main_points.select_one('[data-testid="table-value-rent"')
+        ),
+        "number_of_rooms": safe_get_text(
+            main_points.select_one('[data-testid="table-value-rooms_num"]')
+        ),
+        "deposit": safe_get_text(
+            main_points.select_one('[data-testid="table-value-deposit"]')
+        ),
+        "floor_level": safe_get_text(
+            main_points.select_one('[data-testid="table-value-floor"]')
+        ),
+        "building_type": safe_get_text(
+            main_points.select_one('[data-testid="table-value-building_type"]')
+        ),
+        "available_from": safe_get_text(
+            main_points.select_one('[data-testid="table-value-free_from"]')
+        ),
+        "balcony_garden_terrace": safe_get_text(
+            main_points.select_one('[data-testid="table-value-outdoor"]')
+        ),
+        "remote service": safe_get_text(
+            main_points.select_one(
+                # the test-id is not provided
+                '[aria-label="Obsługa zdalna"]'
+            )
+        ),
+        "completion": safe_get_text(
+            main_points.select_one('[data-testid="table-value-construction_status"]')
+        ),
+        "summary_description": safe_get_text(
+            offer_url.select_one('[data-testid="content-container"]')
+        ),
+        "ownership": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-advertiser_type"]')
+        ),
+        "rent_to_students": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-rent_to_students"]')
+        ),
+        "equipment": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-equipment_types"]')
+        ),
+        "media_types": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-media_types"]')
+        ),
+        "heating": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-heating"]')
+        ),
+        "security": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-security_types"]')
+        ),
+        "windows": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-windows_type"]')
+        ),
+        "elevator": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-lift"]')
+        ),
+        "parking_space": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-car"]')
+        ),
+        "build_year": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-build_year"]')
+        ),
+        "building_material": safe_get_text(
+            additional_points.select_one(
+                '[data-testid="table-value-building_material"]'
+            )
+        ),
+        "additional_information": safe_get_text(
+            additional_points.select_one('[data-testid="table-value-extras_types"]')
+        ),
+    }
+
+    data = record
+    return data
+
+
+def get_offer_from_olx(offer_url, soup_offer):
+    description = soup_offer.select_one('[data-testid="main"]')
+
+    listing_details = description.find("ul", class_="css-sfcl1s").find_all("li")
+
+    location_paragraphs = soup_offer.find(
+        "img", src="/app/static/media/staticmap.65e20ad98.svg"
+    )
+
+    record = {
+        "link": offer_url,
+        "date": safe_get_text(description.select_one('[data-cy="ad-posted-at"]')),
+        "location": location_paragraphs,
+        "title": safe_get_text(description.select_one('[data-cy="ad_title"]')),
+        "price": safe_get_text(
+            description.select_one('[data-testid="ad-price-container"]')
+        ),
+        "ownership": safe_get_text(listing_details[0]),
+        "floor_level": safe_get_text(listing_details[1]),
+        "is_furnished": safe_get_text(listing_details[2]),
+        "building_type": safe_get_text(listing_details[3]),
+        "square_meters": safe_get_text(listing_details[4]),
+        "number_of_rooms": safe_get_text(listing_details[5]),
+        "rent": safe_get_text(listing_details[6]),
+        "summary_description": safe_get_text(
+            description.select_one('[data-cy="ad_description"]')
+        ),
+    }
+
+    return record
 
 
 # Function to save data to CSV

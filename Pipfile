@@ -8,6 +8,8 @@ fake-useragent = "*"
 requests = "*"
 beautifulsoup4 = "*"
 pandas = "*"
+selenium = "*"
+webdriver-manager = "*"
 
 [dev-packages]
 
