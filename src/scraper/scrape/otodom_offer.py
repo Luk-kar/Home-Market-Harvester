@@ -1,34 +1,25 @@
-from _utils import safe_get_text, wait_for_conditions
+from _utils import get_text_by_selector, wait_for_conditions, presence_of_element
 from bs4 import BeautifulSoup
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 
+def get_offer_from_otodom(offer_url: str, driver) -> dict:
+    conditions = [
+        presence_of_element('[data-testid="ad.top-information.table"]'),
+        presence_of_element('[data-testid="ad.additional-information.table"]'),
+        presence_of_element('[data-cy="adPageAdTitle"'),
+        presence_of_element('data-testid="map-link-container"'),
+        presence_of_element('[data-cy="adPageHeaderPrice"]'),
+        presence_of_element('[data-testid="content-container"]'),
+    ]
 
-def get_offer_from_otodom(offer_url, driver):
-    wait_for_conditions(
-        driver,
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, '[data-testid="ad.top-information.table"]')
-        ),
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, '[data-testid="ad.additional-information.table"]')
-        ),
-        EC.presence_of_element_located((By.CSS_SELECTOR, '[data-cy="adPageAdTitle"')),
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, 'data-testid="map-link-container"')
-        ),
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, '[data-cy="adPageHeaderPrice"]')
-        ),
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, '[data-testid="content-container"]')
-        ),
-    )
+    if not wait_for_conditions(driver, *conditions):
+        return None
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
 
-    main_points = offer_url.select_one('[data-testid="ad.top-information.table"]')
+    main_points = get_text_by_selector(
+        offer_url, '[data-testid="ad.top-information.table"]'
+    )
 
     additional_points = soup_offer.select_one(
         '[data-testid="ad.additional-information.table"]'
@@ -36,86 +27,80 @@ def get_offer_from_otodom(offer_url, driver):
 
     record = {
         "link": offer_url,
-        "title": safe_get_text(soup_offer.select_one('[data-cy="adPageAdTitle"')),
-        "location": safe_get_text(
-            soup_offer.select_one('data-testid="map-link-container"')
+        "title": get_text_by_selector(soup_offer, '[data-cy="adPageAdTitle"'),
+        "location": get_text_by_selector(
+            soup_offer, 'data-testid="map-link-container"'
         ),
-        "price": safe_get_text(soup_offer.select_one('[data-cy="adPageHeaderPrice"]')),
-        "square_meters": safe_get_text(
-            main_points.select_one('[data-testid="table-value-area"]')
+        "price": get_text_by_selector(soup_offer, '[data-cy="adPageHeaderPrice"]'),
+        "square_meters": get_text_by_selector(
+            main_points, '[data-testid="table-value-area"]'
         ),
-        "rent": safe_get_text(
-            main_points.select_one('[data-testid="table-value-rent"')
+        "rent": get_text_by_selector(main_points, '[data-testid="table-value-rent"'),
+        "number_of_rooms": get_text_by_selector(
+            main_points, '[data-testid="table-value-rooms_num"]'
         ),
-        "number_of_rooms": safe_get_text(
-            main_points.select_one('[data-testid="table-value-rooms_num"]')
+        "deposit": get_text_by_selector(
+            main_points, '[data-testid="table-value-deposit"]'
         ),
-        "deposit": safe_get_text(
-            main_points.select_one('[data-testid="table-value-deposit"]')
+        "floor_level": get_text_by_selector(
+            main_points, '[data-testid="table-value-floor"]'
         ),
-        "floor_level": safe_get_text(
-            main_points.select_one('[data-testid="table-value-floor"]')
+        "building_type": get_text_by_selector(
+            main_points, '[data-testid="table-value-building_type"]'
         ),
-        "building_type": safe_get_text(
-            main_points.select_one('[data-testid="table-value-building_type"]')
+        "available_from": get_text_by_selector(
+            main_points, '[data-testid="table-value-free_from"]'
         ),
-        "available_from": safe_get_text(
-            main_points.select_one('[data-testid="table-value-free_from"]')
+        "balcony_garden_terrace": get_text_by_selector(
+            main_points, '[data-testid="table-value-outdoor"]'
         ),
-        "balcony_garden_terrace": safe_get_text(
-            main_points.select_one('[data-testid="table-value-outdoor"]')
+        "remote service": get_text_by_selector(
+            main_points,
+            # the test-id is not provided
+            '[aria-label="Obsługa zdalna"]',
         ),
-        "remote service": safe_get_text(
-            main_points.select_one(
-                # the test-id is not provided
-                '[aria-label="Obsługa zdalna"]'
-            )
+        "completion": get_text_by_selector(
+            main_points, '[data-testid="table-value-construction_status"]'
         ),
-        "completion": safe_get_text(
-            main_points.select_one('[data-testid="table-value-construction_status"]')
+        "summary_description": get_text_by_selector(
+            soup_offer, '[data-testid="content-container"]'
         ),
-        "summary_description": safe_get_text(
-            soup_offer.select_one('[data-testid="content-container"]')
+        "ownership": get_text_by_selector(
+            additional_points, '[data-testid="table-value-advertiser_type"]'
         ),
-        "ownership": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-advertiser_type"]')
+        "rent_to_students": get_text_by_selector(
+            additional_points, '[data-testid="table-value-rent_to_students"]'
         ),
-        "rent_to_students": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-rent_to_students"]')
+        "equipment": get_text_by_selector(
+            additional_points, '[data-testid="table-value-equipment_types"]'
         ),
-        "equipment": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-equipment_types"]')
+        "media_types": get_text_by_selector(
+            additional_points, '[data-testid="table-value-media_types"]'
         ),
-        "media_types": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-media_types"]')
+        "heating": get_text_by_selector(
+            additional_points, '[data-testid="table-value-heating"]'
         ),
-        "heating": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-heating"]')
+        "security": get_text_by_selector(
+            additional_points, '[data-testid="table-value-security_types"]'
         ),
-        "security": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-security_types"]')
+        "windows": get_text_by_selector(
+            additional_points, '[data-testid="table-value-windows_type"]'
         ),
-        "windows": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-windows_type"]')
+        "elevator": get_text_by_selector(
+            additional_points, '[data-testid="table-value-lift"]'
         ),
-        "elevator": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-lift"]')
+        "parking_space": get_text_by_selector(
+            additional_points, '[data-testid="table-value-car"]'
         ),
-        "parking_space": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-car"]')
+        "build_year": get_text_by_selector(
+            additional_points, '[data-testid="table-value-build_year"]'
         ),
-        "build_year": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-build_year"]')
+        "building_material": get_text_by_selector(
+            additional_points, '[data-testid="table-value-building_material"]'
         ),
-        "building_material": safe_get_text(
-            additional_points.select_one(
-                '[data-testid="table-value-building_material"]'
-            )
-        ),
-        "additional_information": safe_get_text(
-            additional_points.select_one('[data-testid="table-value-extras_types"]')
+        "additional_information": get_text_by_selector(
+            additional_points, '[data-testid="table-value-extras_types"]'
         ),
     }
 
-    data = record
-    return data
+    return record

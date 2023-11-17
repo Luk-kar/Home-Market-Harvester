@@ -1,7 +1,6 @@
 from _utils import random_delay
 from config import SCRAPER, SUBDOMAINS
 from bs4 import BeautifulSoup
-from custom_exceptions import ConditionNotMetException
 from scrape.olx_offer import get_offer_from_olx
 from scrape.otodom_offer import get_offer_from_otodom
 
@@ -20,8 +19,8 @@ def scrape_offers(url, driver):
         try:
             driver.get(url)
         except WebDriverException as e:
-            logging.error(f"Connection issue encountered: {e}")
             # Attempt to refresh the page or handle the error as needed
+            logging.error(f"Connection issue encountered: {e}")
             driver.refresh()
 
         WebDriverWait(driver, 10).until(
@@ -57,17 +56,16 @@ def scrape_offers(url, driver):
             driver.execute_script(f"window.open('{offer_url}', '_blank');")
             driver.switch_to.window(driver.window_handles[1])
 
-            try:
-                if subdomain["olx"] in offer_url:
-                    data = get_offer_from_olx(offer_url, driver)
+            if subdomain["olx"] in offer_url:
+                data = get_offer_from_olx(offer_url, driver)
 
-                elif subdomain["otodom"] in offer_url:
-                    data = get_offer_from_otodom(offer_url, driver)
+            elif subdomain["otodom"] in offer_url:
+                data = get_offer_from_otodom(offer_url, driver)
 
-                else:
-                    raise RequestException(f"Unrecognized URL: {offer_url}")
+            else:
+                raise RequestException(f"Unrecognized URL: {offer_url}")
 
-            except ConditionNotMetException as e:
+            if data is None:
                 logging.error(f"Failed to process {offer_url}: {e}")
 
             driver.close()

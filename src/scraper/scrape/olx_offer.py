@@ -6,14 +6,18 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 def get_offer_from_olx(offer_url, driver):
-    wait_for_conditions(
-        driver,
-        EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="main"]')),
-        lambda driver: element_with_attribute(
-            driver, "img", "src", "/app/static/media/staticmap.65e20ad98.svg"
+    if (
+        wait_for_conditions(
+            driver,
+            EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="main"]')),
+            lambda driver: element_with_attribute(
+                driver, "img", "src", "/app/static/media/staticmap.65e20ad98.svg"
+            )
+            is not None,
         )
-        is not None,
-    )
+        == False
+    ):
+        return None
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
 
