@@ -20,10 +20,9 @@ def get_offer_from_olx(offer_url, driver):
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, field_selectors["description"])
         ),
-        lambda driver: element_with_attribute(
-            driver, "img", "src", "/app/static/media/staticmap.65e20ad98.svg"
-        )
-        is not None,
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, field_selectors["location_paragraphs"])
+        ),
     ]
 
     if not wait_for_conditions(driver, *conditions):
@@ -33,25 +32,34 @@ def get_offer_from_olx(offer_url, driver):
     description = soup_offer.select_one(field_selectors["description"])
     listing_details = description.select(field_selectors["listing_details"])
 
-    location_paragraphs = soup_offer.find(
-        "img", src="/app/static/media/staticmap.65e20ad98.svg"
-    )
-
     record = {
         "link": offer_url,
         "date": safe_get_text(description.select_one(field_selectors["date"])),
         "title": safe_get_text(description.select_one(field_selectors["title"])),
         "price": safe_get_text(description.select_one(field_selectors["price"])),
-        "ownership": safe_get_text(listing_details[0]),
-        "floor_level": safe_get_text(listing_details[1]),
-        "is_furnished": safe_get_text(listing_details[2]),
-        "building_type": safe_get_text(listing_details[3]),
-        "square_meters": safe_get_text(listing_details[4]),
-        "number_of_rooms": safe_get_text(listing_details[5]),
-        "rent": safe_get_text(listing_details[6]),
         "summary_description": safe_get_text(
             description.select_one(field_selectors["summary_description"])
         ),
     }
+
+    if listing_details:
+        detail_fields = [
+            "ownership",
+            "floor_level",
+            "is_furnished",
+            "building_type",
+            "square_meters",
+            "number_of_rooms",
+            "rent",
+        ]
+        record.update(
+            {
+                field: safe_get_text(detail)
+                for field, detail in zip(detail_fields, listing_details)
+            }
+        )
+
+    location_paragraphs = soup_offer.select_one(field_selectors["location_paragraphs"])
+    record["location"] = location_paragraphs.get("alt") if location_paragraphs else None
 
     return record
