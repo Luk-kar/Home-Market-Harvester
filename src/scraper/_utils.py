@@ -13,6 +13,7 @@ import logging
 import random
 import time
 from config import SCRAPER
+from typing import Dict, List
 
 
 def random_delay(
@@ -55,7 +56,8 @@ def wait_for_conditions(
         retry_count = 0
         while retry_count < max_retries:
             try:
-                WebDriverWait(driver, timeout).until(condition)
+                required_web_element = presence_of_element(condition)
+                WebDriverWait(driver, timeout).until(required_web_element)
                 break  # Condition met, exit retry loop
             except TimeoutException:
                 retry_count += 1
@@ -76,3 +78,27 @@ def get_text_by_selector(
 
 def presence_of_element(selector: str):
     return EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+
+
+def extract_data(
+    field_selectors: Dict[str, str],
+    fields_to_extract: List[str],
+    source_element,
+    record: Dict[str, str],
+):
+    """
+    Extracts data from the given source element and updates the record dictionary.
+
+    Args:
+    - field_selectors (Dict[str, str]): A dictionary mapping field names to their CSS selectors.
+    - source_element: The BeautifulSoup object or WebElement from which to extract data.
+    - record (Dict[str, str]): The dictionary to update with extracted data.
+    - fields_to_extract (List[str]): A list of field names to extract from the source element.
+    """
+    record.update(
+        {
+            field: get_text_by_selector(source_element, field_selectors[field])
+            for field in fields_to_extract
+            if field in field_selectors
+        }
+    )

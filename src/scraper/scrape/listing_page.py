@@ -60,6 +60,7 @@ def scrape_offers(url, driver):
                 data = get_offer_from_olx(offer_url, driver)
 
             elif subdomain["otodom"] in offer_url:
+                continue
                 data = get_offer_from_otodom(offer_url, driver)
 
             else:
