@@ -17,10 +17,10 @@ def get_offer_from_olx(offer_url, driver):
         field_selectors[key] for key in ["description", "location_paragraphs"]
     ]
 
-    if not wait_for_conditions(driver, *conditions):
+    if wait_for_conditions(driver, *conditions):
+        return parse_offer_page(offer_url, driver, field_selectors)
+    else:
         return None
-
-    return parse_offer_page(offer_url, driver, field_selectors)
 
 
 def parse_offer_page(offer_url, driver, field_selectors):
