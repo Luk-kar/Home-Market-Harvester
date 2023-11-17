@@ -20,12 +20,17 @@ def get_offer_from_olx(offer_url, driver):
     if not wait_for_conditions(driver, *conditions):
         return None
 
+    return parse_offer_page(offer_url, driver, field_selectors)
+
+
+def parse_offer_page(offer_url, driver, field_selectors):
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
     description = soup_offer.select_one(field_selectors["description"])
 
     record = {}
     record["link"] = offer_url
 
+    # Get header and description data
     extract_data(
         field_selectors,
         ["title", "location", "price", "summary_description"],
@@ -33,9 +38,11 @@ def get_offer_from_olx(offer_url, driver):
         record,
     )
 
+    # Get location
     location_paragraphs = soup_offer.select_one(field_selectors["location_paragraphs"])
     record["location"] = location_paragraphs.get("alt") if location_paragraphs else None
 
+    # Get listing details
     listing_details = description.select(field_selectors["listing_details"])
     detail_fields = [
         "ownership",
