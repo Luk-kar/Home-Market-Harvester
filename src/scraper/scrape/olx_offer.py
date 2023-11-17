@@ -6,24 +6,32 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 def get_offer_from_olx(offer_url, driver):
-    if (
-        wait_for_conditions(
-            driver,
-            EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="main"]')),
-            lambda driver: element_with_attribute(
-                driver, "img", "src", "/app/static/media/staticmap.65e20ad98.svg"
-            )
-            is not None,
+    field_selectors = {
+        "description": '[data-testid="main"]',
+        "location_paragraphs": 'img[src="/app/static/media/staticmap.65e20ad98.svg"]',
+        "date": '[data-cy="ad-posted-at"]',
+        "title": '[data-cy="ad_title"]',
+        "price": '[data-testid="ad-price-container"]',
+        "listing_details": "ul.css-sfcl1s > li",
+        "summary_description": '[data-cy="ad_description"]',
+    }
+
+    conditions = [
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, field_selectors["description"])
+        ),
+        lambda driver: element_with_attribute(
+            driver, "img", "src", "/app/static/media/staticmap.65e20ad98.svg"
         )
-        == False
-    ):
+        is not None,
+    ]
+
+    if not wait_for_conditions(driver, *conditions):
         return None
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
-
-    description = soup_offer.select_one('[data-testid="main"]')
-
-    listing_details = description.find("ul", class_="css-sfcl1s").find_all("li")
+    description = soup_offer.select_one(field_selectors["description"])
+    listing_details = description.select(field_selectors["listing_details"])
 
     location_paragraphs = soup_offer.find(
         "img", src="/app/static/media/staticmap.65e20ad98.svg"
@@ -31,12 +39,9 @@ def get_offer_from_olx(offer_url, driver):
 
     record = {
         "link": offer_url,
-        "date": safe_get_text(description.select_one('[data-cy="ad-posted-at"]')),
-        "location": location_paragraphs.get("alt") if location_paragraphs else None,
-        "title": safe_get_text(description.select_one('[data-cy="ad_title"]')),
-        "price": safe_get_text(
-            description.select_one('[data-testid="ad-price-container"]')
-        ),
+        "date": safe_get_text(description.select_one(field_selectors["date"])),
+        "title": safe_get_text(description.select_one(field_selectors["title"])),
+        "price": safe_get_text(description.select_one(field_selectors["price"])),
         "ownership": safe_get_text(listing_details[0]),
         "floor_level": safe_get_text(listing_details[1]),
         "is_furnished": safe_get_text(listing_details[2]),
@@ -45,7 +50,7 @@ def get_offer_from_olx(offer_url, driver):
         "number_of_rooms": safe_get_text(listing_details[5]),
         "rent": safe_get_text(listing_details[6]),
         "summary_description": safe_get_text(
-            description.select_one('[data-cy="ad_description"]')
+            description.select_one(field_selectors["summary_description"])
         ),
     }
 
