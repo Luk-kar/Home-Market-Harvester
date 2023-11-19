@@ -24,8 +24,8 @@ def main():
 
     try:
         url = f'{SCRAPER["domain"]}/{SCRAPER["category"]}q-{SCRAPER["location"]}/'
-        data = scrape_offers(url, driver)
-        print(data)
+        scrape_offers(url, driver)
+
     finally:
         driver.quit()
 

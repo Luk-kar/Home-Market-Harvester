@@ -16,6 +16,18 @@ from scrape.olx_offer import get_offer_from_olx
 from scrape.otodom_offer import get_offer_from_otodom
 
 
+class OfferProcessingError(Exception):
+    """Exception raised for errors in processing offer URLs."""
+
+    def __init__(self, url, message="Error processing offer URL"):
+        self.url = url
+        self.message = f"{message}: {url}"
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.message}"
+
+
 def scrape_offers(url, driver):
     try:
         try:
@@ -39,10 +51,7 @@ def scrape_offers(url, driver):
         offers_listings = soup.select_one('[data-testid="listing-grid"]')
         offers = offers_listings.select('[data-testid="l-card"]')
 
-        data = None
-        data = extracts_page_offers(driver, offers)
-
-        return data
+        extracts_page_offers(driver, offers)
 
     except Exception as e:
         if LOGGING["debug"]:
@@ -86,11 +95,12 @@ def extracts_page_offers(driver, offers):
 
         if data is None:
             if LOGGING["debug"]:
-                raise e
+                raise OfferProcessingError(offer_url, "Failed to process offer URL")
 
-            logging.error("Failed to process %s: %s", offer_url, e)
+            logging.error("Failed to process: %s", offer_url)
 
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
         break
-    return data
+
+    print(data)

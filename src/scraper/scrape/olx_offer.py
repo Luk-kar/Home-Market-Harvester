@@ -1,10 +1,15 @@
-from typing import Dict, Optional
+# Standard imports
+from typing import Optional
+
+# Third-party imports
 from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
+
+# Local imports
 from _utils import safe_get_text, wait_for_conditions, extract_data
 
 
-def get_offer_from_olx(driver: WebDriver) -> Optional[Dict[str, str]]:
+def get_offer_from_olx(driver: WebDriver) -> Optional[dict[str, str]]:
     field_selectors = {
         "description": '[data-testid="main"]',
         "location_paragraphs": 'img[src="/app/static/media/staticmap.65e20ad98.svg"]',
@@ -25,14 +30,14 @@ def get_offer_from_olx(driver: WebDriver) -> Optional[Dict[str, str]]:
         return None
 
 
-def parse_offer_page(driver: WebDriver, field_selectors: Dict[str, str]):
+def parse_offer_page(driver: WebDriver, field_selectors: dict[str, str]):
     offer_url = driver.current_url
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
     description = soup_offer.select_one(field_selectors["description"])
 
     record = {}
-    record["link"]: Dict[str, str] = {"link": offer_url}
+    record["link"]: dict[str, str] = {"link": offer_url}
 
     # Get header and description data
     extract_data(
