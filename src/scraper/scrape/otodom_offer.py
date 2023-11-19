@@ -2,12 +2,12 @@ from _utils import get_text_by_selector, wait_for_conditions, presence_of_elemen
 from bs4 import BeautifulSoup
 
 
-def get_offer_from_otodom(offer_url: str, driver) -> dict:
+def get_offer_from_otodom(driver) -> dict:
     field_selectors = {
         "main_points": '[data-testid="ad.top-information.table"]',
         "additional_points": '[data-testid="ad.additional-information.table"]',
         "title": '[data-cy="adPageAdTitle"]',
-        "location": 'data-testid="map-link-container"',
+        "location": '[data-testid="map-link-container"]',
         "price": '[data-cy="adPageHeaderPrice"]',
         "square_meters": '[data-testid="table-value-area"]',
         "rent": '[data-testid="table-value-rent"]',
@@ -34,45 +34,45 @@ def get_offer_from_otodom(offer_url: str, driver) -> dict:
         "additional_information": '[data-testid="table-value-extras_types"]',
     }
 
-    conditions_selectors = [
-        {
-            key: field_selectors[key]
-            for key in [
-                "main_points",
-                "additional_points",
-                "title",
-                "location",
-                "price",
-                "summary_description",
-            ]
-        }
+    conditions = [
+        field_selectors[key]
+        for key in [
+            "main_points",
+            "additional_points",
+            "title",
+            "location",
+            "price",
+            "summary_description",
+        ]
     ]
 
-    if not wait_for_conditions(driver, *conditions_selectors):
+    if wait_for_conditions(driver, *conditions):
+        return parse_offer_page(driver)
+    else:
         return None
 
-    return "Passed"
+
+def parse_offer_page(driver):
+    offer_url = driver.current_url
+
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
 
-    main_points = get_text_by_selector(
-        offer_url, '[data-testid="ad.top-information.table"]'
-    )
-
+    main_points = soup_offer.select_one('[data-testid="ad.top-information.table"]')
     additional_points = soup_offer.select_one(
         '[data-testid="ad.additional-information.table"]'
     )
 
     record = {
         "link": offer_url,
-        "title": get_text_by_selector(soup_offer, '[data-cy="adPageAdTitle"'),
+        "title": get_text_by_selector(soup_offer, '[data-cy="adPageAdTitle"]'),
         "location": get_text_by_selector(
-            soup_offer, 'data-testid="map-link-container"'
+            soup_offer, '[data-testid="map-link-container"]'
         ),
         "price": get_text_by_selector(soup_offer, '[data-cy="adPageHeaderPrice"]'),
         "square_meters": get_text_by_selector(
             main_points, '[data-testid="table-value-area"]'
         ),
-        "rent": get_text_by_selector(main_points, '[data-testid="table-value-rent"'),
+        "rent": get_text_by_selector(main_points, '[data-testid="table-value-rent"]'),
         "number_of_rooms": get_text_by_selector(
             main_points, '[data-testid="table-value-rooms_num"]'
         ),

@@ -1,5 +1,5 @@
 from _utils import random_delay
-from config import SCRAPER, SUBDOMAINS
+from config import SCRAPER, SUBDOMAINS, LOGGING
 from bs4 import BeautifulSoup
 from scrape.olx_offer import get_offer_from_olx
 from scrape.otodom_offer import get_offer_from_otodom
@@ -20,7 +20,10 @@ def scrape_offers(url, driver):
             driver.get(url)
         except WebDriverException as e:
             # Attempt to refresh the page or handle the error as needed
-            logging.error(f"Connection issue encountered: {e}")
+            if LOGGING["debug"]:
+                raise e
+            else:
+                logging.error(f"Connection issue encountered: {e}")
             driver.refresh()
 
         WebDriverWait(driver, 10).until(
@@ -47,21 +50,23 @@ def scrape_offers(url, driver):
                 logging.info(f"No link found in the offer with id={offer_id}")
 
         for offer_url in url_offers:
-            subdomain = {"olx": SCRAPER["domain"], "otodom": SUBDOMAINS["otodom"]}
+            subdomain = {"olx": SUBDOMAINS["olx"], "otodom": SUBDOMAINS["otodom"]}
             if not offer_url.startswith("http"):
-                offer_url = SCRAPER["domain"] + offer_url
+                offer_url = subdomain["olx"] + offer_url
 
-            random_delay()  # Human behavior, anti-anti-bot
+            # random_delay()  # Human behavior, anti-anti-bot
 
-            driver.execute_script(f"window.open('{offer_url}', '_blank');")
-            driver.switch_to.window(driver.window_handles[1])
+            # driver.execute_script(f"window.open('{offer_url}', '_blank');")
+            # driver.switch_to.window(driver.window_handles[1])
 
             if subdomain["olx"] in offer_url:
                 continue
                 data = get_offer_from_olx(driver)
 
             elif subdomain["otodom"] in offer_url:
-                data = get_offer_from_otodom(offer_url, driver)
+                driver.execute_script(f"window.open('{offer_url}', '_blank');")
+                driver.switch_to.window(driver.window_handles[1])
+                data = get_offer_from_otodom(driver)
                 break
 
             else:
@@ -69,7 +74,10 @@ def scrape_offers(url, driver):
                 raise RequestException(f"Unrecognized URL: {offer_url}")
 
             if data is None:
-                logging.error(f"Failed to process {offer_url}: {e}")
+                if LOGGING["debug"]:
+                    raise e
+                else:
+                    logging.error(f"Failed to process {offer_url}: {e}")
 
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
@@ -78,4 +86,7 @@ def scrape_offers(url, driver):
         return data
 
     except Exception as e:
-        logging.error(f"Error occurred: {e}")
+        if LOGGING["debug"]:
+            raise e
+        else:
+            logging.error(f"Error occurred: {e}")

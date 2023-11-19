@@ -19,6 +19,7 @@ WEBDRIVER: Dict[str, str | bool] = {
     "maximize_window": True,
 }
 LOGGING: Dict[str, str] = {
+    "debug": True,
     "level": logging.INFO,
     "file": "./logs/scraper.log",
 }
