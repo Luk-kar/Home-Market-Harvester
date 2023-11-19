@@ -1,26 +1,37 @@
-from typing import Optional
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.remote.webdriver import WebDriver
-from typing import Optional
-from bs4 import BeautifulSoup
-from selenium.webdriver.support import expected_conditions as EC
+"""
+This module provides a collection of utility functions 
+to assist with web scraping using Selenium and BeautifulSoup. 
+"""
 
-# import time
+# Standard imports
+from typing import Dict, List, Optional
 import logging
 import random
 import time
+
+# Third-party imports
+from bs4 import BeautifulSoup
 from config import SCRAPER
-from typing import Dict, List
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def random_delay(
     min_seconds: float = SCRAPER["min_delay"], max_seconds: float = SCRAPER["max_delay"]
 ):
     """
-    Generates a random delay between min_seconds and max_seconds
+    Pauses execution for a random period between `min_seconds` and `max_seconds`.
+
+    Args:
+    - min_seconds (float): The min of seconds to delay.
+    - max_seconds (float): The max of seconds to delay.
+
+    Returns:
+    None.
     """
     time.sleep(random.uniform(min_seconds, max_seconds))
 
@@ -28,18 +39,21 @@ def random_delay(
 def safe_get_text(
     element: Optional[WebElement], default: Optional[str] = None
 ) -> Optional[str]:
+    """
+    Extracts text content from a web element safely.
+
+    Args:
+    - element (Optional[WebElement]): The WebElement from which to extract text.
+    - default (Optional[str]): The default value to return if text extraction fails.
+
+    Returns:
+    - Optional[str]: The extracted text or the default value if extraction fails.
+    """
+
     try:
         return element.text.strip() if element else default
     except AttributeError:
         return default
-
-
-def element_with_attribute(driver: WebDriver, tag: str, attribute: str, value: str):
-    elements = driver.find_elements(By.TAG_NAME, tag)
-    return next(
-        (element for element in elements if element.get_attribute(attribute) == value),
-        None,
-    )
 
 
 def wait_for_conditions(
@@ -49,9 +63,18 @@ def wait_for_conditions(
     max_retries: int = SCRAPER["max_retries"],
 ) -> bool:
     """
-    Waits for all specified conditions to be met within a given timeout. Raises an
-    exception if any condition is not met 5 times consecutively.
+    Waits for multiple conditions to be met within a specified timeout.
+
+    Args:
+    - driver (WebDriver): The WebDriver instance used to drive the browser.
+    - *conditions: Variable length argument list of expected conditions.
+    - timeout (int): Maximum time to wait for the conditions to be met.
+    - max_retries (int): Maximum number of retries for each condition.
+
+    Returns:
+    - bool: True if all conditions are met within the timeout, False otherwise.
     """
+
     for condition in conditions:
         retry_count = 0
         while retry_count < max_retries:
@@ -62,7 +85,7 @@ def wait_for_conditions(
             except TimeoutException:
                 retry_count += 1
                 logging.warning(
-                    f"Condition not met, retrying... Attempt: {retry_count}"
+                    "Condition not met, retrying... Attempt: %s", retry_count
                 )
                 if retry_count == max_retries:
                     return False
@@ -73,10 +96,32 @@ def wait_for_conditions(
 def get_text_by_selector(
     soup: BeautifulSoup, selector: str, default: Optional[str] = None
 ) -> Optional[str]:
+    """
+    Extracts text content from a BeautifulSoup object using a CSS selector.
+
+    Args:
+    - soup (BeautifulSoup): The BeautifulSoup object to search within.
+    - selector (str): The CSS selector to use for extracting text.
+    - default (Optional[str]): The default value to return if no element is found.
+
+    Returns:
+    - Optional[str]: The extracted text or the default value if no element is found.
+    """
+
     return safe_get_text(soup.select_one(selector), default)
 
 
 def presence_of_element(selector: str):
+    """
+    Creates a condition that checks if an element is present on the DOM of a page.
+
+    Args:
+    - selector (str): The CSS selector to use for locating the element.
+
+    Returns:
+    - Callable: An expected condition that locates elements by CSS selector.
+    """
+
     return EC.presence_of_element_located((By.CSS_SELECTOR, selector))
 
 
@@ -87,13 +132,18 @@ def extract_data(
     record: Dict[str, str],
 ):
     """
-    Extracts data from the given source element and updates the record dictionary.
+    Extracts data from the given source element based on the provided field selectors
+    and updates the record dictionary with extracted values.
 
     Args:
-    - field_selectors (Dict[str, str]): A dictionary mapping field names to their CSS selectors.
-    - source_element: The BeautifulSoup object or WebElement from which to extract data.
+    - field_selectors (Dict[str, str]): A dictionary mapping field names to CSS selectors.
+    - fields_to_extract (List[str]): A list of field names that need to be extracted.
+    - source_element: The source from which to extract the data,
+    can be a BeautifulSoup object or WebElement.
     - record (Dict[str, str]): The dictionary to update with extracted data.
-    - fields_to_extract (List[str]): A list of field names to extract from the source element.
+
+    Returns:
+    - None
     """
     record.update(
         {

@@ -1,9 +1,32 @@
-import os
+"""
+This module configures logging for the application.
+"""
+
+
+# Standard imports
 import logging
+import os
+
+# Local imports
 from config import LOGGING
 
 
 def log_setup():
+    """
+    Sets up logging for the application.
+
+    It creates a logger object,
+    sets its level,
+    and adds two handlers for logging:
+    one for writing logs to a file and
+    another for console output.
+
+    If the log directory does not exist, it is created.
+
+    The log messages are formatted with
+    time, log level, and the log message.
+    """
+
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
 

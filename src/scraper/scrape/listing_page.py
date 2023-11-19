@@ -1,5 +1,5 @@
 from _utils import random_delay
-from config import SCRAPER, SUBDOMAINS, LOGGING
+from config import SUBDOMAINS, LOGGING, SCRAPER
 from bs4 import BeautifulSoup
 from scrape.olx_offer import get_offer_from_olx
 from scrape.otodom_offer import get_offer_from_otodom
@@ -54,23 +54,19 @@ def scrape_offers(url, driver):
             if not offer_url.startswith("http"):
                 offer_url = subdomain["olx"] + offer_url
 
-            # random_delay()  # Human behavior, anti-anti-bot
+            if SCRAPER["anti-anti-bot"]:
+                random_delay()  # Human behavior
 
-            # driver.execute_script(f"window.open('{offer_url}', '_blank');")
-            # driver.switch_to.window(driver.window_handles[1])
+            driver.execute_script(f"window.open('{offer_url}', '_blank');")
+            driver.switch_to.window(driver.window_handles[1])
 
             if subdomain["olx"] in offer_url:
-                continue
                 data = get_offer_from_olx(driver)
 
             elif subdomain["otodom"] in offer_url:
-                driver.execute_script(f"window.open('{offer_url}', '_blank');")
-                driver.switch_to.window(driver.window_handles[1])
                 data = get_offer_from_otodom(driver)
-                break
 
             else:
-                continue
                 raise RequestException(f"Unrecognized URL: {offer_url}")
 
             if data is None:
@@ -81,7 +77,7 @@ def scrape_offers(url, driver):
 
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
-            # break
+            break
 
         return data
 

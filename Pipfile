@@ -12,6 +12,7 @@ selenium = "*"
 webdriver-manager = "*"
 
 [dev-packages]
+pylint = "*"
 
 [requires]
 python_version = "3.11"
