@@ -12,6 +12,8 @@ SCRAPER: Dict[str, str | int | float] = {
     "max_delay": 1.30,
 }
 WEBDRIVER: Dict[str, str | bool] = {
+    "auto_install": False,
+    "path": "src\scraper\chromedriver.exe",  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,
     "maximize_window": True,

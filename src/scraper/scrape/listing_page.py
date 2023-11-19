@@ -57,13 +57,15 @@ def scrape_offers(url, driver):
             driver.switch_to.window(driver.window_handles[1])
 
             if subdomain["olx"] in offer_url:
-                data = get_offer_from_olx(offer_url, driver)
+                continue
+                data = get_offer_from_olx(driver)
 
             elif subdomain["otodom"] in offer_url:
-                continue
                 data = get_offer_from_otodom(offer_url, driver)
+                break
 
             else:
+                continue
                 raise RequestException(f"Unrecognized URL: {offer_url}")
 
             if data is None:
@@ -71,7 +73,7 @@ def scrape_offers(url, driver):
 
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
-            break
+            # break
 
         return data
 
