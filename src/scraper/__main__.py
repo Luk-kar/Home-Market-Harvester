@@ -25,7 +25,7 @@ def main():
     try:
         urls = [
             # f'{SUBDOMAINS["olx"]}/{SCRAPER["category"]}q-{SCRAPER["location"]}/',
-            f'{SUBDOMAINS["otodom"]}/{SCRAPER["category"]}q-{SCRAPER["location"]}/',
+            SUBDOMAINS["otodom"],
         ]
         for url in urls:
             scrape_offers(url, driver)
