@@ -3,7 +3,7 @@ from logging_setup import log_setup
 from webdriver_setup import get_driver
 
 # Local imports
-from config import SCRAPER
+from config import SCRAPER, SUBDOMAINS
 from scrape.listing_page import scrape_offers
 
 
@@ -23,8 +23,12 @@ def main():
     driver = get_driver()
 
     try:
-        url = f'{SCRAPER["domain"]}/{SCRAPER["category"]}q-{SCRAPER["location"]}/'
-        scrape_offers(url, driver)
+        urls = [
+            # f'{SUBDOMAINS["olx"]}/{SCRAPER["category"]}q-{SCRAPER["location"]}/',
+            f'{SUBDOMAINS["otodom"]}/{SCRAPER["category"]}q-{SCRAPER["location"]}/',
+        ]
+        for url in urls:
+            scrape_offers(url, driver)
 
     finally:
         driver.quit()
