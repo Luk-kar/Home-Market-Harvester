@@ -18,7 +18,7 @@ from scrape.otodom.process_offer import process_offer as process_offer_otodom
 from scrape.custom_errors import OfferProcessingError
 
 
-def process_page_offers(driver: WebDriver):
+def process_domain_offers(driver: WebDriver):
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, '[data-testid="listing-grid"]')

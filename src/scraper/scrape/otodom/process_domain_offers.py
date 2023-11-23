@@ -2,6 +2,7 @@
 import re
 
 # Third-party imports
+from bs4 import BeautifulSoup
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -15,6 +16,70 @@ from _utils import humans_delay
 
 
 def process_page_offers(driver: WebDriver):
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+
+    listing_links = soup.find_all("a", {"data-cy": "listing-item-link"})
+
+    original_window = driver.current_window_handle
+
+    for link in listing_links:
+        # Open a new window
+        driver.execute_script("window.open('');")  # todo
+
+        # Switch to the new window
+        driver.switch_to.window(driver.window_handles[-1])
+
+        # Navigate to the link
+        driver.get(link)
+
+        humans_delay(1, 2)
+        # Close the new window
+        driver.close()
+
+        driver.switch_to.window(original_window)
+
+    # for offer in offers:
+    #     first_anchor_tag = offer.select_one("a")
+
+    #     if first_anchor_tag:
+    #         href_link = first_anchor_tag["href"]
+    #         url_offers.append(href_link)
+    #     else:
+    #         offer_id = offer["id"] if "id" in offer.attrs else "Unknown"
+    #         logging.info("No link found in the offer with id=%s", offer_id)
+
+    # for offer_url in url_offers:
+    #     subdomain = {"olx": SUBDOMAINS["olx"], "otodom": SUBDOMAINS["otodom"]}
+    #     if not offer_url.startswith("http"):
+    #         offer_url = subdomain["olx"] + offer_url
+
+    #     if SCRAPER["anti-anti-bot"]:
+    #         humans_delay()  # Human behavior
+
+    #     driver.execute_script(f"window.open('{offer_url}', '_blank');")
+    #     driver.switch_to.window(driver.window_handles[1])
+
+    #     if subdomain["olx"] in offer_url:
+    #         data = process_offer_olx(driver)
+
+    #     elif subdomain["otodom"] in offer_url:
+    #         data = process_offer_otodom(driver)
+
+    #     else:
+    #         raise RequestException(f"Unrecognized URL: {offer_url}")
+
+    #     if data is None:
+    #         if LOGGING["debug"]:
+    #             raise OfferProcessingError(offer_url, "Failed to process offer URL")
+
+    #         logging.error("Failed to process: %s", offer_url)
+
+    #     driver.close()
+    #     driver.switch_to.window(driver.window_handles[0])
+    #     break  # todo
+
+
+def process_domain_offers(driver: WebDriver):
     index = 0
     text_to_enter = "Mierzęcice, Będziński, Śląskie"
 
@@ -33,9 +98,13 @@ def process_page_offers(driver: WebDriver):
     while not is_disabled(driver, next_page_selector):
         await_for_offers_to_load(driver)
         humans_delay(0.3, 0.5)
+
+        process_page_offers(driver)
+
+        humans_delay(400, 400)
+
         click_next_page(driver)
 
-    print("Done")  # todo
     humans_delay(400, 400)
 
 
