@@ -1,8 +1,11 @@
-from _utils import wait_for_conditions, extract_data
+# Standard imports
 from bs4 import BeautifulSoup
 
+# Local imports
+from _utils import wait_for_conditions, extract_data
 
-def get_offer_from_otodom(driver) -> dict:
+
+def process_offer(driver) -> dict:
     field_selectors = {
         "main_points": '[data-testid="ad.top-information.table"]',
         "additional_points": '[data-testid="ad.additional-information.table"]',

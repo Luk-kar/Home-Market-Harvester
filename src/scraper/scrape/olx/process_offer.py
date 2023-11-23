@@ -9,7 +9,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from _utils import safe_get_text, wait_for_conditions, extract_data
 
 
-def get_offer_from_olx(driver: WebDriver) -> Optional[dict[str, str]]:
+def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:
     field_selectors = {
         "description": '[data-testid="main"]',
         "location_paragraphs": 'img[src="/app/static/media/staticmap.65e20ad98.svg"]',

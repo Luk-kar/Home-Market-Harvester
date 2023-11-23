@@ -3,8 +3,8 @@ from logging_setup import log_setup
 from webdriver_setup import get_driver
 
 # Local imports
-from config import SCRAPER, SUBDOMAINS
-from scrape.listing_page import scrape_offers
+from config import SUBDOMAINS
+from scrape.process_site_offers import scrape_offers
 
 
 def main():
