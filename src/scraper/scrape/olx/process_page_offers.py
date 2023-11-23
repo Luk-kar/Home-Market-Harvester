@@ -11,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 # Local imports
-from _utils import random_delay
+from _utils import humans_delay
 from config import SUBDOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_offer import process_offer as process_offer_olx
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
@@ -47,7 +47,7 @@ def process_page_offers(driver: WebDriver):
             offer_url = subdomain["olx"] + offer_url
 
         if SCRAPER["anti-anti-bot"]:
-            random_delay()  # Human behavior
+            humans_delay()  # Human behavior
 
         driver.execute_script(f"window.open('{offer_url}', '_blank');")
         driver.switch_to.window(driver.window_handles[1])

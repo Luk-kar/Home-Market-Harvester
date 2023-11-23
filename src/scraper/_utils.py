@@ -20,7 +20,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def random_delay(
+def humans_delay(
     min_seconds: float = SCRAPER["min_delay"], max_seconds: float = SCRAPER["max_delay"]
 ):
     """
