@@ -9,6 +9,7 @@ from selenium.common.exceptions import WebDriverException
 
 
 # Local imports
+from _utils import humans_delay
 from config import SUBDOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_domain_offers import (
     process_domain_offers as process_domain_offers_olx,
@@ -36,6 +37,7 @@ def scrape_offers(driver, location_query: str, km: int):
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         for url in urls:
+            humans_delay()
             try:
                 driver.get(url)
             except WebDriverException as e:

@@ -23,7 +23,7 @@ def main():
 
     try:
         # 0km, 5km, 10km, 15km, 25km, 50km, 75km
-        km = 5
+        km = 25
         location_query = "Mierzęcice, Będziński, Śląskie"
 
         scrape_offers(driver, location_query, km)
