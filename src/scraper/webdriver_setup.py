@@ -49,7 +49,7 @@ def get_driver():
         options.add_argument(f"user-agent={UserAgent().random}")
 
     if WEBDRIVER["headless"]:
-        options.add_argument("--headless")
+        options.add_argument("--headless=new")
 
     if WEBDRIVER["auto_install"]:
         # There could some issues:

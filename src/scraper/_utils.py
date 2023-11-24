@@ -5,8 +5,11 @@ to assist with web scraping using Selenium and BeautifulSoup.
 
 # Standard imports
 from typing import Dict, List, Optional
+import csv
 import logging
+import os
 import random
+import re
 import time
 
 # Third-party imports
@@ -18,6 +21,38 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+
+def sanitize_for_filepath(string: str):
+    without_location_separators = re.sub(r"( +,+)", "_", string)
+
+    without_protocol = re.sub(r"^https?://", "", without_location_separators)
+
+    without_www = re.sub(r"^www\.", "", without_protocol)
+
+    filename_safe_url = re.sub(r"[^\w.]", "_", without_www)
+
+    return filename_safe_url
+
+
+def save_to_csv(record, query_name, domain, timestamp):
+    file_name = sanitize_for_filepath(query_name)
+    domain_name = sanitize_for_filepath(domain)
+    directory = f"data/raw/{timestamp}_{file_name}"
+    file_path = f"{directory}/{domain_name}.csv"
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    file_exists = os.path.isfile(file_path)
+
+    with open(file_path, mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=record.keys())
+
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow(record)
 
 
 def humans_delay(

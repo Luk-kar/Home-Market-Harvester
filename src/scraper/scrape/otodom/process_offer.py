@@ -50,12 +50,12 @@ def process_offer(driver) -> dict:
     ]
 
     if wait_for_conditions(driver, *conditions):
-        return parse_offer_page(driver, field_selectors)
+        return parse_offer(driver, field_selectors)
     else:
         return None
 
 
-def parse_offer_page(driver, field_selectors: dict):
+def parse_offer(driver, field_selectors: dict):
     offer_url = driver.current_url
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
@@ -66,7 +66,7 @@ def parse_offer_page(driver, field_selectors: dict):
     )
 
     record = {}
-    record["link"]: dict[str, str] = {"link": offer_url}
+    record["link"]: dict[str, str] = offer_url
 
     extract_data(
         field_selectors,

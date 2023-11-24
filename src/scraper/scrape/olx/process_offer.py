@@ -37,7 +37,7 @@ def parse_offer_page(driver: WebDriver, field_selectors: dict[str, str]):
     description = soup_offer.select_one(field_selectors["description"])
 
     record = {}
-    record["link"]: dict[str, str] = {"link": offer_url}
+    record["link"]: dict[str, str] = offer_url
 
     # Get header and description data
     extract_data(

@@ -33,7 +33,7 @@ WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
     "path": "src\\scraper\\chromedriver.exe",  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
-    "headless": False,
+    "headless": True,  # Set to False to see the browser window
     "maximize_window": True,
 }
 LOGGING: dict[str, str] = {

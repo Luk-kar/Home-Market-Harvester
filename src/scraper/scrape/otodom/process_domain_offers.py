@@ -1,4 +1,5 @@
 # Standard imports
+import datetime
 import re
 
 # Third-party imports
@@ -12,86 +13,63 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from _utils import humans_delay
+from _utils import humans_delay, save_to_csv
+from config import SUBDOMAINS
+from scrape.otodom.process_offer import process_offer as process_offer_otodom
 
 
-def process_page_offers(driver: WebDriver):
+def process_page_offers(driver: WebDriver, location_query: str, timestamp: str):
     soup = BeautifulSoup(driver.page_source, "html.parser")
 
     listing_links = soup.find_all("a", {"data-cy": "listing-item-link"})
 
     original_window = driver.current_window_handle
 
-    for link in listing_links:
-        # Open a new window
-        driver.execute_script("window.open('');")  # todo
-
-        # Switch to the new window
-        driver.switch_to.window(driver.window_handles[-1])
-
-        # Navigate to the link
-        driver.get(link)
-
-        humans_delay(1, 2)
-        # Close the new window
-        driver.close()
-
-        driver.switch_to.window(original_window)
-
-    # for offer in offers:
-    #     first_anchor_tag = offer.select_one("a")
-
-    #     if first_anchor_tag:
-    #         href_link = first_anchor_tag["href"]
-    #         url_offers.append(href_link)
-    #     else:
-    #         offer_id = offer["id"] if "id" in offer.attrs else "Unknown"
-    #         logging.info("No link found in the offer with id=%s", offer_id)
-
-    # for offer_url in url_offers:
-    #     subdomain = {"olx": SUBDOMAINS["olx"], "otodom": SUBDOMAINS["otodom"]}
-    #     if not offer_url.startswith("http"):
-    #         offer_url = subdomain["olx"] + offer_url
-
-    #     if SCRAPER["anti-anti-bot"]:
-    #         humans_delay()  # Human behavior
-
-    #     driver.execute_script(f"window.open('{offer_url}', '_blank');")
-    #     driver.switch_to.window(driver.window_handles[1])
-
-    #     if subdomain["olx"] in offer_url:
-    #         data = process_offer_olx(driver)
-
-    #     elif subdomain["otodom"] in offer_url:
-    #         data = process_offer_otodom(driver)
-
-    #     else:
-    #         raise RequestException(f"Unrecognized URL: {offer_url}")
-
-    #     if data is None:
-    #         if LOGGING["debug"]:
-    #             raise OfferProcessingError(offer_url, "Failed to process offer URL")
-
-    #         logging.error("Failed to process: %s", offer_url)
-
-    #     driver.close()
-    #     driver.switch_to.window(driver.window_handles[0])
-    #     break  # todo
+    for sub_link in listing_links:
+        open_process_and_close_window(
+            driver, original_window, sub_link, location_query, timestamp
+        )
 
 
-def process_domain_offers(driver: WebDriver):
-    index = 0
-    text_to_enter = "Mierzęcice, Będziński, Śląskie"
+def open_process_and_close_window(
+    driver, original_window, sub_link, location_query: str, timestamp: str
+):
+    open_offer(driver, sub_link)
 
-    display_offers(driver, text_to_enter, index)
+    humans_delay(1, 2)
+
+    record = process_offer_otodom(driver)
+
+    if record:
+        save_to_csv(record, location_query, SUBDOMAINS["otodom"], timestamp)
+
+    driver.close()
+
+    driver.switch_to.window(original_window)
+
+
+def open_offer(driver, query_string):
+    driver.execute_script("window.open('');")
+    driver.switch_to.window(driver.window_handles[-1])
+    full_link = SUBDOMAINS["otodom"] + query_string["href"]
+    driver.get(full_link)
+
+
+def process_domain_offers(driver: WebDriver, location_query: str, km: int):
+    timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+    display_offers(driver, location_query, km)
 
     humans_delay(0.3, 0.5)
 
     set_max_offers_per_site(driver)
 
-    humans_delay(0.3, 0.5)
+    humans_delay(0.2, 0.4)
 
     await_for_offers_to_load(driver)
+
+    # process for the first time
+    process_page_offers(driver, location_query, timestamp)
 
     next_page_selector = '[data-cy="pagination.next-page"]'
 
@@ -99,13 +77,9 @@ def process_domain_offers(driver: WebDriver):
         await_for_offers_to_load(driver)
         humans_delay(0.3, 0.5)
 
-        process_page_offers(driver)
-
-        humans_delay(400, 400)
+        process_page_offers(driver, location_query)
 
         click_next_page(driver)
-
-    humans_delay(400, 400)
 
 
 def is_disabled(driver, selector):
@@ -153,7 +127,7 @@ def set_max_offers_per_site(driver):
     last_option_element.click()
 
 
-def display_offers(driver, text_to_enter, index):
+def display_offers(driver, text_to_enter, km):
     field_selectors = {
         "cookies_banner": '[id="onetrust-banner-sdk"]',
         "accept_cookies": '[id="onetrust-accept-btn-handler"]',
@@ -181,7 +155,7 @@ def display_offers(driver, text_to_enter, index):
 
     # Select the first option from the dropdown
 
-    choose_distance(driver, field_selectors, index)
+    choose_distance(driver, field_selectors, km)
 
     humans_delay(0.3, 0.5)
 
@@ -192,7 +166,19 @@ def press_find_offers_button(driver):
     ActionChains(driver).send_keys(Keys.ENTER).perform()
 
 
-def choose_distance(driver, field_selectors, index):
+def choose_distance(driver, field_selectors, km: int):
+    distance_dropdown = {
+        # Km : index
+        0: 0,
+        5: 1,
+        10: 2,
+        15: 3,
+        25: 4,
+        50: 5,
+        75: 6,
+    }
+
+    index = distance_dropdown[km]
     nth_child = index + 1
     first_li_selector = (
         f"{field_selectors['distance_radius_dropdown']} "
@@ -286,51 +272,3 @@ def accept_cookies(driver, field_selectors):
     WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, field_selectors["user_form"]))
     )
-
-    # soup = BeautifulSoup(driver.page_source, "html.parser")
-
-    # offers_listings = soup.select_one('[data-testid="listing-grid"]')
-    # offers = offers_listings.select('[data-testid="l-card"]')
-    # url_offers = []
-
-    # for offer in offers:
-    #     first_anchor_tag = offer.select_one("a")
-
-    #     if first_anchor_tag:
-    #         href_link = first_anchor_tag["href"]
-    #         url_offers.append(href_link)
-    #     else:
-    #         offer_id = offer["id"] if "id" in offer.attrs else "Unknown"
-    #         logging.info("No link found in the offer with id=%s", offer_id)
-
-    # for offer_url in url_offers:
-    #     subdomain = {"olx": SUBDOMAINS["olx"], "otodom": SUBDOMAINS["otodom"]}
-    #     if not offer_url.startswith("http"):
-    #         offer_url = subdomain["olx"] + offer_url
-
-    #     if SCRAPER["anti-anti-bot"]:
-    #         random_delay()  # Human behavior
-
-    #     driver.execute_script(f"window.open('{offer_url}', '_blank');")
-    #     driver.switch_to.window(driver.window_handles[1])
-
-    #     if subdomain["olx"] in offer_url:
-    #         data = get_offer_from_olx(driver)
-
-    #     elif subdomain["otodom"] in offer_url:
-    #         data = get_offer_from_otodom(driver)
-
-    #     else:
-    #         raise RequestException(f"Unrecognized URL: {offer_url}")
-
-    #     if data is None:
-    #         if LOGGING["debug"]:
-    #             raise OfferProcessingError(offer_url, "Failed to process offer URL")
-
-    #         logging.error("Failed to process: %s", offer_url)
-
-    #     driver.close()
-    #     driver.switch_to.window(driver.window_handles[0])
-    #     break  # todo
-
-    # print(data)  # todo
