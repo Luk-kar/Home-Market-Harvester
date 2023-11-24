@@ -55,9 +55,9 @@ def open_offer(driver, query_string):
     driver.get(full_link)
 
 
-def process_domain_offers(driver: WebDriver, location_query: str, km: int):
-    timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-
+def process_domain_offers(
+    driver: WebDriver, location_query: str, km: int, timestamp: str
+):
     display_offers(driver, location_query, km)
 
     humans_delay(0.3, 0.5)

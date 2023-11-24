@@ -1,6 +1,7 @@
 # Standard imports
 import logging
 import urllib.parse
+import datetime
 
 # Third-party imports
 from requests.exceptions import RequestException
@@ -32,6 +33,7 @@ def scrape_offers(driver, location_query: str, km: int):
             f'{SUBDOMAINS["olx"]}/{SCRAPER["category"]}q-{formatted_location}/',
             SUBDOMAINS["otodom"],
         ]
+        timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         for url in urls:
             try:
@@ -45,9 +47,9 @@ def scrape_offers(driver, location_query: str, km: int):
                 driver.refresh()
 
             if SUBDOMAINS["olx"] in url:
-                process_domain_offers_olx(driver)
+                process_domain_offers_olx(driver, timestamp, location_query)
             elif SUBDOMAINS["otodom"] in url:
-                process_domain_offers_otodom(driver, location_query, km)
+                process_domain_offers_otodom(driver, location_query, km, timestamp)
                 pass
             else:
                 raise RequestException(f"Unrecognized URL: {url}")

@@ -16,9 +16,10 @@ from config import SUBDOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_offer import process_offer as process_offer_olx
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
 from scrape.custom_errors import OfferProcessingError
+from _utils import save_to_csv
 
 
-def process_domain_offers(driver: WebDriver):
+def process_domain_offers(driver: WebDriver, timestamp: str, location_query: str):
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, '[data-testid="listing-grid"]')
@@ -53,22 +54,25 @@ def process_domain_offers(driver: WebDriver):
         driver.switch_to.window(driver.window_handles[1])
 
         if subdomain["olx"] in offer_url:
-            data = process_offer_olx(driver)
+            record = process_offer_olx(driver)
+            if record:
+                save_to_csv(record, location_query, subdomain["olx"], timestamp)
+            else:
+                logging.error("Failed to process: %s", offer_url)
+                if LOGGING["debug"]:
+                    raise OfferProcessingError(offer_url, "Failed to process offer URL")
 
         elif subdomain["otodom"] in offer_url:
-            data = process_offer_otodom(driver)
+            record = process_offer_otodom(driver)
+            if record:
+                save_to_csv(record, location_query, subdomain["otodom"], timestamp)
+            else:
+                logging.error("Failed to process: %s", offer_url)
+                if LOGGING["debug"]:
+                    raise OfferProcessingError(offer_url, "Failed to process offer URL")
 
         else:
             raise RequestException(f"Unrecognized URL: {offer_url}")
 
-        if data is None:
-            if LOGGING["debug"]:
-                raise OfferProcessingError(offer_url, "Failed to process offer URL")
-
-            logging.error("Failed to process: %s", offer_url)
-
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
-        break  # todo
-
-    print(data)  # todo
