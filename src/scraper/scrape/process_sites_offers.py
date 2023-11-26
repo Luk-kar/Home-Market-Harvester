@@ -1,6 +1,5 @@
 # Standard imports
 import logging
-import urllib.parse
 import datetime
 
 # Third-party imports
@@ -9,29 +8,21 @@ from selenium.common.exceptions import WebDriverException
 
 
 # Local imports
-from _utils import humans_delay
-from config import DOMAINS, LOGGING, SCRAPER
+from _utils import humans_delay, transform_location_to_url_format
+from config import DOMAINS, LOGGING
 from scrape.olx.process_domain_offers_olx import process_domain_offers_olx
 from scrape.otodom.process_domain_offers_otodom import process_domain_offers_otodom
 
 
-def transform_location_to_url_format(location: str) -> str:
-    formatted_location = location.replace(" ", "-")
-
-    encoded_location = urllib.parse.quote(formatted_location, safe="-")
-
-    return encoded_location
-
-
-def scrape_offers(driver, website_arguments):
+def scrape_offers(driver, search_criteria):
     try:
-        location_query = website_arguments["location_query"]
-        offers_cap = website_arguments["scraped_offers_cap"]
+        location_query = search_criteria["location_query"]
+        offers_cap = search_criteria["scraped_offers_cap"]
         offers_count = 0
 
         formatted_location = transform_location_to_url_format(location_query)
         urls = [
-            f'{DOMAINS["olx"]}/{SCRAPER["category"]}q-{formatted_location}/',
+            f'{DOMAINS["olx"]["domain"]}/{DOMAINS["olx"]["category"]}q-{formatted_location}/',
             DOMAINS["otodom"],
         ]
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -51,13 +42,13 @@ def scrape_offers(driver, website_arguments):
                 logging.error("Connection issue encountered: %s", e)
                 driver.refresh()
 
-            if DOMAINS["olx"] in url:
+            if DOMAINS["olx"]["domain"] in url:
                 offers_count += process_domain_offers_olx(
-                    driver, website_arguments, timestamp, offers_count
+                    driver, search_criteria, timestamp, offers_count
                 )
             elif DOMAINS["otodom"] in url:
                 offers_count += process_domain_offers_otodom(
-                    driver, website_arguments, timestamp, offers_count
+                    driver, search_criteria, timestamp, offers_count
                 )
                 pass
             else:

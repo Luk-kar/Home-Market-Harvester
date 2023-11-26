@@ -5,12 +5,10 @@ to assist with web scraping using Selenium and BeautifulSoup.
 
 # Standard imports
 from typing import Dict, List, Optional
-import csv
 import logging
-import os
 import random
-import re
 import time
+import urllib.parse
 
 # Third-party imports
 from bs4 import BeautifulSoup
@@ -23,36 +21,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def sanitize_for_filepath(string: str):
-    without_location_separators = re.sub(r"( +,+)", "_", string)
+def transform_location_to_url_format(location: str) -> str:
+    formatted_location = location.replace(" ", "-")
 
-    without_protocol = re.sub(r"^https?://", "", without_location_separators)
+    encoded_location = urllib.parse.quote(formatted_location, safe="-")
 
-    without_www = re.sub(r"^www\.", "", without_protocol)
-
-    filename_safe_url = re.sub(r"[^\w.]", "_", without_www)
-
-    return filename_safe_url
-
-
-def save_to_csv(record, query_name, domain, timestamp):
-    file_name = sanitize_for_filepath(query_name)
-    domain_name = sanitize_for_filepath(domain)
-    directory = f"data/raw/{timestamp}_{file_name}"
-    file_path = f"{directory}/{domain_name}.csv"
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    file_exists = os.path.isfile(file_path)
-
-    with open(file_path, mode="a", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=record.keys())
-
-        if not file_exists:
-            writer.writeheader()
-
-        writer.writerow(record)
+    return encoded_location
 
 
 def humans_delay(

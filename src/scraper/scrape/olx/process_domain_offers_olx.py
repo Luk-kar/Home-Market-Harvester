@@ -12,20 +12,20 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from _utils import humans_delay
+from csv_utils import save_to_csv
 from config import DOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_offer import process_offer as process_offer_olx
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
 from scrape.custom_errors import OfferProcessingError
-from _utils import save_to_csv
 
 
 def process_domain_offers_olx(
-    driver: WebDriver, website_arguments: dict, timestamp: str, offers_count
+    driver: WebDriver, search_criteria: dict, timestamp: str, offers_count
 ):
-    location_query = website_arguments["location_query"]
-    offers_cap = website_arguments["scraped_offers_cap"]
+    location_query = search_criteria["location_query"]
+    offers_cap = search_criteria["scraped_offers_cap"]
 
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, '[data-testid="listing-grid"]')
         )
@@ -51,7 +51,7 @@ def process_domain_offers_olx(
         if offers_count >= offers_cap:
             break
 
-        subdomain = {"olx": DOMAINS["olx"], "otodom": DOMAINS["otodom"]}
+        subdomain = {"olx": DOMAINS["olx"]["domain"], "otodom": DOMAINS["otodom"]}
         if not offer_url.startswith("http"):
             offer_url = subdomain["olx"] + offer_url
 

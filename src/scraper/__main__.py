@@ -23,13 +23,13 @@ def main():
     driver = get_driver()
 
     try:
-        website_arguments = {
+        search_criteria = {
             "location_query": SCRAPER["location_query"],
             "area_radius": SCRAPER["area_radius"],
             "scraped_offers_cap": SCRAPER["scraped_offers_cap"],
         }
 
-        scrape_offers(driver, website_arguments)
+        scrape_offers(driver, search_criteria)
 
     finally:
         driver.quit()

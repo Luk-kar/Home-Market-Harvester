@@ -17,12 +17,18 @@ customizing the scraper's performance and interactions with web elements.
 
 # Standard imports
 import logging
+import os
+
+
+def sanitize_path(path: str) -> str:
+    """Sanitize the path to the current OS."""
+    return os.path.normpath(path)
+
 
 SCRAPER: dict[str, str | int | float] = {
     # Any you choose, but remember to use the same format as on the website
     "location_query": "Mierzęcice, Będziński, Śląskie",
     "area_radius": 25,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km
-    "category": "nieruchomosci/mieszkania/wynajem/",
     "max_retries": 5,
     "multi_wait_timeout": 5,
     "wait_timeout": 10,
@@ -33,7 +39,7 @@ SCRAPER: dict[str, str | int | float] = {
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
-    "path": "src\\scraper\\chromedriver.exe",  # Path to the webdriver
+    "path": sanitize_path("src\\scraper\\chromedriver.exe"),  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,  # Set to False to see the browser window
     "maximize_window": True,
@@ -41,9 +47,12 @@ WEBDRIVER: dict[str, str | bool] = {
 LOGGING: dict[str, str] = {
     "debug": True,
     "level": logging.INFO,
-    "file": "./logs/scraper.log",
+    "file": sanitize_path("./logs/scraper.log"),
 }
 DOMAINS: dict[str, str] = {
-    "olx": "https://www.olx.pl",
+    "olx": {
+        "domain": "https://www.olx.pl",
+        "category": "nieruchomosci/mieszkania/wynajem/",
+    },
     "otodom": "https://www.otodom.pl",
 }
