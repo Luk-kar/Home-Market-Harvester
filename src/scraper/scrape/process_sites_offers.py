@@ -13,7 +13,7 @@ from _utils.selenium_utils import humans_delay
 from _utils.string_transformations import transform_location_to_url_format
 from config import DOMAINS, LOGGING
 from scrape.olx.process_domain_offers_olx import process_domain_offers_olx
-from scrape.otodom.process_domain_offers_otodom import process_domain_offers_otodom
+from scrape.otodom.otodom_main_page import process_domain_offers_otodom
 
 
 def scrape_offers(driver, search_criteria):
