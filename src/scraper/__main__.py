@@ -4,7 +4,7 @@ from logging_setup import log_setup
 from webdriver_setup import get_driver
 
 # Local imports
-from config import SCRAPER
+from config import DATA, SCRAPER
 from scrape.process_sites_offers import scrape_offers
 
 
@@ -30,6 +30,8 @@ def main():
     }
 
     print(f"Start scraping at: {print_current_time()}\n")
+
+    folder_scraped_data = DATA["folder_scraped_data"]
 
     try:
         scrape_offers(driver, search_criteria)

@@ -53,3 +53,6 @@ DOMAINS: dict[str, str] = {
     },
     "otodom": "https://www.otodom.pl",
 }
+DATA: dict[str, str] = {
+    "folder_scraped_data": sanitize_path("./data/raw/"),
+}

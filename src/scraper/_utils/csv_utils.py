@@ -7,6 +7,7 @@ import re
 
 # Local imports
 from _utils.string_transformations import sanitize_path
+from config import DATA
 
 
 def sanitize_for_filepath(string: str):
@@ -24,7 +25,7 @@ def sanitize_for_filepath(string: str):
 def save_to_csv(record, query_name, domain, timestamp):
     file_name = sanitize_for_filepath(query_name)
     domain_name = sanitize_for_filepath(domain)
-    directory = sanitize_path(f"data/raw/{timestamp}_{file_name}")
+    directory = sanitize_path(f"{DATA['folder_scraped_data']}/{timestamp}_{file_name}")
     file_path = sanitize_path(f"{directory}/{domain_name}.csv")
 
     if not os.path.exists(directory):
