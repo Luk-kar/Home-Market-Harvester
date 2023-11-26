@@ -55,10 +55,11 @@ def open_offer(driver, query_string):
     driver.get(full_link)
 
 
-def process_domain_offers(
-    driver: WebDriver, location_query: str, km: int, timestamp: str
-):
-    display_offers(driver, location_query, km)
+def process_domain_offers(driver: WebDriver, website_arguments, timestamp: str):
+    location = website_arguments["location"]
+    km = website_arguments["area_radius"]
+
+    display_offers(driver, location, km)
 
     humans_delay(0.3, 0.5)
 
@@ -69,7 +70,7 @@ def process_domain_offers(
     await_for_offers_to_load(driver)
 
     # process for the first time
-    process_page_offers(driver, location_query, timestamp)
+    process_page_offers(driver, location, timestamp)
 
     next_page_selector = '[data-cy="pagination.next-page"]'
 
@@ -77,7 +78,7 @@ def process_domain_offers(
         await_for_offers_to_load(driver)
         humans_delay(0.3, 0.5)
 
-        process_page_offers(driver, location_query, timestamp)
+        process_page_offers(driver, location, timestamp)
 
         click_next_page(driver)
 
@@ -152,10 +153,6 @@ def display_offers(driver, text_to_enter, km):
 
     humans_delay(0.15, 0.4)
 
-    # choose_distance(driver, field_selectors, km)
-
-    # humans_delay(0.25, 0.45)
-
     select_distance_radius(driver, field_selectors, km)
 
     humans_delay(0.3, 0.5)
@@ -169,34 +166,6 @@ def display_offers(driver, text_to_enter, km):
 
 def press_find_offers_button(driver):
     ActionChains(driver).send_keys(Keys.ENTER).perform()
-
-
-def choose_distance(driver, field_selectors, km: int):
-    distance_dropdown = {
-        # Km : index
-        0: 0,
-        5: 1,
-        10: 2,
-        15: 3,
-        25: 4,
-        50: 5,
-        75: 6,
-    }
-
-    index = distance_dropdown[km]
-    nth_child = index + 1
-    first_li_selector = (
-        f"{field_selectors['distance_radius_dropdown']} "
-        f"{field_selectors['distance_radius_suggestions']}:nth-child({nth_child})"
-    )
-    # Wait for the element to be clickable
-    WebDriverWait(driver, 5).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, first_li_selector))
-    )
-
-    # Find the first li element and click on it
-    first_li_element = driver.find_element(By.CSS_SELECTOR, first_li_selector)
-    first_li_element.click()
 
 
 def write_location(driver, field_selectors, text_to_enter):

@@ -19,7 +19,7 @@ from scrape.custom_errors import OfferProcessingError
 from _utils import save_to_csv
 
 
-def process_domain_offers(driver: WebDriver, timestamp: str, location_query: str):
+def process_domain_offers(driver: WebDriver, location_query: str, timestamp: str):
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, '[data-testid="listing-grid"]')

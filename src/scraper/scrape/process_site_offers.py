@@ -27,8 +27,9 @@ def transform_location_to_url_format(location: str) -> str:
     return encoded_location
 
 
-def scrape_offers(driver, location_query: str, km: int):
+def scrape_offers(driver, website_arguments):
     try:
+        location_query = website_arguments["location"]
         formatted_location = transform_location_to_url_format(location_query)
         urls = [
             f'{SUBDOMAINS["olx"]}/{SCRAPER["category"]}q-{formatted_location}/',
@@ -49,9 +50,9 @@ def scrape_offers(driver, location_query: str, km: int):
                 driver.refresh()
 
             if SUBDOMAINS["olx"] in url:
-                process_domain_offers_olx(driver, timestamp, location_query)
+                process_domain_offers_olx(driver, location_query, timestamp)
             elif SUBDOMAINS["otodom"] in url:
-                process_domain_offers_otodom(driver, location_query, km, timestamp)
+                process_domain_offers_otodom(driver, website_arguments, timestamp)
                 pass
             else:
                 raise RequestException(f"Unrecognized URL: {url}")

@@ -19,7 +19,9 @@ customizing the scraper's performance and interactions with web elements.
 import logging
 
 SCRAPER: dict[str, str | int | float] = {
-    "location": "Katowice",
+    # Any you choose, but remember to use the same format as on the website
+    "location": "Mierzęcice, Będziński, Śląskie",
+    "area_radius": 25,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km
     "domain": "https://www.olx.pl",
     "category": "nieruchomosci/mieszkania/wynajem/",
     "max_retries": 5,
