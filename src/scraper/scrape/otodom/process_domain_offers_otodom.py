@@ -3,6 +3,7 @@ import re
 
 # Third-party imports
 from bs4 import BeautifulSoup
+from enlighten import Counter
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -19,7 +20,7 @@ from scrape.otodom.process_offer import process_offer as process_offer_otodom
 
 
 def process_page_offers(
-    driver: WebDriver, search_criteria: dict, timestamp: str, progess: object
+    driver: WebDriver, search_criteria: dict, timestamp: str, progress: Counter
 ):
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
@@ -30,23 +31,23 @@ def process_page_offers(
     original_window = driver.current_window_handle
 
     for sub_link in listing_links:
-        if progess.count >= offers_cap:
+        if progress.count >= offers_cap:
             break
 
         open_process_and_close_window(
-            driver, original_window, sub_link, location_query, timestamp, progess
+            driver, original_window, sub_link, location_query, timestamp, progress
         )
 
 
 def open_process_and_close_window(
-    driver,
-    original_window,
-    sub_link,
+    driver: WebDriver,
+    original_window: str,
+    offer_element: dict[str, str],
     location_query: str,
     timestamp: str,
-    progress: object,
+    progress: Counter,
 ):
-    open_offer(driver, sub_link)
+    open_offer(driver, offer_element)
 
     if SCRAPER["anti_anti_bot"]:
         humans_delay()
@@ -62,19 +63,22 @@ def open_process_and_close_window(
     driver.switch_to.window(original_window)
 
 
-def open_offer(driver, query_string):
+def open_offer(driver: WebDriver, offer_element: dict[str, str]):
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[-1])
-    full_link = DOMAINS["otodom"] + query_string["href"]
+    full_link = DOMAINS["otodom"] + offer_element["href"]
     driver.get(full_link)
 
 
 def process_domain_offers_otodom(
-    driver: WebDriver, search_criteria, timestamp: str, progress: object
+    driver: WebDriver,
+    search_criteria: dict[str, str | int],
+    timestamp: str,
+    progress: object,
 ):
-    location = search_criteria["location_query"]
-    km = search_criteria["area_radius"]
-    offers_cap = search_criteria["scraped_offers_cap"]
+    location: str = search_criteria["location_query"]
+    km: int = search_criteria["area_radius"]
+    offers_cap: int = search_criteria["scraped_offers_cap"]
 
     display_offers(driver, location, km)
 
@@ -110,7 +114,7 @@ def process_domain_offers_otodom(
         click_next_page(driver)
 
 
-def is_disabled(driver, selector):
+def is_disabled(driver: WebDriver, selector: str) -> bool:
     try:
         selector = f'{selector}[disabled=""]'
 
@@ -120,7 +124,7 @@ def is_disabled(driver, selector):
         return False
 
 
-def click_next_page(driver):
+def click_next_page(driver: WebDriver):
     next_button_selector = '[data-cy="pagination.next-page"]'
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, next_button_selector))
@@ -129,14 +133,14 @@ def click_next_page(driver):
     next_button.click()
 
 
-def await_for_offers_to_load(driver):
+def await_for_offers_to_load(driver: WebDriver):
     main_feed_selector = '[role="main"]'
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, main_feed_selector))
     )
 
 
-def set_max_offers_per_site(driver):
+def set_max_offers_per_site(driver: WebDriver):
     entries_id = "react-select-entriesPerPage-input"
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.element_to_be_clickable((By.ID, entries_id))
@@ -157,7 +161,7 @@ def set_max_offers_per_site(driver):
     last_option_element.click()
 
 
-def display_offers(driver, text_to_enter, km):
+def display_offers(driver: WebDriver, location_query_input: str, km: int):
     field_selectors = {
         "cookies_banner": '[id="onetrust-banner-sdk"]',
         "accept_cookies": '[id="onetrust-accept-btn-handler"]',
@@ -189,7 +193,7 @@ def display_offers(driver, text_to_enter, km):
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.3, 0.5)
 
-    write_location(driver, field_selectors, text_to_enter)
+    write_location(driver, field_selectors, location_query_input)
 
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.3, 0.5)
@@ -197,11 +201,13 @@ def display_offers(driver, text_to_enter, km):
     press_find_offers_button(driver)
 
 
-def press_find_offers_button(driver):
+def press_find_offers_button(driver: WebDriver):
     ActionChains(driver).send_keys(Keys.ENTER).perform()
 
 
-def write_location(driver, field_selectors, text_to_enter):
+def write_location(
+    driver: WebDriver, field_selectors: dict[str, str], location_query_input: str
+):
     location_element = driver.find_element(By.CSS_SELECTOR, field_selectors["location"])
     location_element.click()
 
@@ -212,7 +218,7 @@ def write_location(driver, field_selectors, text_to_enter):
         EC.visibility_of_element_located((By.ID, field_selectors["location_input"]))
     )
     input_element = driver.find_element(By.ID, field_selectors["location_input"])
-    input_element.send_keys(text_to_enter)
+    input_element.send_keys(location_query_input)
 
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.visibility_of_element_located(
@@ -235,7 +241,7 @@ def write_location(driver, field_selectors, text_to_enter):
     closest_match.click()
 
 
-def select_distance_radius(driver, field_selectors, km):
+def select_distance_radius(driver: WebDriver, field_selectors: dict[str, str], km: int):
     distance_dropdown = {
         # Km : index
         0: 0,
@@ -278,7 +284,7 @@ def select_distance_radius(driver, field_selectors, km):
     matching_elements[select_option].click()
 
 
-def select_for_rent_option(driver, field_selectors):
+def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
     user_form = driver.find_element(
         By.CSS_SELECTOR,
         field_selectors["user_form"],
@@ -295,7 +301,7 @@ def select_for_rent_option(driver, field_selectors):
     transaction_type.find_element(By.CSS_SELECTOR, field_selectors["for_rent"]).click()
 
 
-def accept_cookies(driver, field_selectors):
+def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, field_selectors["cookies_banner"])

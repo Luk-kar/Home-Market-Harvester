@@ -3,6 +3,7 @@ import logging
 
 # Third-party imports
 from bs4 import BeautifulSoup
+from enlighten import Counter
 from requests.exceptions import RequestException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -20,7 +21,7 @@ from scrape.custom_errors import OfferProcessingError
 
 
 def process_domain_offers_olx(
-    driver: WebDriver, search_criteria: dict, timestamp: str, progress: object
+    driver: WebDriver, search_criteria: dict, timestamp: str, progress: Counter
 ):
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]

@@ -1,7 +1,8 @@
 # Standard imports
-import datetime
 from logging_setup import log_setup
 from webdriver_setup import get_driver
+import datetime
+import os
 
 # Local imports
 from config import DATA, SCRAPER
@@ -31,7 +32,7 @@ def main():
 
     print(f"Start scraping at: {print_current_time()}\n")
 
-    folder_scraped_data = DATA["folder_scraped_data"]
+    existing_folders = set(os.listdir(DATA["folder_scraped_data"]))
 
     try:
         scrape_offers(driver, search_criteria)
@@ -39,6 +40,22 @@ def main():
     finally:
         driver.quit()
         print(f"\nEnd scraping at:   {print_current_time()}")
+
+        print_new_data_files(existing_folders)
+
+
+def print_new_data_files(existing_folders: set):
+    folder_scraped_data = DATA["folder_scraped_data"]
+
+    new_folders = set(os.listdir(folder_scraped_data)) - existing_folders
+
+    print(f"\nNew files created in the folder {folder_scraped_data}\\:")
+
+    for folder in new_folders:
+        print(2 * " " + f"\\{folder}\\:")
+        new_folder = f"{folder_scraped_data}\\{folder}"
+        for new_file in os.listdir(new_folder):
+            print(4 * " " + f"- {new_file}")
 
 
 def print_current_time():

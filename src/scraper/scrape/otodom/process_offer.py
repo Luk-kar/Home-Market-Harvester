@@ -1,11 +1,12 @@
 # Standard imports
 from bs4 import BeautifulSoup
+from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
 from _utils.selenium_utils import wait_for_conditions, extract_data
 
 
-def process_offer(driver) -> dict:
+def process_offer(driver: WebDriver) -> dict[str, str]:
     field_selectors = {
         "main_points": '[data-testid="ad.top-information.table"]',
         "additional_points": '[data-testid="ad.additional-information.table"]',
@@ -55,7 +56,7 @@ def process_offer(driver) -> dict:
         return None
 
 
-def parse_offer(driver, field_selectors: dict):
+def parse_offer(driver: WebDriver, field_selectors: dict[str, str]):
     offer_url = driver.current_url
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
@@ -65,8 +66,8 @@ def parse_offer(driver, field_selectors: dict):
         '[data-testid="ad.additional-information.table"]'
     )
 
-    record = {}
-    record["link"]: dict[str, str] = offer_url
+    record: dict[str, str] = {}
+    record["link"] = offer_url
 
     extract_data(
         field_selectors,
