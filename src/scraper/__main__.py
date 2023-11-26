@@ -1,4 +1,5 @@
 # Standard imports
+import datetime
 from logging_setup import log_setup
 from webdriver_setup import get_driver
 
@@ -22,17 +23,24 @@ def main():
     log_setup()
     driver = get_driver()
 
-    try:
-        search_criteria = {
-            "location_query": SCRAPER["location_query"],
-            "area_radius": SCRAPER["area_radius"],
-            "scraped_offers_cap": SCRAPER["scraped_offers_cap"],
-        }
+    search_criteria = {
+        "location_query": SCRAPER["location_query"],
+        "area_radius": SCRAPER["area_radius"],
+        "scraped_offers_cap": SCRAPER["scraped_offers_cap"],
+    }
 
+    print(f"Start scraping at: {print_current_time()}\n")
+
+    try:
         scrape_offers(driver, search_criteria)
 
     finally:
         driver.quit()
+        print(f"\nEnd scraping at:   {print_current_time()}")
+
+
+def print_current_time():
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 if __name__ == "__main__":

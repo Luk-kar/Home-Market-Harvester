@@ -5,6 +5,9 @@ import csv
 import os
 import re
 
+# Local imports
+from _utils.string_transformations import sanitize_path
+
 
 def sanitize_for_filepath(string: str):
     without_location_separators = re.sub(r"( +,+)", "_", string)
@@ -21,8 +24,8 @@ def sanitize_for_filepath(string: str):
 def save_to_csv(record, query_name, domain, timestamp):
     file_name = sanitize_for_filepath(query_name)
     domain_name = sanitize_for_filepath(domain)
-    directory = f"data/raw/{timestamp}_{file_name}"
-    file_path = f"{directory}/{domain_name}.csv"
+    directory = sanitize_path(f"data/raw/{timestamp}_{file_name}")
+    file_path = sanitize_path(f"{directory}/{domain_name}.csv")
 
     if not os.path.exists(directory):
         os.makedirs(directory)

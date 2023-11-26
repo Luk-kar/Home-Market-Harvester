@@ -2,7 +2,7 @@
 from bs4 import BeautifulSoup
 
 # Local imports
-from _utils import wait_for_conditions, extract_data
+from _utils.selenium_utils import wait_for_conditions, extract_data
 
 
 def process_offer(driver) -> dict:

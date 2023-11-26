@@ -17,12 +17,9 @@ customizing the scraper's performance and interactions with web elements.
 
 # Standard imports
 import logging
-import os
 
-
-def sanitize_path(path: str) -> str:
-    """Sanitize the path to the current OS."""
-    return os.path.normpath(path)
+# Local imports
+from _utils.string_transformations import sanitize_path
 
 
 SCRAPER: dict[str, str | int | float] = {

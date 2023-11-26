@@ -11,8 +11,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 # Local imports
-from _utils import humans_delay
-from csv_utils import save_to_csv
+from _utils.selenium_utils import humans_delay
+from _utils.csv_utils import save_to_csv
 from config import DOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_offer import process_offer as process_offer_olx
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
@@ -20,7 +20,7 @@ from scrape.custom_errors import OfferProcessingError
 
 
 def process_domain_offers_olx(
-    driver: WebDriver, search_criteria: dict, timestamp: str, offers_count
+    driver: WebDriver, search_criteria: dict, timestamp: str, progress: object
 ):
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
@@ -48,7 +48,7 @@ def process_domain_offers_olx(
             logging.info("No link found in the offer with id=%s", offer_id)
 
     for offer_url in url_offers:
-        if offers_count >= offers_cap:
+        if progress.count >= offers_cap:
             break
 
         subdomain = {"olx": DOMAINS["olx"]["domain"], "otodom": DOMAINS["otodom"]}
@@ -65,7 +65,7 @@ def process_domain_offers_olx(
             record = process_offer_olx(driver)
             if record:
                 save_to_csv(record, location_query, subdomain["olx"], timestamp)
-                offers_count += 1
+                progress.update()
             else:
                 logging.error("Failed to process: %s", offer_url)
                 if LOGGING["debug"]:
@@ -75,7 +75,7 @@ def process_domain_offers_olx(
             record = process_offer_otodom(driver)
             if record:
                 save_to_csv(record, location_query, subdomain["otodom"], timestamp)
-                offers_count += 1
+                progress.update()
             else:
                 logging.error("Failed to process: %s", offer_url)
                 if LOGGING["debug"]:
@@ -86,5 +86,3 @@ def process_domain_offers_olx(
 
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
-
-    return offers_count

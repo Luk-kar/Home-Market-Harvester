@@ -8,7 +8,6 @@ from typing import Dict, List, Optional
 import logging
 import random
 import time
-import urllib.parse
 
 # Third-party imports
 from bs4 import BeautifulSoup
@@ -19,14 +18,6 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
-
-def transform_location_to_url_format(location: str) -> str:
-    formatted_location = location.replace(" ", "-")
-
-    encoded_location = urllib.parse.quote(formatted_location, safe="-")
-
-    return encoded_location
 
 
 def humans_delay(

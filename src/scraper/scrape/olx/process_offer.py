@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from _utils import safe_get_text, wait_for_conditions, extract_data
+from _utils.selenium_utils import safe_get_text, wait_for_conditions, extract_data
 
 
 def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:

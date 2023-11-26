@@ -1,5 +1,4 @@
 # Standard imports
-import datetime
 import re
 
 # Third-party imports
@@ -13,14 +12,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from _utils import humans_delay
-from csv_utils import save_to_csv
+from _utils.selenium_utils import humans_delay
+from _utils.csv_utils import save_to_csv
 from config import DOMAINS, SCRAPER
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
 
 
 def process_page_offers(
-    driver: WebDriver, search_criteria: dict, timestamp: str, offers_count: int = 0
+    driver: WebDriver, search_criteria: dict, timestamp: str, progess: object
 ):
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
@@ -31,20 +30,21 @@ def process_page_offers(
     original_window = driver.current_window_handle
 
     for sub_link in listing_links:
-        if offers_count >= offers_cap:
+        if progess.count >= offers_cap:
             break
 
         open_process_and_close_window(
-            driver, original_window, sub_link, location_query, timestamp
+            driver, original_window, sub_link, location_query, timestamp, progess
         )
-
-        offers_count += 1
-
-    return offers_count
 
 
 def open_process_and_close_window(
-    driver, original_window, sub_link, location_query: str, timestamp: str
+    driver,
+    original_window,
+    sub_link,
+    location_query: str,
+    timestamp: str,
+    progress: object,
 ):
     open_offer(driver, sub_link)
 
@@ -55,6 +55,7 @@ def open_process_and_close_window(
 
     if record:
         save_to_csv(record, location_query, DOMAINS["otodom"], timestamp)
+        progress.update()
 
     driver.close()
 
@@ -69,7 +70,7 @@ def open_offer(driver, query_string):
 
 
 def process_domain_offers_otodom(
-    driver: WebDriver, search_criteria, timestamp: str, offers_count: int
+    driver: WebDriver, search_criteria, timestamp: str, progress: object
 ):
     location = search_criteria["location_query"]
     km = search_criteria["area_radius"]
@@ -88,12 +89,10 @@ def process_domain_offers_otodom(
     await_for_offers_to_load(driver)
 
     # process for the first time
-    offers_count += process_page_offers(
-        driver, search_criteria, timestamp, offers_count
-    )
+    process_page_offers(driver, search_criteria, timestamp, progress)
 
-    if offers_count >= offers_cap:
-        return offers_count
+    if progress.count >= offers_cap:
+        return
 
     next_page_selector = '[data-cy="pagination.next-page"]'
 
@@ -103,16 +102,12 @@ def process_domain_offers_otodom(
         if SCRAPER["anti_anti_bot"]:
             humans_delay(0.3, 0.5)
 
-        offers_count += process_page_offers(
-            driver, search_criteria, timestamp, offers_count
-        )
+        process_page_offers(driver, search_criteria, timestamp, progress)
 
-        if offers_count >= offers_cap:
-            return offers_count
+        if progress.count >= offers_cap:
+            return
 
         click_next_page(driver)
-
-    return offers_count
 
 
 def is_disabled(driver, selector):
