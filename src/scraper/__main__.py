@@ -4,7 +4,7 @@ from webdriver_setup import get_driver
 
 # Local imports
 from config import SCRAPER
-from scrape.process_site_offers import scrape_offers
+from scrape.process_sites_offers import scrape_offers
 
 
 def main():
@@ -24,12 +24,10 @@ def main():
 
     try:
         website_arguments = {
-            "location": SCRAPER["location"],
+            "location_query": SCRAPER["location_query"],
             "area_radius": SCRAPER["area_radius"],
+            "scraped_offers_cap": SCRAPER["scraped_offers_cap"],
         }
-        # 0km, 5km, 10km, 15km, 25km, 50km, 75km
-        km = 25
-        location_query = "Mierzęcice, Będziński, Śląskie"
 
         scrape_offers(driver, website_arguments)
 

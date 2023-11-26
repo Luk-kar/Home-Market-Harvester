@@ -11,12 +11,8 @@ from selenium.common.exceptions import WebDriverException
 # Local imports
 from _utils import humans_delay
 from config import SUBDOMAINS, LOGGING, SCRAPER
-from scrape.olx.process_domain_offers import (
-    process_domain_offers as process_domain_offers_olx,
-)
-from scrape.otodom.process_domain_offers import (
-    process_domain_offers as process_domain_offers_otodom,
-)
+from scrape.olx.process_domain_offers import process_domain_offers_olx
+from scrape.otodom.process_domain_offers import process_domain_offers_otodom
 
 
 def transform_location_to_url_format(location: str) -> str:
@@ -29,7 +25,10 @@ def transform_location_to_url_format(location: str) -> str:
 
 def scrape_offers(driver, website_arguments):
     try:
-        location_query = website_arguments["location"]
+        location_query = website_arguments["location_query"]
+        offers_cap = website_arguments["scraped_offers_cap"]
+        offers_count = 0
+
         formatted_location = transform_location_to_url_format(location_query)
         urls = [
             f'{SUBDOMAINS["olx"]}/{SCRAPER["category"]}q-{formatted_location}/',
@@ -38,6 +37,9 @@ def scrape_offers(driver, website_arguments):
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         for url in urls:
+            if offers_count >= offers_cap:
+                break
+
             humans_delay()
             try:
                 driver.get(url)
@@ -50,9 +52,13 @@ def scrape_offers(driver, website_arguments):
                 driver.refresh()
 
             if SUBDOMAINS["olx"] in url:
-                process_domain_offers_olx(driver, location_query, timestamp)
+                offers_count += process_domain_offers_olx(
+                    driver, website_arguments, timestamp, offers_count
+                )
             elif SUBDOMAINS["otodom"] in url:
-                process_domain_offers_otodom(driver, website_arguments, timestamp)
+                offers_count += process_domain_offers_otodom(
+                    driver, website_arguments, timestamp, offers_count
+                )
                 pass
             else:
                 raise RequestException(f"Unrecognized URL: {url}")

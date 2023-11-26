@@ -20,7 +20,7 @@ import logging
 
 SCRAPER: dict[str, str | int | float] = {
     # Any you choose, but remember to use the same format as on the website
-    "location": "Mierzęcice, Będziński, Śląskie",
+    "location_query": "Mierzęcice, Będziński, Śląskie",
     "area_radius": 25,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km
     "domain": "https://www.olx.pl",
     "category": "nieruchomosci/mieszkania/wynajem/",
@@ -29,7 +29,8 @@ SCRAPER: dict[str, str | int | float] = {
     "wait_timeout": 10,
     "min_delay": 0.90,
     "max_delay": 1.30,
-    "anti-anti-bot": True,  # Make the scraper more human-like and also slower
+    "anti-anti-bot": True,  # Make the scraper more human-like and also
+    "scraped_offers_cap": 5,
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,

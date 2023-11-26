@@ -18,7 +18,11 @@ from config import SUBDOMAINS
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
 
 
-def process_page_offers(driver: WebDriver, location_query: str, timestamp: str):
+def process_page_offers(
+    driver: WebDriver, website_arguments: dict, timestamp: str, offers_count: int = 0
+):
+    location_query = website_arguments["location_query"]
+    offers_cap = website_arguments["scraped_offers_cap"]
     soup = BeautifulSoup(driver.page_source, "html.parser")
 
     listing_links = soup.find_all("a", {"data-cy": "listing-item-link"})
@@ -26,9 +30,16 @@ def process_page_offers(driver: WebDriver, location_query: str, timestamp: str):
     original_window = driver.current_window_handle
 
     for sub_link in listing_links:
+        if offers_count >= offers_cap:
+            break
+
         open_process_and_close_window(
             driver, original_window, sub_link, location_query, timestamp
         )
+
+        offers_count += 1
+
+    return offers_count
 
 
 def open_process_and_close_window(
@@ -55,9 +66,12 @@ def open_offer(driver, query_string):
     driver.get(full_link)
 
 
-def process_domain_offers(driver: WebDriver, website_arguments, timestamp: str):
-    location = website_arguments["location"]
+def process_domain_offers_otodom(
+    driver: WebDriver, website_arguments, timestamp: str, offers_count: int
+):
+    location = website_arguments["location_query"]
     km = website_arguments["area_radius"]
+    offers_cap = website_arguments["scraped_offers_cap"]
 
     display_offers(driver, location, km)
 
@@ -70,7 +84,12 @@ def process_domain_offers(driver: WebDriver, website_arguments, timestamp: str):
     await_for_offers_to_load(driver)
 
     # process for the first time
-    process_page_offers(driver, location, timestamp)
+    offers_count += process_page_offers(
+        driver, website_arguments, timestamp, offers_count
+    )
+
+    if offers_count >= offers_cap:
+        return offers_count
 
     next_page_selector = '[data-cy="pagination.next-page"]'
 
@@ -78,9 +97,16 @@ def process_domain_offers(driver: WebDriver, website_arguments, timestamp: str):
         await_for_offers_to_load(driver)
         humans_delay(0.3, 0.5)
 
-        process_page_offers(driver, location, timestamp)
+        offers_count += process_page_offers(
+            driver, website_arguments, timestamp, offers_count
+        )
+
+        if offers_count >= offers_cap:
+            return offers_count
 
         click_next_page(driver)
+
+    return offers_count
 
 
 def is_disabled(driver, selector):

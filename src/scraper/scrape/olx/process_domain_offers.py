@@ -19,7 +19,12 @@ from scrape.custom_errors import OfferProcessingError
 from _utils import save_to_csv
 
 
-def process_domain_offers(driver: WebDriver, location_query: str, timestamp: str):
+def process_domain_offers_olx(
+    driver: WebDriver, website_arguments: dict, timestamp: str, offers_count
+):
+    location_query = website_arguments["location_query"]
+    offers_cap = website_arguments["scraped_offers_cap"]
+
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, '[data-testid="listing-grid"]')
@@ -43,6 +48,9 @@ def process_domain_offers(driver: WebDriver, location_query: str, timestamp: str
             logging.info("No link found in the offer with id=%s", offer_id)
 
     for offer_url in url_offers:
+        if offers_count >= offers_cap:
+            break
+
         subdomain = {"olx": SUBDOMAINS["olx"], "otodom": SUBDOMAINS["otodom"]}
         if not offer_url.startswith("http"):
             offer_url = subdomain["olx"] + offer_url
@@ -57,6 +65,7 @@ def process_domain_offers(driver: WebDriver, location_query: str, timestamp: str
             record = process_offer_olx(driver)
             if record:
                 save_to_csv(record, location_query, subdomain["olx"], timestamp)
+                offers_count += 1
             else:
                 logging.error("Failed to process: %s", offer_url)
                 if LOGGING["debug"]:
@@ -66,6 +75,7 @@ def process_domain_offers(driver: WebDriver, location_query: str, timestamp: str
             record = process_offer_otodom(driver)
             if record:
                 save_to_csv(record, location_query, subdomain["otodom"], timestamp)
+                offers_count += 1
             else:
                 logging.error("Failed to process: %s", offer_url)
                 if LOGGING["debug"]:
@@ -76,3 +86,5 @@ def process_domain_offers(driver: WebDriver, location_query: str, timestamp: str
 
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
+
+    return offers_count
