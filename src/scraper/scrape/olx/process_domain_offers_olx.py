@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from _utils import humans_delay
-from config import SUBDOMAINS, LOGGING, SCRAPER
+from config import DOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_offer import process_offer as process_offer_olx
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
 from scrape.custom_errors import OfferProcessingError
@@ -51,11 +51,11 @@ def process_domain_offers_olx(
         if offers_count >= offers_cap:
             break
 
-        subdomain = {"olx": SUBDOMAINS["olx"], "otodom": SUBDOMAINS["otodom"]}
+        subdomain = {"olx": DOMAINS["olx"], "otodom": DOMAINS["otodom"]}
         if not offer_url.startswith("http"):
             offer_url = subdomain["olx"] + offer_url
 
-        if SCRAPER["anti-anti-bot"]:
+        if SCRAPER["anti_anti_bot"]:
             humans_delay()  # Human behavior
 
         driver.execute_script(f"window.open('{offer_url}', '_blank');")

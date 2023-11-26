@@ -10,9 +10,9 @@ from selenium.common.exceptions import WebDriverException
 
 # Local imports
 from _utils import humans_delay
-from config import SUBDOMAINS, LOGGING, SCRAPER
-from scrape.olx.process_domain_offers import process_domain_offers_olx
-from scrape.otodom.process_domain_offers import process_domain_offers_otodom
+from config import DOMAINS, LOGGING, SCRAPER
+from scrape.olx.process_domain_offers_olx import process_domain_offers_olx
+from scrape.otodom.process_domain_offers_otodom import process_domain_offers_otodom
 
 
 def transform_location_to_url_format(location: str) -> str:
@@ -31,8 +31,8 @@ def scrape_offers(driver, website_arguments):
 
         formatted_location = transform_location_to_url_format(location_query)
         urls = [
-            f'{SUBDOMAINS["olx"]}/{SCRAPER["category"]}q-{formatted_location}/',
-            SUBDOMAINS["otodom"],
+            f'{DOMAINS["olx"]}/{SCRAPER["category"]}q-{formatted_location}/',
+            DOMAINS["otodom"],
         ]
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
@@ -51,11 +51,11 @@ def scrape_offers(driver, website_arguments):
                 logging.error("Connection issue encountered: %s", e)
                 driver.refresh()
 
-            if SUBDOMAINS["olx"] in url:
+            if DOMAINS["olx"] in url:
                 offers_count += process_domain_offers_olx(
                     driver, website_arguments, timestamp, offers_count
                 )
-            elif SUBDOMAINS["otodom"] in url:
+            elif DOMAINS["otodom"] in url:
                 offers_count += process_domain_offers_otodom(
                     driver, website_arguments, timestamp, offers_count
                 )

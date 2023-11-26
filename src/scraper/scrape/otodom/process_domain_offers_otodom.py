@@ -14,7 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from _utils import humans_delay, save_to_csv
-from config import SUBDOMAINS
+from config import DOMAINS
 from scrape.otodom.process_offer import process_offer as process_offer_otodom
 
 
@@ -52,7 +52,7 @@ def open_process_and_close_window(
     record = process_offer_otodom(driver)
 
     if record:
-        save_to_csv(record, location_query, SUBDOMAINS["otodom"], timestamp)
+        save_to_csv(record, location_query, DOMAINS["otodom"], timestamp)
 
     driver.close()
 
@@ -62,7 +62,7 @@ def open_process_and_close_window(
 def open_offer(driver, query_string):
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[-1])
-    full_link = SUBDOMAINS["otodom"] + query_string["href"]
+    full_link = DOMAINS["otodom"] + query_string["href"]
     driver.get(full_link)
 
 

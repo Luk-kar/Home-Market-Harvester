@@ -13,7 +13,7 @@ def main():
 
     This function sets up the logging, initializes the web driver,
     constructs the scraping URL, initiates the scraping process, and
-    save the scraped data into CSV files (for each of the subdomains:
+    save the scraped data into CSV files (for each of the domains:
     "otodom" and "olx" separately).
     It ensures that the driver is properly
     closed after the scraping is done.

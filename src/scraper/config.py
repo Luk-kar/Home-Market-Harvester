@@ -9,7 +9,7 @@ and various timeouts and delays to mimic human interaction and avoid bot detecti
 
 It also sets up WebDriver preferences including path, user agent, and display options. 
 Additionally, the module configures logging parameters and 
-specifies subdomains for targeted websites. 
+specifies targeted websites. 
 
 These configurations are essential for controlling and 
 customizing the scraper's performance and interactions with web elements.
@@ -22,14 +22,13 @@ SCRAPER: dict[str, str | int | float] = {
     # Any you choose, but remember to use the same format as on the website
     "location_query": "Mierzęcice, Będziński, Śląskie",
     "area_radius": 25,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km
-    "domain": "https://www.olx.pl",
     "category": "nieruchomosci/mieszkania/wynajem/",
     "max_retries": 5,
     "multi_wait_timeout": 5,
     "wait_timeout": 10,
     "min_delay": 0.90,
     "max_delay": 1.30,
-    "anti-anti-bot": True,  # Make the scraper more human-like and also
+    "anti_anti_bot": True,  # Make the scraper more human-like and also
     "scraped_offers_cap": 5,
 }
 WEBDRIVER: dict[str, str | bool] = {
@@ -44,7 +43,7 @@ LOGGING: dict[str, str] = {
     "level": logging.INFO,
     "file": "./logs/scraper.log",
 }
-SUBDOMAINS: dict[str, str] = {
+DOMAINS: dict[str, str] = {
     "olx": "https://www.olx.pl",
     "otodom": "https://www.otodom.pl",
 }
