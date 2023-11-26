@@ -77,7 +77,7 @@ def process_domain_offers(
         await_for_offers_to_load(driver)
         humans_delay(0.3, 0.5)
 
-        process_page_offers(driver, location_query)
+        process_page_offers(driver, location_query, timestamp)
 
         click_next_page(driver)
 
@@ -136,6 +136,8 @@ def display_offers(driver, text_to_enter, km):
         "for_rent": "#react-select-transaction-option-0",
         "location": '[data-testid="search.form.location.button"]',
         "location_input": "location-picker-input",
+        "location_dropdown": '[data-testid="search.form.location.container"]',
+        "location_suggestions": 'li[data-testid="suggestions-item"]',
         "distance_radius": '[data-cy="search-form--field--distanceRadius"]',
         "distance_radius_dropdown": 'div[data-cy="search.form.location.dropdown.list-wrapper"]',
         "distance_radius_options": "react-select-distanceRadius-listbox",
@@ -144,18 +146,21 @@ def display_offers(driver, text_to_enter, km):
 
     accept_cookies(driver, field_selectors)
 
+    humans_delay(0.15, 0.2)
+
     select_for_rent_option(driver, field_selectors)
+
     humans_delay(0.15, 0.4)
 
-    select_distance_radius(driver, field_selectors)
+    # choose_distance(driver, field_selectors, km)
 
-    humans_delay(0.25, 0.45)
+    # humans_delay(0.25, 0.45)
+
+    select_distance_radius(driver, field_selectors, km)
+
+    humans_delay(0.3, 0.5)
 
     write_location(driver, field_selectors, text_to_enter)
-
-    # Select the first option from the dropdown
-
-    choose_distance(driver, field_selectors, km)
 
     humans_delay(0.3, 0.5)
 
@@ -206,8 +211,41 @@ def write_location(driver, field_selectors, text_to_enter):
     input_element = driver.find_element(By.ID, field_selectors["location_input"])
     input_element.send_keys(text_to_enter)
 
+    WebDriverWait(driver, 5).until(
+        EC.visibility_of_element_located(
+            (By.CSS_SELECTOR, field_selectors["location_dropdown"])
+        )  # todo
+    )
+    location_dropdown = driver.find_element(
+        By.CSS_SELECTOR, field_selectors["location_dropdown"]
+    )
+    WebDriverWait(driver, 5).until(
+        EC.visibility_of_element_located(
+            (By.CSS_SELECTOR, field_selectors["location_suggestions"])
+        )
+    )
+    suggestions = location_dropdown.find_elements(
+        By.CSS_SELECTOR, field_selectors["location_suggestions"]
+    )
 
-def select_distance_radius(driver, field_selectors):
+    closest_match = suggestions[0]
+    closest_match.click()
+
+
+def select_distance_radius(driver, field_selectors, km):
+    distance_dropdown = {
+        # Km : index
+        0: 0,
+        5: 1,
+        10: 2,
+        15: 3,
+        25: 4,
+        50: 5,
+        75: 6,
+    }
+
+    select_option = distance_dropdown[km]
+
     distance_radius_element = driver.find_element(
         By.CSS_SELECTOR, field_selectors["distance_radius"]
     )
@@ -233,8 +271,6 @@ def select_distance_radius(driver, field_selectors):
         for element in div_elements
         if pattern.match(element.get_attribute("id"))
     ]
-
-    select_option = 2
 
     matching_elements[select_option].click()
 
