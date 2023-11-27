@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from _utils.selenium_utils import humans_delay
-from _utils.csv_utils import save_to_csv
+from csv_manager import save_to_csv
 from config import DOMAINS, LOGGING, SCRAPER
 from scrape.olx.process_offer import process_offer as process_offer_olx
 from scrape.otodom.extract_offer import extract_data as process_offer_otodom

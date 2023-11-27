@@ -1,12 +1,14 @@
 # Third-party imports
 from enlighten import Counter
 from selenium.webdriver.remote.webdriver import WebDriver
+import logging
 
 # Local imports
 from _utils.selenium_utils import humans_delay
-from _utils.csv_utils import save_to_csv
-from config import DOMAINS, SCRAPER
-from scrape.otodom.extract_offer import scrape_offer_page as process_offer_otodom
+from config import DOMAINS, SCRAPER, LOGGING
+from csv_manager import save_to_csv
+from scrape.custom_errors import OfferProcessingError
+from scrape.otodom.extract_offer import scrape_offer_page
 
 
 def open_process_and_close_window(
@@ -37,11 +39,16 @@ def open_process_and_close_window(
     if SCRAPER["anti_anti_bot"]:
         humans_delay()
 
-    record = process_offer_otodom(driver)
+    record = scrape_offer_page(driver)
 
     if record:
         save_to_csv(record, location_query, DOMAINS["otodom"], timestamp)
         progress.update()
+    else:
+        offer_url = driver.current_url
+        logging.error("Failed to process: %s", offer_url)
+        if LOGGING["debug"]:
+            raise OfferProcessingError(offer_url, "Failed to process offer URL")
 
     driver.close()
 
