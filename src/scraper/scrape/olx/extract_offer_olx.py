@@ -12,7 +12,7 @@ from config import LOGGING
 from scrape.custom_errors import OfferProcessingError
 
 
-def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:
+def scrape_offer(driver: WebDriver) -> Optional[dict[str, str]]:
     """
     Process the offer page and return the extracted information.
 
@@ -38,7 +38,7 @@ def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:
     ]
 
     if wait_for_conditions(driver, *conditions):
-        return parse_offer_page(driver, field_selectors)
+        return extract_offer_data(driver, field_selectors)
     else:
         offer_url = driver.current_url
         logging.error("Failed to process: %s", offer_url)
@@ -47,7 +47,7 @@ def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:
         return None
 
 
-def parse_offer_page(driver: WebDriver, field_selectors: dict[str, str]):
+def extract_offer_data(driver: WebDriver, field_selectors: dict[str, str]):
     """
     Parses the offer page and extracts relevant information.
 

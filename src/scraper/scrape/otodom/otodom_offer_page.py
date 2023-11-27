@@ -10,7 +10,7 @@ from _utils.selenium_utils import humans_delay
 from config import DOMAINS, SCRAPER, LOGGING
 from csv_manager import save_to_csv
 from scrape.custom_errors import OfferProcessingError
-from scrape.otodom.extract_offer import scrape_offer_page
+from scrape.otodom.extract_offer_otodom import scrape_offer_page
 
 
 def open_process_and_close_window(
