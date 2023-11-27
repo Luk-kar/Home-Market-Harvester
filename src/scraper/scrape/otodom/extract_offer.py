@@ -1,9 +1,12 @@
 # Standard imports
 from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
+import logging
 
 # Local imports
 from _utils.selenium_utils import wait_for_conditions, extract_data
+from config import LOGGING
+from scrape.custom_errors import OfferProcessingError
 
 
 def scrape_offer_page(driver: WebDriver) -> dict[str, str]:
@@ -64,6 +67,10 @@ def scrape_offer_page(driver: WebDriver) -> dict[str, str]:
     if wait_for_conditions(driver, *conditions):
         return extract_offer_content(driver, field_selectors)
     else:
+        offer_url = driver.current_url
+        logging.error("Failed to process: %s", offer_url)
+        if LOGGING["debug"]:
+            raise OfferProcessingError(offer_url, "Failed to process offer URL")
         return None
 
 

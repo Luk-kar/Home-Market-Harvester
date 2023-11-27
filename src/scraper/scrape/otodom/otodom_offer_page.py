@@ -1,7 +1,9 @@
+# Standard imports
+import logging
+
 # Third-party imports
 from enlighten import Counter
 from selenium.webdriver.remote.webdriver import WebDriver
-import logging
 
 # Local imports
 from _utils.selenium_utils import humans_delay
