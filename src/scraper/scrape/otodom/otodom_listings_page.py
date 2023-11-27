@@ -41,17 +41,7 @@ def page_offers_orchestrator(
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.2, 0.4)
 
-    await_for_offers_to_load(driver)
-
-    # process for the first time
-    process_page_offers(driver, search_criteria, timestamp, progress)
-
-    if progress.count >= offers_cap:
-        return
-
-    next_page_selector = '[data-cy="pagination.next-page"]'
-
-    while not is_disabled(driver, next_page_selector):
+    while True:
         await_for_offers_to_load(driver)
 
         if SCRAPER["anti_anti_bot"]:
@@ -60,9 +50,13 @@ def page_offers_orchestrator(
         process_page_offers(driver, search_criteria, timestamp, progress)
 
         if progress.count >= offers_cap:
-            return
+            break
 
-        click_next_page(driver)
+        next_page_selector = '[data-cy="pagination.next-page"]'
+        if not is_disabled(driver, next_page_selector):
+            click_next_page(driver)
+        else:
+            break
 
 
 def process_page_offers(

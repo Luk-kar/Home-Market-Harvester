@@ -35,67 +35,95 @@ def process_domain_offers_olx(
     Returns:
         None
     """
+
+    field_selectors = {
+        "flat_offer_icon": '[data-testid="blueprint-card-param-icon"]',
+        "offers_listings": '[data-testid="listing-grid"]',
+        "offers": '[data-testid="l-card"]',
+        "pagination_forward": '[data-testid="pagination-forward"]',
+    }
+
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
 
-    WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, '[data-testid="listing-grid"]')
+    while True:
+        WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, '[data-testid="listing-grid"]')
+            )
         )
-    )
 
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-
-    offers_listings = soup.select_one('[data-testid="listing-grid"]')
-    offers = offers_listings.select('[data-testid="l-card"]')
-    url_offers = []
-
-    for offer in offers:
-        first_anchor_tag = offer.select_one("a")
-
-        if first_anchor_tag:
-            href_link = first_anchor_tag["href"]
-            url_offers.append(href_link)
-        else:
-            offer_id = offer["id"] if "id" in offer.attrs else "Unknown"
-            logging.info("No link found in the offer with id=%s", offer_id)
-
-    for offer_url in url_offers:
-        if progress.count >= offers_cap:
+        is_offer = driver.find_element(
+            By.CSS_SELECTOR, field_selectors["flat_offer_icon"]
+        )
+        if not is_offer:
             break
 
-        subdomain = {"olx": DOMAINS["olx"]["domain"], "otodom": DOMAINS["otodom"]}
-        if not offer_url.startswith("http"):
-            offer_url = subdomain["olx"] + offer_url
+        soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        if SCRAPER["anti_anti_bot"]:
-            humans_delay()  # Human behavior
+        offers_listings = soup.select_one(field_selectors["offers_listings"])
+        offers = offers_listings.select(field_selectors["offers"])
+        url_offers = []
 
-        driver.execute_script(f"window.open('{offer_url}', '_blank');")
-        driver.switch_to.window(driver.window_handles[1])
+        for offer in offers:
+            first_anchor_tag = offer.select_one("a")
 
-        if subdomain["olx"] in offer_url:
-            record = process_offer_olx(driver)
-            if record:
-                save_to_csv(record, location_query, subdomain["olx"], timestamp)
-                progress.update()
+            if first_anchor_tag:
+                href_link = first_anchor_tag["href"]
+                url_offers.append(href_link)
             else:
-                logging.error("Failed to process: %s", offer_url)
                 if LOGGING["debug"]:
-                    raise OfferProcessingError(offer_url, "Failed to process offer URL")
+                    offer_id = offer["id"] if "id" in offer.attrs else "Unknown"
+                    logging.info("No link found in the offer with id=%s", offer_id)
 
-        elif subdomain["otodom"] in offer_url:
-            record = process_offer_otodom(driver)
-            if record:
-                save_to_csv(record, location_query, subdomain["otodom"], timestamp)
-                progress.update()
+        for offer_url in url_offers:
+            if progress.count >= offers_cap:
+                break
+
+            subdomain = {"olx": DOMAINS["olx"]["domain"], "otodom": DOMAINS["otodom"]}
+            if not offer_url.startswith("http"):
+                offer_url = subdomain["olx"] + offer_url
+
+            if SCRAPER["anti_anti_bot"]:
+                humans_delay()  # Human behavior
+
+            driver.execute_script(f"window.open('{offer_url}', '_blank');")
+            driver.switch_to.window(driver.window_handles[1])
+
+            if subdomain["olx"] in offer_url:
+                record = process_offer_olx(driver)
+                if record:
+                    save_to_csv(record, location_query, subdomain["olx"], timestamp)
+                    progress.update()
+                else:
+                    logging.error("Failed to process: %s", offer_url)
+                    if LOGGING["debug"]:
+                        raise OfferProcessingError(
+                            offer_url, "Failed to process offer URL"
+                        )
+
+            elif subdomain["otodom"] in offer_url:
+                record = process_offer_otodom(driver)
+                if record:
+                    save_to_csv(record, location_query, subdomain["otodom"], timestamp)
+                    progress.update()
+                else:
+                    logging.error("Failed to process: %s", offer_url)
+                    if LOGGING["debug"]:
+                        raise OfferProcessingError(
+                            offer_url, "Failed to process offer URL"
+                        )
+
             else:
-                logging.error("Failed to process: %s", offer_url)
-                if LOGGING["debug"]:
-                    raise OfferProcessingError(offer_url, "Failed to process offer URL")
+                raise RequestException(f"Unrecognized URL: {offer_url}")
 
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+
+        next_page_button = driver.find_element(
+            By.CSS_SELECTOR, field_selectors["pagination_forward"]
+        )
+        if next_page_button:
+            next_page_button.click()
         else:
-            raise RequestException(f"Unrecognized URL: {offer_url}")
-
-        driver.close()
-        driver.switch_to.window(driver.window_handles[0])
+            break
