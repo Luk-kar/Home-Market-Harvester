@@ -27,8 +27,8 @@ SCRAPER: dict[str, str | int | float] = {
     "location_query": "Mierzęcice, Będziński, Śląskie",
     "area_radius": 10,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km
     "max_retries": 5,
-    "multi_wait_timeout": 5,
     "wait_timeout": 10,
+    "multi_wait_timeout": 5,
     "min_delay": 0.90,
     "max_delay": 1.30,
     "anti_anti_bot": True,  # Make the scraper more human-like and also
