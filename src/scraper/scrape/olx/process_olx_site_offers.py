@@ -41,6 +41,7 @@ def process_domain_offers_olx(
     Returns:
         None
     """
+
     field_selectors = {
         "accept_cookies": "button[id='onetrust-accept-btn-handler']",
         "flat_offer_icon": '[data-testid="blueprint-card-param-icon"]',

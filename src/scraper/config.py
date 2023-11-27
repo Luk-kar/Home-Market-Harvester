@@ -32,7 +32,7 @@ SCRAPER: dict[str, str | int | float] = {
     "min_delay": 0.90,
     "max_delay": 1.30,
     "anti_anti_bot": True,  # Make the scraper more human-like and also
-    "scraped_offers_cap": 3,
+    "scraped_offers_cap": 148,
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
@@ -42,7 +42,7 @@ WEBDRIVER: dict[str, str | bool] = {
     "maximize_window": True,
 }
 LOGGING: dict[str, str] = {
-    "debug": True,  # also sets the headless option to True
+    "debug": False,  # also sets the headless option to True
     "level": logging.INFO,
     "file": sanitize_path("./logs/scraper.log"),
 }
