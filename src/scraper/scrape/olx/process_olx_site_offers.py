@@ -52,11 +52,7 @@ def process_domain_offers_olx(
     humans_delay(0.2, 0.4)
 
     while True:
-        WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, field_selectors["offers_listings"])
-            )
-        )
+        await_element(driver, field_selectors["offers_listings"])
 
         if not has_offer(driver, field_selectors["flat_offer_icon"]):
             break
@@ -97,7 +93,33 @@ def process_domain_offers_olx(
             click_next_page(driver, field_selectors["pagination_forward"])
 
 
-def accept_cookies(driver, field_selectors):
+def await_element(driver, selector):
+    """
+    Waits for an element to be present in the DOM using the given selector.
+
+    Args:
+        driver: The WebDriver instance.
+        selector: A dictionary containing the CSS selector for the element.
+
+    Returns:
+        None
+    """
+    WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, selector["offers_listings"]))
+    )
+
+
+def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
+    """
+    Accepts cookies on the website by clicking the accept cookies button.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        field_selectors (dict[str, str]): Dictionary containing CSS selectors for different fields.
+
+    Returns:
+        None
+    """
     WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, field_selectors["accept_cookies"])
@@ -111,11 +133,30 @@ def accept_cookies(driver, field_selectors):
 
 
 def return_to_listing_page(driver: WebDriver):
+    """
+    Closes the current window and switches back to the main listing page.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+
+    Returns:
+        None
+    """
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
 
 
 def open_new_offer(driver: WebDriver, offer_url: str):
+    """
+    Opens a new offer in a new tab/window using the provided WebDriver instance.
+
+    Args:
+        driver (WebDriver): The WebDriver instance to use for opening the offer.
+        offer_url (str): The URL of the offer to open.
+
+    Returns:
+        None
+    """
     driver.execute_script(f"window.open('{offer_url}', '_blank');")
     driver.switch_to.window(driver.window_handles[1])
 
