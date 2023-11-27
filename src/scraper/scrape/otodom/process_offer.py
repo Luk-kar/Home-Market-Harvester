@@ -7,6 +7,17 @@ from _utils.selenium_utils import wait_for_conditions, extract_data
 
 
 def process_offer(driver: WebDriver) -> dict[str, str]:
+    """
+    Process an offer page and extract relevant information using the provided WebDriver.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used to navigate and interact with the offer page.
+
+    Returns:
+        dict[str, str]: A dictionary containing the extracted information from the offer page.
+            The keys represent the information categories, and the values represent the page selectors.
+    """
+
     field_selectors = {
         "main_points": '[data-testid="ad.top-information.table"]',
         "additional_points": '[data-testid="ad.additional-information.table"]',
@@ -57,6 +68,17 @@ def process_offer(driver: WebDriver) -> dict[str, str]:
 
 
 def parse_offer(driver: WebDriver, field_selectors: dict[str, str]):
+    """
+    Parses the offer details from the given web page using the provided field selectors.
+
+    Args:
+        driver (WebDriver): The web driver instance.
+        field_selectors (dict[str, str]): A dictionary containing the field selectors for extracting data.
+
+    Returns:
+        dict[str, str]: A dictionary containing the parsed offer details.
+    """
+
     offer_url = driver.current_url
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")

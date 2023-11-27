@@ -45,6 +45,15 @@ def main():
 
 
 def print_new_data_files(existing_folders: set):
+    """
+    Prints the new data files created in the folder.
+
+    Args:
+        existing_folders (set): A set of existing folders.
+
+    Returns:
+        None
+    """
     folder_scraped_data = DATA["folder_scraped_data"]
 
     new_folders = set(os.listdir(folder_scraped_data)) - existing_folders
@@ -59,6 +68,9 @@ def print_new_data_files(existing_folders: set):
 
 
 def print_current_time():
+    """
+    Prints the current date and time in the format "YYYY-MM-DD HH:MM:SS".
+    """
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 

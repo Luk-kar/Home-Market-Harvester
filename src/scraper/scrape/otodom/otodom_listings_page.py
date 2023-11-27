@@ -19,6 +19,18 @@ def page_offers_orchestrator(
     timestamp: str,
     progress: Counter,
 ):
+    """
+    Orchestrates the scraping of offers from a single page on the Otodom website.
+
+    Args:
+        driver (WebDriver): The WebDriver instance for interacting with the web page.
+        search_criteria (dict[str, str | int]): The search criteria used for filtering the offers.
+        timestamp (str): The timestamp of the scraping process.
+        progress (Counter): The counter to keep track of the number of scraped offers.
+
+    Returns:
+        None
+    """
     offers_cap: int = search_criteria["scraped_offers_cap"]
 
     if SCRAPER["anti_anti_bot"]:
@@ -56,6 +68,18 @@ def page_offers_orchestrator(
 def process_page_offers(
     driver: WebDriver, search_criteria: dict, timestamp: str, progress: Counter
 ):
+    """
+    Process the offers on the page.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        search_criteria (dict): The search criteria.
+        timestamp (str): The timestamp of the scraping process.
+        progress (Counter): The progress counter.
+
+    Returns:
+        None
+    """
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -74,6 +98,15 @@ def process_page_offers(
 
 
 def await_for_offers_to_load(driver: WebDriver):
+    """
+    Waits for the offers to load on the page.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+
+    Returns:
+        None
+    """
     main_feed_selector = '[role="main"]'
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, main_feed_selector))
@@ -81,6 +114,15 @@ def await_for_offers_to_load(driver: WebDriver):
 
 
 def set_max_offers_per_site(driver: WebDriver):
+    """
+    Sets the maximum number of offers per site in the Otodom listings page.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+
+    Returns:
+        None
+    """
     entries_id = "react-select-entriesPerPage-input"
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.element_to_be_clickable((By.ID, entries_id))
@@ -102,6 +144,15 @@ def set_max_offers_per_site(driver: WebDriver):
 
 
 def click_next_page(driver: WebDriver):
+    """
+    Clicks on the next page button in the Otodom listings page.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used for scraping.
+
+    Returns:
+        None
+    """
     next_button_selector = '[data-cy="pagination.next-page"]'
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, next_button_selector))
@@ -111,6 +162,16 @@ def click_next_page(driver: WebDriver):
 
 
 def is_disabled(driver: WebDriver, selector: str) -> bool:
+    """
+    Check if a clickable element with the given selector is disabled.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        selector (str): The CSS selector of the element.
+
+    Returns:
+        bool: True if the element is disabled, False otherwise.
+    """
     try:
         selector = f'{selector}[disabled=""]'
 

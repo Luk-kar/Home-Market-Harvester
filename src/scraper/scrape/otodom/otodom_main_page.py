@@ -21,6 +21,18 @@ def process_domain_offers_otodom(
     timestamp: str,
     progress: object,
 ):
+    """
+    Process domain offers from Otodom.
+
+    Args:
+        driver (WebDriver): The WebDriver instance for interacting with the web page.
+        search_criteria (dict[str, str | int]): The search criteria for filtering the offers.
+        timestamp (str): The timestamp of the scraping process.
+        progress (object): The progress object for tracking the scraping progress.
+
+    Returns:
+        None
+    """
     location: str = search_criteria["location_query"]
     km: int = search_criteria["area_radius"]
 
@@ -29,6 +41,17 @@ def process_domain_offers_otodom(
 
 
 def search_offers(driver: WebDriver, location_query_input: str, km: int):
+    """
+    Search for offers on the Otodom website based on the provided location and distance radius.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used for web scraping.
+        location_query_input (str): The location query input.
+        km (int): The distance radius in kilometers.
+
+    Returns:
+        None
+    """
     field_selectors = {
         "cookies_banner": '[id="onetrust-banner-sdk"]',
         "accept_cookies": '[id="onetrust-accept-btn-handler"]',
@@ -69,6 +92,16 @@ def search_offers(driver: WebDriver, location_query_input: str, km: int):
 
 
 def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
+    """
+    Accepts cookies on the webpage.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used to interact with the webpage.
+        field_selectors (dict[str, str]): A dictionary containing CSS selectors for various fields on the webpage.
+
+    Returns:
+        None
+    """
     WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, field_selectors["cookies_banner"])
@@ -88,6 +121,16 @@ def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
 
 
 def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
+    """
+    Selects the 'For Rent' option in the transaction type field on the main page of Otodom website.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used to interact with the web page.
+        field_selectors (dict[str, str]): A dictionary containing CSS selectors for different fields.
+
+    Returns:
+        None
+    """
     user_form = driver.find_element(
         By.CSS_SELECTOR,
         field_selectors["user_form"],
@@ -105,6 +148,17 @@ def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
 
 
 def select_distance_radius(driver: WebDriver, field_selectors: dict[str, str], km: int):
+    """
+    Selects the distance radius option on the main page of the Otodom website.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        field_selectors (dict[str, str]): A dictionary containing CSS selectors for the fields on the page.
+        km (int): The distance radius in kilometers.
+
+    Returns:
+        None
+    """
     distance_dropdown = {
         # Km : index
         0: 0,
@@ -150,6 +204,17 @@ def select_distance_radius(driver: WebDriver, field_selectors: dict[str, str], k
 def write_location(
     driver: WebDriver, field_selectors: dict[str, str], location_query_input: str
 ):
+    """
+    Writes the location query input in the location field of the webpage.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        field_selectors (dict[str, str]): A dictionary containing CSS selectors for different fields.
+        location_query_input (str): The location query input to be written.
+
+    Returns:
+        None
+    """
     location_element = driver.find_element(By.CSS_SELECTOR, field_selectors["location"])
     location_element.click()
 
@@ -184,4 +249,13 @@ def write_location(
 
 
 def press_find_offers_button(driver: WebDriver):
+    """
+    Presses the 'Find Offers' button on the main page.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+
+    Returns:
+        None
+    """
     ActionChains(driver).send_keys(Keys.ENTER).perform()

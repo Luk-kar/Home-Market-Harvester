@@ -17,6 +17,21 @@ def open_process_and_close_window(
     timestamp: str,
     progress: Counter,
 ):
+    """
+    Opens the offer in a new window, processes the offer data, saves it to a CSV file,
+    and closes the window.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used for web scraping.
+        original_window (str): The original previous window handle.
+        offer_element (dict[str, str]): The offer element containing information about the offer.
+        location_query (str): The location query used for scraping.
+        timestamp (str): The timestamp of the scraping process.
+        progress (Counter): The progress counter used to track the number of processed offers.
+
+    Returns:
+        None
+    """
     open_offer(driver, offer_element)
 
     if SCRAPER["anti_anti_bot"]:
@@ -34,6 +49,16 @@ def open_process_and_close_window(
 
 
 def open_offer(driver: WebDriver, offer_element: dict[str, str]):
+    """
+    Opens the offer page in a new window/tab using the provided WebDriver instance.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used to control the browser.
+        offer_element (dict[str, str]): A dictionary containing information about the offer element.
+
+    Returns:
+        None
+    """
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[-1])
     full_link = DOMAINS["otodom"] + offer_element["href"]

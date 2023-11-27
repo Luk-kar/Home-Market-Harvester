@@ -23,6 +23,18 @@ from scrape.custom_errors import OfferProcessingError
 def process_domain_offers_olx(
     driver: WebDriver, search_criteria: dict, timestamp: str, progress: Counter
 ):
+    """
+    Process the offers from the OLX domain and save them to a CSV file.
+
+    Args:
+        driver (WebDriver): The WebDriver instance for interacting with the browser.
+        search_criteria (dict): The search criteria for filtering the offers.
+        timestamp (str): The timestamp for the current scraping process.
+        progress (Counter): The counter for tracking the progress of scraping.
+
+    Returns:
+        None
+    """
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
 

@@ -4,6 +4,7 @@ import datetime
 
 # Third-party imports
 from requests.exceptions import RequestException
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import WebDriverException
 import enlighten
 
@@ -16,7 +17,20 @@ from scrape.olx.process_olx_site_offers import process_domain_offers_olx
 from scrape.otodom.otodom_main_page import process_domain_offers_otodom
 
 
-def scrape_offers(driver, search_criteria):
+def scrape_offers(driver: WebDriver, search_criteria: dict):
+    """
+    Scrapes offers from different websites based on the provided search criteria.
+
+    Args:
+        driver (WebDriver): The web driver used to navigate the websites.
+        search_criteria (dict): The search criteria containing location query and scraped offers cap.
+
+    Raises:
+        RequestException: If an unrecognized URL is encountered.
+
+    Returns:
+        None
+    """
     try:
         location_query = search_criteria["location_query"]
         offers_cap = search_criteria["scraped_offers_cap"]

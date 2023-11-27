@@ -10,6 +10,16 @@ from _utils.selenium_utils import safe_get_text, wait_for_conditions, extract_da
 
 
 def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:
+    """
+    Process the offer page and return the extracted information.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used for scraping.
+
+    Returns:
+        Optional[dict[str, str]]: A dictionary containing the extracted information,
+        or None if the offer page does not meet the required conditions.
+    """
     field_selectors = {
         "description": '[data-testid="main"]',
         "location_paragraphs": 'img[src="/app/static/media/staticmap.65e20ad98.svg"]',
@@ -31,6 +41,16 @@ def process_offer(driver: WebDriver) -> Optional[dict[str, str]]:
 
 
 def parse_offer_page(driver: WebDriver, field_selectors: dict[str, str]):
+    """
+    Parses the offer page and extracts relevant information.
+
+    Args:
+        driver (WebDriver): The WebDriver instance used to navigate the web page.
+        field_selectors (dict[str, str]): A dictionary containing CSS selectors for different fields.
+
+    Returns:
+        dict: A dictionary containing the extracted information from the offer page.
+    """
     offer_url = driver.current_url
 
     soup_offer = BeautifulSoup(driver.page_source, "html.parser")
