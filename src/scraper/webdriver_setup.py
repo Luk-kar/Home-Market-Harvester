@@ -12,7 +12,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Local imports
-from config import WEBDRIVER
+from config import LOGGING, WEBDRIVER
 
 
 class WebDriverSetupError(Exception):
@@ -48,7 +48,7 @@ def get_driver():
     if WEBDRIVER["user_agent"] == "random":
         options.add_argument(f"user-agent={UserAgent().random}")
 
-    if WEBDRIVER["headless"]:
+    if WEBDRIVER["headless"] and not LOGGING["debug"]:
         options.add_argument("--headless=new")
 
     if WEBDRIVER["auto_install"]:

@@ -38,11 +38,11 @@ WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
     "path": sanitize_path("src\\scraper\\chromedriver.exe"),  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
-    "headless": True,  # Set to False to see the browser window
+    "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
     "maximize_window": True,
 }
 LOGGING: dict[str, str] = {
-    "debug": True,
+    "debug": True,  # also sets the headless option to True
     "level": logging.INFO,
     "file": sanitize_path("./logs/scraper.log"),
 }

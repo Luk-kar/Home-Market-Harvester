@@ -6,7 +6,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from _utils.selenium_utils import wait_for_conditions, extract_data
 
 
-def process_offer(driver: WebDriver) -> dict[str, str]:
+def scrape_offer_page(driver: WebDriver) -> dict[str, str]:
     """
     Process an offer page and extract relevant information using the provided WebDriver.
 
@@ -62,12 +62,12 @@ def process_offer(driver: WebDriver) -> dict[str, str]:
     ]
 
     if wait_for_conditions(driver, *conditions):
-        return parse_offer(driver, field_selectors)
+        return extract_offer_content(driver, field_selectors)
     else:
         return None
 
 
-def parse_offer(driver: WebDriver, field_selectors: dict[str, str]):
+def extract_offer_content(driver: WebDriver, field_selectors: dict[str, str]):
     """
     Parses the offer details from the given web page using the provided field selectors.
 

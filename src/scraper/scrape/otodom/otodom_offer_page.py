@@ -6,7 +6,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from _utils.selenium_utils import humans_delay
 from _utils.csv_utils import save_to_csv
 from config import DOMAINS, SCRAPER
-from scrape.otodom.process_offer import process_offer as process_offer_otodom
+from scrape.otodom.extract_offer import scrape_offer_page as process_offer_otodom
 
 
 def open_process_and_close_window(
