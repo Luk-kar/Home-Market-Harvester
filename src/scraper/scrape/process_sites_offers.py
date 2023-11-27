@@ -66,10 +66,12 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
                 driver.refresh()
 
             if DOMAINS["olx"]["domain"] in url:
-                process_domain_offers_olx(driver, search_criteria, timestamp, progress)
+                process_domain_offers_olx(
+                    driver, search_criteria, timestamp, progress, scraped_urls
+                )
             elif DOMAINS["otodom"] in url:
                 process_domain_offers_otodom(
-                    driver, search_criteria, timestamp, progress
+                    driver, search_criteria, timestamp, progress, scraped_urls
                 )
                 pass
             else:

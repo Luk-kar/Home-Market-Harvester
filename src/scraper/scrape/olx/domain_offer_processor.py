@@ -32,17 +32,21 @@ def process_olx_offer(
         progress (Counter): The counter for tracking the progress of scraping.
 
     Returns:
-        None
+        str: The URL of the processed offer if successful, None otherwise.
     """
     record = process_offer_olx(driver)
+    offer_url = driver.current_url
+
     if record:
         save_to_csv(record, location_query, domain, timestamp)
         progress.update()
+        return offer_url
+
     else:
-        offer_url = driver.current_url
         logging.error("Failed to process: %s", offer_url)
         if LOGGING["debug"]:
             raise OfferProcessingError(offer_url, "Failed to process offer URL")
+        return None
 
 
 def process_otodom_offer(
@@ -63,14 +67,18 @@ def process_otodom_offer(
         progress (Counter): The counter for tracking the progress of scraping.
 
     Returns:
-        None
+        str: The URL of the processed offer if successful, None otherwise.
     """
     record = process_offer_otodom(driver)
+    offer_url = driver.current_url
+
     if record:
         save_to_csv(record, location_query, domain, timestamp)
         progress.update()
+        return offer_url
     else:
         offer_url = driver.current_url
         logging.error("Failed to process: %s", offer_url)
         if LOGGING["debug"]:
             raise OfferProcessingError(offer_url, "Failed to process offer URL")
+        return None

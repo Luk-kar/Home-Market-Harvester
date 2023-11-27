@@ -27,7 +27,11 @@ from scrape.olx.domain_offer_processor import process_olx_offer, process_otodom_
 
 
 def process_domain_offers_olx(
-    driver: WebDriver, search_criteria: dict, timestamp: str, progress: Counter
+    driver: WebDriver,
+    search_criteria: dict,
+    timestamp: str,
+    progress: Counter,
+    scraped_urls: set,
 ):
     """
     Process the offers from the OLX domain and save them to a CSV file.
@@ -69,7 +73,7 @@ def process_domain_offers_olx(
         url_offers = extract_offer_urls(offers)
 
         for offer_url in url_offers:
-            if progress.count >= offers_cap:
+            if progress.count >= offers_cap and offer_url not in scraped_urls:
                 break
 
             subdomain = {"olx": DOMAINS["olx"]["domain"], "otodom": DOMAINS["otodom"]}
@@ -80,16 +84,22 @@ def process_domain_offers_olx(
 
             open_new_offer(driver, offer_url)
 
+            scaped_url = None
+
             if subdomain["olx"] in offer_url:
-                process_olx_offer(
+                scaped_url = process_olx_offer(
                     driver, location_query, subdomain["olx"], timestamp, progress
                 )
+
             elif subdomain["otodom"] in offer_url:
-                process_otodom_offer(
+                scaped_url = process_otodom_offer(
                     driver, location_query, subdomain["otodom"], timestamp, progress
                 )
+
             else:
                 raise RequestException(f"Unrecognized URL: {offer_url}")
+
+            scraped_urls.add(scaped_url)
 
             return_to_listing_page(driver)
 
