@@ -32,7 +32,7 @@ SCRAPER: dict[str, str | int | float] = {
     "min_delay": 0.90,
     "max_delay": 1.30,
     "anti_anti_bot": True,  # Make the scraper more human-like and also
-    "scraped_offers_cap": 2000,
+    "scraped_offers_cap": 3,
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,

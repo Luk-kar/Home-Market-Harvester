@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from _utils.selenium_utils import humans_delay
+from _utils.selenium_utils import await_element, humans_delay
 from config import SCRAPER, DOMAINS
 from scrape.otodom.otodom_offer_page import open_process_and_close_window
 
@@ -33,6 +33,12 @@ def page_offers_orchestrator(
     Returns:
         None
     """
+
+    field_selectors = {
+        "next_page": '[data-cy="filter-location-input"]',
+        "radius": '[data-cy="filter-distance-input"]',
+    }
+
     offers_cap: int = search_criteria["scraped_offers_cap"]
 
     if SCRAPER["anti_anti_bot"]:
@@ -118,9 +124,7 @@ def await_for_offers_to_load(driver: WebDriver):
         None
     """
     main_feed_selector = '[role="main"]'
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, main_feed_selector))
-    )
+    await_element(driver, main_feed_selector, timeout=SCRAPER["multi_wait_timeout"])
 
 
 def set_max_offers_per_site(driver: WebDriver):
@@ -134,15 +138,13 @@ def set_max_offers_per_site(driver: WebDriver):
         None
     """
     entries_id = "react-select-entriesPerPage-input"
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.element_to_be_clickable((By.ID, entries_id))
-    )
+    await_element(driver, entries_id, by=By.ID, timeout=SCRAPER["multi_wait_timeout"])
     entries_per_page = driver.find_element(By.ID, entries_id)
     entries_per_page.click()
 
     entries_per_page_id = "react-select-entriesPerPage-listbox"
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.element_to_be_clickable((By.ID, entries_per_page_id))
+    await_element(
+        driver, entries_per_page_id, by=By.ID, timeout=SCRAPER["multi_wait_timeout"]
     )
     entries_per_page_listbox = driver.find_element(By.ID, entries_per_page_id)
 
@@ -164,9 +166,7 @@ def click_next_page(driver: WebDriver):
         None
     """
     next_button_selector = '[data-cy="pagination.next-page"]'
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, next_button_selector))
-    )
+    await_element(driver, next_button_selector, timeout=SCRAPER["multi_wait_timeout"])
     next_button = driver.find_element(By.CSS_SELECTOR, next_button_selector)
     next_button.click()
 

@@ -5,27 +5,9 @@ import logging
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from config import LOGGING, SCRAPER
-
-
-def await_element(driver, selector):
-    """
-    Waits for an element to be present in the DOM using the given selector.
-
-    Args:
-        driver: The WebDriver instance.
-        selector: A dictionary containing the CSS selector for the element.
-
-    Returns:
-        None
-    """
-    WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
-    )
+from config import LOGGING
 
 
 def has_offer(driver: WebDriver, selector: str) -> bool:

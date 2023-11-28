@@ -9,13 +9,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 # Local imports
-from _utils.selenium_utils import humans_delay
+from _utils.selenium_utils import await_element, humans_delay
 from config import DOMAINS, SCRAPER
 from scrape.olx.offer_utils import (
     extract_offer_urls,
     has_offer,
     normalize_offer_url,
-    await_element,
     has_next_page,
 )
 from scrape.olx.navigation import (
@@ -128,11 +127,8 @@ def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
     Returns:
         None
     """
-    WebDriverWait(driver, SCRAPER["wait_timeout"]).until(
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, field_selectors["accept_cookies"])
-        )
-    )
+
+    await_element(driver, field_selectors["accept_cookies"])
 
     button_accept_cookies = driver.find_element(
         By.CSS_SELECTOR, field_selectors["accept_cookies"]

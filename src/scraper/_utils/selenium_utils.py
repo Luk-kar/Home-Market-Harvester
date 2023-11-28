@@ -20,6 +20,27 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
+def await_element(
+    driver,
+    selector,
+    by: str = By.CSS_SELECTOR,
+    timeout: int | float = SCRAPER["wait_timeout"],
+):
+    """
+    Waits for an element to be present in the DOM using the given selector.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        selector (str): A dictionary containing the CSS selector for the element.
+        by (str): The type of selector to use.
+        timeout (int | float): The maximum time to wait for the element to be present.
+
+    Returns:
+        None
+    """
+    WebDriverWait(driver, timeout).until(EC.presence_of_element_located((by, selector)))
+
+
 def humans_delay(
     min_seconds: float = SCRAPER["min_delay"], max_seconds: float = SCRAPER["max_delay"]
 ):

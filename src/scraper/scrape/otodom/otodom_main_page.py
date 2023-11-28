@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from _utils.selenium_utils import humans_delay
+from _utils.selenium_utils import await_element, humans_delay
 from config import SCRAPER
 from scrape.otodom.otodom_listings_page import page_offers_orchestrator
 
@@ -104,11 +104,10 @@ def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
     Returns:
         None
     """
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, field_selectors["cookies_banner"])
-        )
+    await_element(
+        driver, field_selectors["cookies_banner"], timeout=SCRAPER["multi_wait_timeout"]
     )
+
     accept_cookies_button = driver.find_element(
         By.CSS_SELECTOR,
         f"{field_selectors['cookies_banner']} {field_selectors['accept_cookies']}",
@@ -129,8 +128,10 @@ def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
     Returns:
         None
     """
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, field_selectors["user_form"]))
+    await_element(
+        driver,
+        field_selectors["user_form"],
+        timeout=SCRAPER["multi_wait_timeout"],
     )
     user_form = driver.find_element(
         By.CSS_SELECTOR,
@@ -142,8 +143,10 @@ def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
     )
     transaction_type.click()
 
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.visibility_of_element_located((By.CSS_SELECTOR, field_selectors["for_rent"]))
+    await_element(
+        driver,
+        field_selectors["for_rent"],
+        timeout=SCRAPER["multi_wait_timeout"],
     )
     transaction_type.find_element(By.CSS_SELECTOR, field_selectors["for_rent"]).click()
 
@@ -177,10 +180,11 @@ def select_distance_radius(driver: WebDriver, field_selectors: dict[str, str], k
         By.CSS_SELECTOR, field_selectors["distance_radius"]
     )
     distance_radius_element.click()
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.visibility_of_element_located(
-            (By.ID, field_selectors["distance_radius_options"])
-        )
+    await_element(
+        driver,
+        field_selectors["distance_radius_options"],
+        by=By.ID,
+        timeout=SCRAPER["multi_wait_timeout"],
     )
 
     distance_radius_options_element = driver.find_element(
@@ -222,24 +226,28 @@ def write_location(
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.2, 0.4)
 
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.visibility_of_element_located((By.ID, field_selectors["location_input"]))
+    await_element(
+        driver,
+        field_selectors["location_input"],
+        By.ID,
+        timeout=SCRAPER["multi_wait_timeout"],
     )
     input_element = driver.find_element(By.ID, field_selectors["location_input"])
     input_element.send_keys(location_query_input)
 
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.visibility_of_element_located(
-            (By.CSS_SELECTOR, field_selectors["location_dropdown"])
-        )  # todo
+    await_element(
+        driver,
+        field_selectors["location_dropdown"],
+        timeout=SCRAPER["multi_wait_timeout"],
     )
     location_dropdown = driver.find_element(
         By.CSS_SELECTOR, field_selectors["location_dropdown"]
     )
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.visibility_of_element_located(
-            (By.CSS_SELECTOR, field_selectors["location_suggestions"])
-        )
+
+    await_element(
+        driver,
+        field_selectors["location_suggestions"],
+        timeout=SCRAPER["multi_wait_timeout"],
     )
     suggestions = location_dropdown.find_elements(
         By.CSS_SELECTOR, field_selectors["location_suggestions"]
