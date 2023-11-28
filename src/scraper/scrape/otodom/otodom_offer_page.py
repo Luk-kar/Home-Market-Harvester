@@ -20,6 +20,7 @@ def open_process_and_close_window(
     location_query: str,
     timestamp: str,
     progress: Counter,
+    scraped_urls: set[str],
 ):
     """
     Opens the offer in a new window, processes the offer data, saves it to a CSV file,
@@ -32,6 +33,7 @@ def open_process_and_close_window(
         location_query (str): The location query used for scraping.
         timestamp (str): The timestamp of the scraping process.
         progress (Counter): The progress counter used to track the number of processed offers.
+        scraped_urls (set[str]): The set of scraped URLs.
 
     Returns:
         None
@@ -43,11 +45,12 @@ def open_process_and_close_window(
 
     record = scrape_offer_page(driver)
 
+    offer_url = driver.current_url
     if record:
         save_to_csv(record, location_query, DOMAINS["otodom"], timestamp)
         progress.update()
+        scraped_urls.add(offer_url)
     else:
-        offer_url = driver.current_url
         logging.error("Failed to process: %s", offer_url)
         if LOGGING["debug"]:
             raise OfferProcessingError(offer_url, "Failed to process offer URL")

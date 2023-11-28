@@ -9,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from _utils.selenium_utils import humans_delay
-from config import SCRAPER
+from config import SCRAPER, DOMAINS
 from scrape.otodom.otodom_offer_page import open_process_and_close_window
 
 
@@ -18,6 +18,7 @@ def page_offers_orchestrator(
     search_criteria: dict[str, str | int],
     timestamp: str,
     progress: Counter,
+    scraped_urls: set[str],
 ):
     """
     Orchestrates the scraping of offers from a single page on the Otodom website.
@@ -27,6 +28,7 @@ def page_offers_orchestrator(
         search_criteria (dict[str, str | int]): The search criteria used for filtering the offers.
         timestamp (str): The timestamp of the scraping process.
         progress (Counter): The counter to keep track of the number of scraped offers.
+        scraped_urls (set[str]): The set of scraped URLs.
 
     Returns:
         None
@@ -47,7 +49,7 @@ def page_offers_orchestrator(
         if SCRAPER["anti_anti_bot"]:
             humans_delay(0.3, 0.5)
 
-        process_page_offers(driver, search_criteria, timestamp, progress)
+        process_page_offers(driver, search_criteria, timestamp, progress, scraped_urls)
 
         if progress.count >= offers_cap:
             break
@@ -60,7 +62,11 @@ def page_offers_orchestrator(
 
 
 def process_page_offers(
-    driver: WebDriver, search_criteria: dict, timestamp: str, progress: Counter
+    driver: WebDriver,
+    search_criteria: dict,
+    timestamp: str,
+    progress: Counter,
+    scraped_urls: set[str],
 ):
     """
     Process the offers on the page.
@@ -70,6 +76,7 @@ def process_page_offers(
         search_criteria (dict): The search criteria.
         timestamp (str): The timestamp of the scraping process.
         progress (Counter): The progress counter.
+        scraped_urls (set[str]): The set of scraped URLs.
 
     Returns:
         None
@@ -86,8 +93,17 @@ def process_page_offers(
         if progress.count >= offers_cap:
             break
 
+        if DOMAINS["otodom"] + sub_link["href"] in scraped_urls:
+            continue
+
         open_process_and_close_window(
-            driver, original_window, sub_link, location_query, timestamp, progress
+            driver,
+            original_window,
+            sub_link,
+            location_query,
+            timestamp,
+            progress,
+            scraped_urls,
         )
 
 

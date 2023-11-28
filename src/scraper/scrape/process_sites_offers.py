@@ -48,7 +48,7 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
             DOMAINS["otodom"],
         ]
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-        scraped_urls = set()
+        scraped_urls: set[str] = set()
 
         for url in urls:
             if progress.count >= offers_cap:

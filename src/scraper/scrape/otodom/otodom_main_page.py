@@ -20,6 +20,7 @@ def process_domain_offers_otodom(
     search_criteria: dict[str, str | int],
     timestamp: str,
     progress: object,
+    scraped_urls: set[str],
 ):
     """
     Process domain offers from Otodom.
@@ -29,6 +30,7 @@ def process_domain_offers_otodom(
         search_criteria (dict[str, str | int]): The search criteria for filtering the offers.
         timestamp (str): The timestamp of the scraping process.
         progress (object): The progress object for tracking the scraping progress.
+        scraped_urls (set[str]): The set of scraped URLs.
 
     Returns:
         None
@@ -37,7 +39,7 @@ def process_domain_offers_otodom(
     km: int = search_criteria["area_radius"]
 
     search_offers(driver, location, km)
-    page_offers_orchestrator(driver, search_criteria, timestamp, progress)
+    page_offers_orchestrator(driver, search_criteria, timestamp, progress, scraped_urls)
 
 
 def search_offers(driver: WebDriver, location_query_input: str, km: int):
@@ -115,10 +117,6 @@ def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
         humans_delay(0.2, 0.4)
     accept_cookies_button.click()
 
-    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, field_selectors["user_form"]))
-    )
-
 
 def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
     """
@@ -131,6 +129,9 @@ def select_for_rent_option(driver: WebDriver, field_selectors: dict[str, str]):
     Returns:
         None
     """
+    WebDriverWait(driver, SCRAPER["multi_wait_timeout"]).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, field_selectors["user_form"]))
+    )
     user_form = driver.find_element(
         By.CSS_SELECTOR,
         field_selectors["user_form"],

@@ -31,7 +31,7 @@ def process_domain_offers_olx(
     search_criteria: dict,
     timestamp: str,
     progress: Counter,
-    scraped_urls: set,
+    scraped_urls: set[str],
 ):
     """
     Process the offers from the OLX domain and save them to a CSV file.
@@ -73,7 +73,7 @@ def process_domain_offers_olx(
         url_offers = extract_offer_urls(offers)
 
         for offer_url in url_offers:
-            if progress.count >= offers_cap and offer_url not in scraped_urls:
+            if progress.count >= offers_cap:
                 break
 
             subdomain = {"olx": DOMAINS["olx"]["domain"], "otodom": DOMAINS["otodom"]}
@@ -87,11 +87,19 @@ def process_domain_offers_olx(
             scaped_url = None
 
             if subdomain["olx"] in offer_url:
+                if offer_url in scraped_urls:
+                    return_to_listing_page(driver)
+                    continue
+
                 scaped_url = process_olx_offer(
                     driver, location_query, subdomain["olx"], timestamp, progress
                 )
 
             elif subdomain["otodom"] in offer_url:
+                if offer_url in scraped_urls:
+                    return_to_listing_page(driver)
+                    continue
+
                 scaped_url = process_otodom_offer(
                     driver, location_query, subdomain["otodom"], timestamp, progress
                 )
