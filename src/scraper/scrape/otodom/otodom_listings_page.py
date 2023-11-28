@@ -63,7 +63,14 @@ def page_offers_orchestrator(
         if SCRAPER["anti_anti_bot"]:
             humans_delay(0.3, 0.5)
 
-        process_page_offers(driver, search_criteria, timestamp, progress, scraped_urls)
+        process_page_offers(
+            driver,
+            field_selectors["listing_links"],
+            search_criteria,
+            timestamp,
+            progress,
+            scraped_urls,
+        )
 
         if progress.count >= offers_cap:
             break
@@ -76,6 +83,7 @@ def page_offers_orchestrator(
 
 def process_page_offers(
     driver: WebDriver,
+    offers_links_selector: dict[str, str | dict[str, str]],
     search_criteria: dict,
     timestamp: str,
     progress: Counter,
@@ -98,21 +106,21 @@ def process_page_offers(
     offers_cap = search_criteria["scraped_offers_cap"]
     soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    listing_links = soup.find_all("a", {"data-cy": "listing-item-link"})
+    offers_links = soup.find_all(**offers_links_selector)
 
     original_window = driver.current_window_handle
 
-    for sub_link in listing_links:
+    for link_offer in offers_links:
         if progress.count >= offers_cap:
             break
 
-        if DOMAINS["otodom"] + sub_link["href"] in scraped_urls:
+        if DOMAINS["otodom"] + link_offer["href"] in scraped_urls:
             continue
 
         open_process_and_close_window(
             driver,
             original_window,
-            sub_link,
+            link_offer,
             location_query,
             timestamp,
             progress,
