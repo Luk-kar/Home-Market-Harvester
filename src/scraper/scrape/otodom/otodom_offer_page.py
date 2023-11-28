@@ -16,7 +16,7 @@ from scrape.otodom.extract_offer_otodom import scrape_offer_page
 def open_process_and_close_window(
     driver: WebDriver,
     original_window: str,
-    offer_element: dict[str, str],
+    offer_url: str,
     location_query: str,
     timestamp: str,
     progress: Counter,
@@ -29,7 +29,7 @@ def open_process_and_close_window(
     Args:
         driver (WebDriver): The WebDriver instance used for web scraping.
         original_window (str): The original previous window handle.
-        offer_element (dict[str, str]): The offer element containing information about the offer.
+        offer_url (str): The URL of the offer to process.
         location_query (str): The location query used for scraping.
         timestamp (str): The timestamp of the scraping process.
         progress (Counter): The progress counter used to track the number of processed offers.
@@ -38,14 +38,13 @@ def open_process_and_close_window(
     Returns:
         None
     """
-    open_offer(driver, offer_element)
+    open_offer(driver, offer_url)
 
     if SCRAPER["anti_anti_bot"]:
         humans_delay()
 
     record = scrape_offer_page(driver)
 
-    offer_url = driver.current_url
     if record:
         save_to_csv(record, location_query, DOMAINS["otodom"], timestamp)
         progress.update()
@@ -60,18 +59,18 @@ def open_process_and_close_window(
     driver.switch_to.window(original_window)
 
 
-def open_offer(driver: WebDriver, offer_element: dict[str, str]):
+def open_offer(driver: WebDriver, offer_url: str):
     """
     Opens the offer page in a new window/tab using the provided WebDriver instance.
 
     Args:
         driver (WebDriver): The WebDriver instance used to control the browser.
-        offer_element (dict[str, str]): A dictionary containing information about the offer element.
+        offer_url (str): The URL of the offer to open.
 
     Returns:
         None
     """
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[-1])
-    full_link = DOMAINS["otodom"] + offer_element["href"]
+    full_link = DOMAINS["otodom"] + offer_url
     driver.get(full_link)

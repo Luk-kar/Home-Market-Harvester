@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from _utils.selenium_utils import await_element
 from config import SCRAPER
 
 

@@ -94,6 +94,7 @@ def process_page_offers(
 
     Args:
         driver (WebDriver): The WebDriver instance.
+        offers_links_selector (dict[str, str | dict[str, str]]): The CSS selector for the offers links.
         search_criteria (dict): The search criteria.
         timestamp (str): The timestamp of the scraping process.
         progress (Counter): The progress counter.
@@ -120,7 +121,7 @@ def process_page_offers(
         open_process_and_close_window(
             driver,
             original_window,
-            link_offer,
+            link_offer["href"],
             location_query,
             timestamp,
             progress,
@@ -134,6 +135,7 @@ def await_for_offers_to_load(driver: WebDriver, selector: str):
 
     Args:
         driver (WebDriver): The WebDriver instance.
+        selector (str): The CSS selector of the element to wait for.
 
     Returns:
         None

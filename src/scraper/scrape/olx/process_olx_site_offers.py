@@ -56,7 +56,7 @@ def process_domain_offers_olx(
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
 
-    accept_cookies(driver, field_selectors)
+    accept_cookies(driver, field_selectors["accept_cookies"])
 
     humans_delay(0.2, 0.4)
 
@@ -116,21 +116,19 @@ def process_domain_offers_olx(
             click_next_page(driver, field_selectors["pagination_forward"])
 
 
-def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
+def accept_cookies(driver: WebDriver, selector: str):
     """
     Accepts cookies on the website by clicking the accept cookies button.
 
     Args:
         driver (WebDriver): The WebDriver instance.
-        field_selectors (dict[str, str]): Dictionary containing CSS selectors for different fields.
+        selector (str): The CSS selector for the accept cookies button.
 
     Returns:
         None
     """
 
-    await_element(driver, field_selectors["accept_cookies"])
+    await_element(driver, selector)
 
-    button_accept_cookies = driver.find_element(
-        By.CSS_SELECTOR, field_selectors["accept_cookies"]
-    )
+    button_accept_cookies = driver.find_element(By.CSS_SELECTOR, selector)
     button_accept_cookies.click()
