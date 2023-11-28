@@ -1,11 +1,12 @@
+# Standard imports
+from typing import Any
+
 # Third-party imports
 from bs4 import BeautifulSoup
 from enlighten import Counter
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from _utils.selenium_utils import await_element, humans_delay
@@ -35,8 +36,15 @@ def page_offers_orchestrator(
     """
 
     field_selectors = {
-        "next_page": '[data-cy="filter-location-input"]',
+        "next_page": '[data-cy="pagination.next-page"]',
         "radius": '[data-cy="filter-distance-input"]',
+        "listing_links": {"name": "a", "attrs": {"data-cy": "listing-item-link"}},
+        "main_feed": '[role="main"]',
+        "offers_per_page": "react-select-entriesPerPage-input",
+        "offers_per_page_dropdown": "react-select-entriesPerPage-input",
+        "offers_per_page_list": "react-select-entriesPerPage-listbox",
+        "highest_per_page_option": ".react-select__menu-list > .react-select__option:last-child",
+        "next_page": '[data-cy="pagination.next-page"]',
     }
 
     offers_cap: int = search_criteria["scraped_offers_cap"]
@@ -44,7 +52,7 @@ def page_offers_orchestrator(
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.3, 0.5)
 
-    set_max_offers_per_site(driver)
+    set_max_offers_per_site(driver, field_selectors)
 
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.2, 0.4)
@@ -60,9 +68,8 @@ def page_offers_orchestrator(
         if progress.count >= offers_cap:
             break
 
-        next_page_selector = '[data-cy="pagination.next-page"]'
-        if not is_disabled(driver, next_page_selector):
-            click_next_page(driver)
+        if not is_disabled(driver, field_selectors["next_page"]):
+            click_next_page(driver, field_selectors["next_page"])
         else:
             break
 
@@ -127,47 +134,52 @@ def await_for_offers_to_load(driver: WebDriver):
     await_element(driver, main_feed_selector, timeout=SCRAPER["multi_wait_timeout"])
 
 
-def set_max_offers_per_site(driver: WebDriver):
+def set_max_offers_per_site(driver: WebDriver, field_selectors: dict[str, Any]):
     """
     Sets the maximum number of offers per site in the Otodom listings page.
 
     Args:
         driver (WebDriver): The WebDriver instance.
+        field_selectors (dict[str, Any]): The field selectors.
 
     Returns:
         None
     """
-    entries_id = "react-select-entriesPerPage-input"
-    await_element(driver, entries_id, by=By.ID, timeout=SCRAPER["multi_wait_timeout"])
-    entries_per_page = driver.find_element(By.ID, entries_id)
-    entries_per_page.click()
-
-    entries_per_page_id = "react-select-entriesPerPage-listbox"
+    input_per_page_selector = field_selectors["offers_per_page"]
     await_element(
-        driver, entries_per_page_id, by=By.ID, timeout=SCRAPER["multi_wait_timeout"]
+        driver,
+        input_per_page_selector,
+        by=By.ID,
+        timeout=SCRAPER["multi_wait_timeout"],
     )
-    entries_per_page_listbox = driver.find_element(By.ID, entries_per_page_id)
+    input_per_page = driver.find_element(By.ID, input_per_page_selector)
+    input_per_page.click()
 
-    last_option_selector = ".react-select__menu-list > .react-select__option:last-child"
-    last_option_element = entries_per_page_listbox.find_element(
-        By.CSS_SELECTOR, last_option_selector
+    dropdown_selector = field_selectors["offers_per_page_list"]
+    await_element(
+        driver, dropdown_selector, by=By.ID, timeout=SCRAPER["multi_wait_timeout"]
+    )
+    offers_per_page_list = driver.find_element(By.ID, dropdown_selector)
+
+    last_option_element = offers_per_page_list.find_element(
+        By.CSS_SELECTOR, field_selectors["highest_per_page_option"]
     )
     last_option_element.click()
 
 
-def click_next_page(driver: WebDriver):
+def click_next_page(driver: WebDriver, selector: str):
     """
     Clicks on the next page button in the Otodom listings page.
 
     Args:
         driver (WebDriver): The WebDriver instance used for scraping.
+        selector (str): The CSS selector of the next page button.
 
     Returns:
         None
     """
-    next_button_selector = '[data-cy="pagination.next-page"]'
-    await_element(driver, next_button_selector, timeout=SCRAPER["multi_wait_timeout"])
-    next_button = driver.find_element(By.CSS_SELECTOR, next_button_selector)
+    await_element(driver, selector, timeout=SCRAPER["multi_wait_timeout"])
+    next_button = driver.find_element(By.CSS_SELECTOR, selector)
     next_button.click()
 
 
