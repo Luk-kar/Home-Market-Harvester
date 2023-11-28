@@ -58,7 +58,7 @@ def page_offers_orchestrator(
         humans_delay(0.2, 0.4)
 
     while True:
-        await_for_offers_to_load(driver)
+        await_for_offers_to_load(driver, field_selectors["main_feed"])
 
         if SCRAPER["anti_anti_bot"]:
             humans_delay(0.3, 0.5)
@@ -120,7 +120,7 @@ def process_page_offers(
         )
 
 
-def await_for_offers_to_load(driver: WebDriver):
+def await_for_offers_to_load(driver: WebDriver, selector: str):
     """
     Waits for the offers to load on the page.
 
@@ -130,8 +130,7 @@ def await_for_offers_to_load(driver: WebDriver):
     Returns:
         None
     """
-    main_feed_selector = '[role="main"]'
-    await_element(driver, main_feed_selector, timeout=SCRAPER["multi_wait_timeout"])
+    await_element(driver, selector, timeout=SCRAPER["multi_wait_timeout"])
 
 
 def set_max_offers_per_site(driver: WebDriver, field_selectors: dict[str, Any]):
