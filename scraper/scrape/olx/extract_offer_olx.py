@@ -7,9 +7,13 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from _utils.selenium_utils import safe_get_text, wait_for_conditions, extract_data
-from config import LOGGING
-from scrape.custom_errors import OfferProcessingError
+from scraper._utils.selenium_utils import (
+    safe_get_text,
+    wait_for_conditions,
+    extract_data,
+)
+from scraper.config import LOGGING
+from scraper.scrape.custom_errors import OfferProcessingError
 
 
 def scrape_offer(driver: WebDriver) -> Optional[dict[str, str]]:

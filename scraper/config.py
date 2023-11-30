@@ -19,7 +19,7 @@ customizing the scraper's performance and interactions with web elements.
 import logging
 
 # Local imports
-from _utils.string_transformations import sanitize_path
+from scraper._utils.string_transformations import sanitize_path
 
 
 SCRAPER: dict[str, str | int | float] = {
@@ -36,7 +36,7 @@ SCRAPER: dict[str, str | int | float] = {
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
-    "path": sanitize_path("src\\scraper\\chromedriver.exe"),  # Path to the webdriver
+    "path": sanitize_path("scraper\\chromedriver.exe"),  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
     "maximize_window": True,
@@ -55,4 +55,5 @@ DOMAINS: dict[str, str] = {
 }
 DATA: dict[str, str] = {
     "folder_scraped_data": sanitize_path("./data/raw/"),
+    "encoding": "utf-8",
 }

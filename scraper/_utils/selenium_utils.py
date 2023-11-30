@@ -11,13 +11,15 @@ import time
 
 # Third-party imports
 from bs4 import BeautifulSoup
-from config import SCRAPER
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+# Local imports
+from scraper.config import SCRAPER
 
 
 def await_element(

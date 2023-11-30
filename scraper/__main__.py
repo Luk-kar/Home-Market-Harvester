@@ -1,12 +1,12 @@
 # Standard imports
-from logging_setup import log_setup
-from webdriver_setup import get_driver
 import datetime
 import os
 
 # Local imports
-from config import DATA, SCRAPER
-from scrape.process_sites_offers import scrape_offers
+from scraper.config import DATA, SCRAPER
+from scraper.logging_setup import log_setup
+from scraper.scrape.process_sites_offers import scrape_offers
+from scraper.webdriver_setup import get_driver
 
 
 def main():

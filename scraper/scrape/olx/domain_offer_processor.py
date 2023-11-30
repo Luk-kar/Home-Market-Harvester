@@ -7,11 +7,13 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 
 # Local imports
-from csv_manager import save_to_csv
-from config import LOGGING
-from scrape.olx.extract_offer_olx import scrape_offer as process_offer_olx
-from scrape.otodom.extract_offer_otodom import extract_data as process_offer_otodom
-from scrape.custom_errors import OfferProcessingError
+from scraper.csv_manager import save_to_csv
+from scraper.config import LOGGING
+from scraper.scrape.olx.extract_offer_olx import scrape_offer as process_offer_olx
+from scraper.scrape.otodom.extract_offer_otodom import (
+    extract_data as process_offer_otodom,
+)
+from scraper.scrape.custom_errors import OfferProcessingError
 
 
 def process_olx_offer(

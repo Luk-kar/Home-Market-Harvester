@@ -12,7 +12,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Local imports
-from config import LOGGING, WEBDRIVER
+from scraper.config import LOGGING, WEBDRIVER
 
 
 class WebDriverSetupError(Exception):

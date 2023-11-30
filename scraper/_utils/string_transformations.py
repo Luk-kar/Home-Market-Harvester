@@ -3,9 +3,6 @@ import os
 import urllib.parse
 
 
-import os
-
-
 def sanitize_path(path: str) -> str:
     """
     Sanitizes the given path by normalizing it.

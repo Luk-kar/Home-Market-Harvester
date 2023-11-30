@@ -4,9 +4,9 @@ from selenium.webdriver.remote.webdriver import WebDriver
 import logging
 
 # Local imports
-from _utils.selenium_utils import wait_for_conditions, extract_data
-from config import LOGGING
-from scrape.custom_errors import OfferProcessingError
+from scraper._utils.selenium_utils import wait_for_conditions, extract_data
+from scraper.config import LOGGING
+from scraper.scrape.custom_errors import OfferProcessingError
 
 
 def scrape_offer_page(driver: WebDriver) -> dict[str, str]:

@@ -8,7 +8,7 @@ import logging
 import os
 
 # Local imports
-from config import LOGGING
+from scraper.config import LOGGING
 
 
 def log_setup():

@@ -7,8 +7,8 @@ import re
 from typing import Any
 
 # Local imports
-from _utils.string_transformations import sanitize_path
-from config import DATA
+from scraper._utils.string_transformations import sanitize_path
+from scraper.config import DATA
 
 
 def sanitize_for_filepath(string: str):

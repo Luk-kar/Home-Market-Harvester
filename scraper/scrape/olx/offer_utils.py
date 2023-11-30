@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from config import LOGGING
+from scraper.config import LOGGING
 
 
 def has_offer(driver: WebDriver, selector: str) -> bool:

@@ -10,9 +10,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from _utils.selenium_utils import await_element, humans_delay
-from config import SCRAPER
-from scrape.otodom.otodom_listings_page import page_offers_orchestrator
+from scraper._utils.selenium_utils import await_element, humans_delay
+from scraper.config import SCRAPER
+from scraper.scrape.otodom.otodom_listings_page import page_offers_orchestrator
 
 
 def process_domain_offers_otodom(

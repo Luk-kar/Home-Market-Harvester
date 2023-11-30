@@ -6,11 +6,11 @@ from enlighten import Counter
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from _utils.selenium_utils import humans_delay
-from config import DOMAINS, SCRAPER, LOGGING
-from csv_manager import save_to_csv
-from scrape.custom_errors import OfferProcessingError
-from scrape.otodom.extract_offer_otodom import scrape_offer_page
+from scraper._utils.selenium_utils import humans_delay
+from scraper.config import DOMAINS, SCRAPER, LOGGING
+from scraper.csv_manager import save_to_csv
+from scraper.scrape.custom_errors import OfferProcessingError
+from scraper.scrape.otodom.extract_offer_otodom import scrape_offer_page
 
 
 def open_process_and_close_window(
