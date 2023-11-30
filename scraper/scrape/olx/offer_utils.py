@@ -78,5 +78,8 @@ def has_next_page(driver: WebDriver, selector: str) -> bool:
     Returns:
         bool: True if a next page button is found, False otherwise.
     """
-    next_page_button = driver.find_element(By.CSS_SELECTOR, selector)
-    return bool(next_page_button)
+    try:
+        next_page_button = driver.find_element(By.CSS_SELECTOR, selector)
+        return True
+    except NoSuchElementException:
+        return False

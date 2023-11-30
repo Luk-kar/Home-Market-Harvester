@@ -51,6 +51,9 @@ def get_driver():
     if WEBDRIVER["headless"] and not LOGGING["debug"]:
         options.add_argument("--headless=new")
 
+    if WEBDRIVER["ignore_certificate_errors"]:
+        options.add_argument("--ignore-certificate-errors")
+
     if WEBDRIVER["auto_install"]:
         # There could some issues:
         # https://stackoverflow.com/questions/76932496/webdrivermanager-setup-failing-to-download-chromedriver-116

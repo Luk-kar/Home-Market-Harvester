@@ -4,14 +4,18 @@ import os
 import shutil
 import unittest
 
+# Third-party imports
+import datetime
+from selenium.common.exceptions import WebDriverException
+import enlighten
 
 # Local imports
-from scraper.config import DATA, SCRAPER
+from scraper._utils.selenium_utils import humans_delay
+from scraper._utils.string_transformations import transform_location_to_url_format
+from scraper.config import DATA, SCRAPER, DOMAINS
+from scraper.scrape.olx.process_olx_site_offers import process_domain_offers_olx
 from scraper.scrape.process_sites_offers import scrape_offers
 from scraper.webdriver_setup import get_driver
-
-
-# todo
 
 
 class TestScraper(unittest.TestCase):
@@ -31,14 +35,14 @@ class TestScraper(unittest.TestCase):
         self.new_folders = None
 
     def tearDown(self):
-        self.driver.quit()
-
         if self.new_folders is not None:
             for folder in self.new_folders:
                 folder_path = os.path.join(self.scraped_folder, folder)
                 shutil.rmtree(folder_path)
 
         self.new_folders = None
+
+        humans_delay()
 
     def test_end_to_end(self):
         """
@@ -51,6 +55,8 @@ class TestScraper(unittest.TestCase):
             scrape_offers(self.driver, search_criteria)
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
+        finally:
+            self.driver.quit()
 
         existing_folders_after = set(os.listdir(self.scraped_folder))
         self.new_folders = existing_folders_after - self.existing_folders_before
@@ -78,6 +84,7 @@ class TestScraper(unittest.TestCase):
                     file.endswith(".csv"), f"File {file} should be a csv file."
                 )
 
+            number_of_data_rows = 0
             for file in files:
                 file_path = os.path.join(self.scraped_folder, folder, file)
                 with open(
@@ -87,10 +94,10 @@ class TestScraper(unittest.TestCase):
                     rows = list(reader)
                     # Assuming the first row is the header
                     number_of_data_rows = len(rows) - 1
-                    self.assertTrue(
-                        search_criteria["scraped_offers_cap"] == number_of_data_rows,
-                        f"The CSV file {file} should contain at least one data row.",
-                    )
+            self.assertTrue(
+                search_criteria["scraped_offers_cap"] == number_of_data_rows,
+                f"The CSV file {file} should contain rows at the same length as the cap.",
+            )
 
     def test_olx_scrape_offers(self):
         """
@@ -99,9 +106,32 @@ class TestScraper(unittest.TestCase):
         try:
             search_criteria = self.search_criteria.copy()
             search_criteria["location_query"] = self.location_query["high_volume"]
-            scrape_offers(self.driver, search_criteria)
+            offers_cap = search_criteria["scraped_offers_cap"]
+
+            progress = enlighten.Counter(
+                desc="Total progress",
+                unit="offers",
+                color="green",
+                total=offers_cap,
+            )
+
+            formatted_location = transform_location_to_url_format(
+                search_criteria["location_query"]
+            )
+            url = f'{DOMAINS["olx"]["domain"]}/{DOMAINS["olx"]["category"]}q-{formatted_location}/'
+            timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            scraped_urls: set[str] = set()
+
+            humans_delay()
+            self.driver.get(url)
+
+            process_domain_offers_olx(
+                self.driver, search_criteria, timestamp, progress, scraped_urls
+            )
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
+        finally:
+            self.driver.quit()
 
         existing_folders_after = set(os.listdir(self.scraped_folder))
         self.new_folders = existing_folders_after - self.existing_folders_before
@@ -129,6 +159,7 @@ class TestScraper(unittest.TestCase):
                     file.endswith(".csv"), f"File {file} should be a csv file."
                 )
 
+            number_of_data_rows = 0
             for file in files:
                 file_path = os.path.join(self.scraped_folder, folder, file)
                 with open(
@@ -137,11 +168,11 @@ class TestScraper(unittest.TestCase):
                     reader = csv.reader(csvfile)
                     rows = list(reader)
                     # Assuming the first row is the header
-                    number_of_data_rows = len(rows) - 1
-                    self.assertTrue(
-                        search_criteria["scraped_offers_cap"] == number_of_data_rows,
-                        f"The CSV file {file} should contain at least one data row.",
-                    )
+                    number_of_data_rows += len(rows) - 1
+            self.assertTrue(
+                search_criteria["scraped_offers_cap"] == number_of_data_rows,
+                f"The CSV file {file} should contain rows at the same length as the cap.",
+            )
 
     def test_otodom_scrape_offers(self):
         """
@@ -154,6 +185,8 @@ class TestScraper(unittest.TestCase):
             scrape_offers(self.driver, search_criteria)
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
+        finally:
+            self.driver.quit()
 
         existing_folders_after = set(os.listdir(self.scraped_folder))
         self.new_folders = existing_folders_after - self.existing_folders_before
@@ -181,6 +214,7 @@ class TestScraper(unittest.TestCase):
                     file.endswith(".csv"), f"File {file} should be a csv file."
                 )
 
+            number_of_data_rows = 0
             for file in files:
                 file_path = os.path.join(self.scraped_folder, folder, file)
                 with open(
@@ -189,11 +223,12 @@ class TestScraper(unittest.TestCase):
                     reader = csv.reader(csvfile)
                     rows = list(reader)
                     # Assuming the first row is the header
-                    number_of_data_rows = len(rows) - 1
-                    self.assertTrue(
-                        search_criteria["scraped_offers_cap"] == number_of_data_rows,
-                        f"The CSV file {file} should contain at least one data row.",
-                    )
+                    number_of_data_rows += len(rows) - 1
+
+            self.assertTrue(
+                search_criteria["scraped_offers_cap"] == number_of_data_rows,
+                f"The CSV file {file} should contain rows at the same length as the cap.",
+            )
 
 
 if __name__ == "__main__":

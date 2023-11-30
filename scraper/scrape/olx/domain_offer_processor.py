@@ -11,7 +11,7 @@ from scraper.csv_manager import save_to_csv
 from scraper.config import LOGGING
 from scraper.scrape.olx.extract_offer_olx import scrape_offer as process_offer_olx
 from scraper.scrape.otodom.extract_offer_otodom import (
-    extract_data as process_offer_otodom,
+    scrape_offer_page as process_offer_otodom,
 )
 from scraper.scrape.custom_errors import OfferProcessingError
 

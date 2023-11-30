@@ -39,6 +39,7 @@ WEBDRIVER: dict[str, str | bool] = {
     "path": sanitize_path("scraper\\chromedriver.exe"),  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
+    "ignore_certificate_errors": True,  # Errors could break the scraper and they do not matter so much in our case
     "maximize_window": True,
 }
 LOGGING: dict[str, str] = {

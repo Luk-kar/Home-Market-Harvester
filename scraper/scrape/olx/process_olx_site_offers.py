@@ -41,6 +41,7 @@ def process_domain_offers_olx(
         search_criteria (dict): The search criteria for filtering the offers.
         timestamp (str): The timestamp for the current scraping process.
         progress (Counter): The counter for tracking the progress of scraping.
+        scraped_urls (set[str]): The set of scraped URLs.
 
     Returns:
         None
