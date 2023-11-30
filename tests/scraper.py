@@ -55,7 +55,7 @@ class TestScraper(unittest.TestCase):
 
     def test_olx_scrape_offers(self):
         try:
-            self._setup_and_scrape_offers_olx("high_volume")
+            self._setup_and_scrape_offers("high_volume", "olx")
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
 
@@ -63,13 +63,13 @@ class TestScraper(unittest.TestCase):
 
     def test_otodom_scrape_offers(self):
         try:
-            self._setup_and_scrape_offers_olx("high_volume")
+            self._setup_and_scrape_offers("high_volume", "otodom")
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
 
         self._verify_scraping_results()
 
-    def _setup_and_scrape_offers_otodom(self, volume_type):
+    def _setup_and_scrape_offers(self, volume_type, domain):
         search_criteria = self.search_criteria.copy()
         search_criteria["location_query"] = self.location_query[volume_type]
         offers_cap = search_criteria["scraped_offers_cap"]
@@ -78,39 +78,26 @@ class TestScraper(unittest.TestCase):
             desc="Total progress", unit="offers", color="green", total=offers_cap
         )
 
-        url = DOMAINS["otodom"]
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         scraped_urls: set[str] = set()
 
         humans_delay()
-        self.driver.get(url)
 
-        process_domain_offers_otodom(
-            self.driver, search_criteria, timestamp, progress, scraped_urls
-        )
-
-    def _setup_and_scrape_offers_olx(self, volume_type):
-        search_criteria = self.search_criteria.copy()
-        search_criteria["location_query"] = self.location_query[volume_type]
-        offers_cap = search_criteria["scraped_offers_cap"]
-
-        progress = enlighten.Counter(
-            desc="Total progress", unit="offers", color="green", total=offers_cap
-        )
-
-        formatted_location = transform_location_to_url_format(
-            search_criteria["location_query"]
-        )
-        url = f'{DOMAINS["olx"]["domain"]}/{DOMAINS["olx"]["category"]}q-{formatted_location}/'
-        timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-        scraped_urls: set[str] = set()
-
-        humans_delay()
-        self.driver.get(url)
-
-        process_domain_offers_olx(
-            self.driver, search_criteria, timestamp, progress, scraped_urls
-        )
+        if domain == "olx":
+            formatted_location = transform_location_to_url_format(
+                search_criteria["location_query"]
+            )
+            url = f'{DOMAINS["olx"]["domain"]}/{DOMAINS["olx"]["category"]}q-{formatted_location}/'
+            self.driver.get(url)
+            process_domain_offers_olx(
+                self.driver, search_criteria, timestamp, progress, scraped_urls
+            )
+        elif domain == "otodom":
+            url = DOMAINS["otodom"]
+            self.driver.get(url)
+            process_domain_offers_otodom(
+                self.driver, search_criteria, timestamp, progress, scraped_urls
+            )
 
     def _verify_scraping_results(self):
         existing_folders_after = set(os.listdir(self.scraped_folder))
@@ -125,9 +112,9 @@ class TestScraper(unittest.TestCase):
             len(self.new_folders), 1, "There should be one folder for all created data."
         )
 
-        self.check_csv_files()
+        self._check_csv_files()
 
-    def check_csv_files(self):
+    def _check_csv_files(self):
         for new_folder in self.new_folders:
             new_files = os.listdir(os.path.join(self.scraped_folder, new_folder))
             self.assertGreaterEqual(
