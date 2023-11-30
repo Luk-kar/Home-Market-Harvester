@@ -13,6 +13,7 @@ from scraper._utils.selenium_utils import humans_delay
 from scraper._utils.string_transformations import transform_location_to_url_format
 from scraper.config import DATA, SCRAPER, DOMAINS
 from scraper.scrape.olx.process_olx_site_offers import process_domain_offers_olx
+from scraper.scrape.otodom.otodom_main_page import process_domain_offers_otodom
 from scraper.webdriver_setup import get_driver
 from scraper.scrape.process_sites_offers import scrape_offers
 
@@ -54,7 +55,7 @@ class TestScraper(unittest.TestCase):
 
     def test_olx_scrape_offers(self):
         try:
-            self._setup_and_scrape_offers("high_volume")
+            self._setup_and_scrape_offers_olx("high_volume")
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
 
@@ -62,13 +63,33 @@ class TestScraper(unittest.TestCase):
 
     def test_otodom_scrape_offers(self):
         try:
-            self._setup_and_scrape_offers("high_volume")
+            self._setup_and_scrape_offers_olx("high_volume")
         except Exception as e:
             self.fail(f"Scrape offers failed with {e}")
 
         self._verify_scraping_results()
 
-    def _setup_and_scrape_offers(self, volume_type):
+    def _setup_and_scrape_offers_otodom(self, volume_type):
+        search_criteria = self.search_criteria.copy()
+        search_criteria["location_query"] = self.location_query[volume_type]
+        offers_cap = search_criteria["scraped_offers_cap"]
+
+        progress = enlighten.Counter(
+            desc="Total progress", unit="offers", color="green", total=offers_cap
+        )
+
+        url = DOMAINS["otodom"]
+        timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        scraped_urls: set[str] = set()
+
+        humans_delay()
+        self.driver.get(url)
+
+        process_domain_offers_otodom(
+            self.driver, search_criteria, timestamp, progress, scraped_urls
+        )
+
+    def _setup_and_scrape_offers_olx(self, volume_type):
         search_criteria = self.search_criteria.copy()
         search_criteria["location_query"] = self.location_query[volume_type]
         offers_cap = search_criteria["scraped_offers_cap"]
