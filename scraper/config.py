@@ -31,7 +31,7 @@ SCRAPER: dict[str, str | int | float] = {
     "multi_wait_timeout": 5,
     "min_delay": 0.90,
     "max_delay": 1.30,
-    "anti_anti_bot": True,  # Make the scraper more human-like and also
+    "anti_anti_bot": True,  # Make the scraper more human-like and but also slower
     "scraped_offers_cap": 3,
 }
 WEBDRIVER: dict[str, str | bool] = {

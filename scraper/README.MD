@@ -1,34 +1,72 @@
-# Web Scraper Project
+# 🏠🔍 OLX/Otodom flats offer scraper
 
-This project contains a set of scripts to scrape data from various websites.
+A Python script that scrapes the flats offers data in Poland from the `olx.pl` and the `otodom.pl`.
 
-## Modules
+The output is in the form of a table in a CSV file.
 
-- `webdriver_setup.py`: Sets up the WebDriver for interacting with web pages.
-- `logging_setup.py`: Configures logging for the project.
-- `csv_manager.py`: Handles reading from and writing to CSV files.
-- `config.py`: Contains configuration settings for the scraper.
-- `__main__.py`: The main entry point for the scraper.
-- `selenium_utils.py`: Contains utility functions for working with Selenium.
-- `string_transformations.py`: Contains functions for transforming strings.
-- `process_sites_offers.py`: Processes offers from various sites.
-- `custom_errors.py`: Defines custom error classes for the project.
-- `otodom_offer_page.py`: Handles the scraping of offer pages on the Otodom website.
-- `otodom_main_page.py`: Handles the scraping of the main page on the Otodom website.
-- `otodom_listings_page.py`: Handles the scraping of listings pages on the Otodom website.
-- `extract_offer_otodom.py`: Extracts offer data from the Otodom website.
-- `process_olx_site_offers.py`: Processes offers from the OLX website.
-- `offer_utils.py`: Contains utility functions for working with offers.
-- `navigation.py`: Contains functions for navigating websites.
-- `extract_offer_olx.py`: Extracts offer data from the OLX website.
-- `domain_offer_processor.py`: Processes offers from various domains.
+It functions without any authentication e.g. user sign-ins/ API tokens and keys.
 
-## Installation
+The script has been tested and verified to be working as expected
+for scraping a small volume of data for personal use or small to mid-organizations.
 
-## Usage
+It is advised to use a VPN during running the script.
 
-(Add usage instructions here)
+## 🔨 Usage
 
-## License
+Run and install virtual environment:
 
-(Add license information here)
+```
+pip install pipenv
+pipenv install
+pipenv shell
+```
+
+Run the scraper
+
+```
+python scraper
+```
+
+The output is saved in the `data\raw\{timestamp}_{place}\{site_1}.csv, {site_2}.csv, ...`
+
+## 🪓 Configuration
+
+Simply modify the config file: `scraper\config.py`.
+More important arguments are:
+
+```
+SCRAPER:
+    "location_query": "Dzierzążnia, płoński, mazowieckie",
+    "area_radius": 25, # 0km, 5km, 10km, 15km, 25km, 50km, 75km
+    "scraped_offers_cap": 3,
+
+WEBDRIVER:
+    "path": sanitize_path("scraper\\chromedriver.exe"),  # Path to the webdriver
+    "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
+
+LOGGING:
+    "debug": False,  # also sets the headless option to True
+```
+
+## 🤖 Testing
+
+```
+python -m unittest tests.scraper
+```
+
+## 📦 The data collected
+
+All the data are scraped from the offer, with the corresponding URL,
+except the personal data of the seller.
+
+To see what data is scraped look at the example files at:
+
+- `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie`
+
+## 📜 License
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## 🚨 Attention
+
+_Please be aware that scraping websites can be legally sensitive and may violate terms of service of the website. It is important to always check and comply with the legal and ethical guidelines of web scraping in your region. Continuous or high-volume scraping may lead to IP blocking or legal actions by the website owners. Use this script responsibly and at your own risk._

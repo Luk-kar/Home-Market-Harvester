@@ -3,7 +3,6 @@ Designed as a streamlined validation tool,
 this test suite primarily ensures basic operational integrity
 of the scraper in a live web environment.
 """
-# All catching exceptions should be generalized
 
 # Standard imports
 import csv
@@ -29,6 +28,8 @@ from scraper.scrape.process_sites_offers import scrape_offers
 
 class TestScraper(unittest.TestCase):
     """A test suite for the scraper's core functionality."""
+
+    # All catching exceptions should be generalized
 
     driver: WebDriver
     location_query: dict[str, str]
