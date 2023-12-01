@@ -1,7 +1,9 @@
-# Designed as a streamlined validation tool,
-# this test suite primarily ensures basic operational integrity
-# of the scraper in a live web environment.
-
+"""
+Designed as a streamlined validation tool,
+this test suite primarily ensures basic operational integrity
+of the scraper in a live web environment.
+"""
+# All catching exceptions should be generalized
 
 # Standard imports
 import csv
@@ -69,8 +71,8 @@ class TestScraper(unittest.TestCase):
             search_criteria["location_query"] = self.location_query["low_volume"]
 
             scrape_offers(self.driver, search_criteria)
-        except Exception as e:
-            self.fail(f"Scrape offers failed with {e}")
+        except Exception as error:
+            self.fail(f"Scrape offers failed with {error}")
 
         self._verify_scraping_results()
 
@@ -79,8 +81,8 @@ class TestScraper(unittest.TestCase):
 
         try:
             self._setup_and_scrape_offers("high_volume", "olx")
-        except Exception as e:
-            self.fail(f"Scrape offers failed with {e}")
+        except Exception as error:
+            self.fail(f"Scrape offers failed with {error}")
 
         self._verify_scraping_results()
 
@@ -89,8 +91,8 @@ class TestScraper(unittest.TestCase):
 
         try:
             self._setup_and_scrape_offers("high_volume", "otodom")
-        except Exception as e:
-            self.fail(f"Scrape offers failed with {e}")
+        except Exception as erorr:
+            self.fail(f"Scrape offers failed with {erorr}")
 
         self._verify_scraping_results()
 
