@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fake-useragent = "*"
+requests = "*"
+beautifulsoup4 = "*"
+pandas = "*"
+selenium = "*"
+webdriver-manager = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
