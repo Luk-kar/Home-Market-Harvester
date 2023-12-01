@@ -1,12 +1,19 @@
+# Designed as a streamlined validation tool,
+# this test suite primarily ensures basic operational integrity
+# of the scraper in a live web environment.
+
+
 # Standard imports
 import csv
 import os
 import shutil
 import unittest
 import datetime
+from typing import Set
 
 # Third-party imports
 import enlighten
+from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
 from scraper._utils.selenium_utils import humans_delay
@@ -19,7 +26,18 @@ from scraper.scrape.process_sites_offers import scrape_offers
 
 
 class TestScraper(unittest.TestCase):
-    def setUp(self):
+    """A test suite for the scraper's core functionality."""
+
+    driver: WebDriver
+    location_query: dict[str, str]
+    search_criteria: dict[str, int | str | None]
+    scraped_folder: str
+    existing_folders_before: Set[str]
+    new_folders: Set[str] | None
+
+    def setUp(self) -> None:
+        """Sets up test environment and initial conditions before each test."""
+
         self.driver = get_driver()
         self.location_query = {
             "low_volume": SCRAPER["location_query"],
@@ -34,7 +52,9 @@ class TestScraper(unittest.TestCase):
         self.existing_folders_before = set(os.listdir(self.scraped_folder))
         self.new_folders = None
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """Cleans up after each test."""
+
         if self.new_folders is not None:
             for folder in self.new_folders:
                 folder_path = os.path.join(self.scraped_folder, folder)
@@ -42,7 +62,8 @@ class TestScraper(unittest.TestCase):
 
         self.driver.quit()
 
-    def test_end_to_end(self):
+    def test_end_to_end(self) -> None:
+        """Tests the end-to-end scraping functionality."""
         try:
             search_criteria = self.search_criteria.copy()
             search_criteria["location_query"] = self.location_query["low_volume"]
@@ -53,7 +74,9 @@ class TestScraper(unittest.TestCase):
 
         self._verify_scraping_results()
 
-    def test_olx_scrape_offers(self):
+    def test_olx_scrape_offers(self) -> None:
+        """Tests scraping offers specifically from OLX."""
+
         try:
             self._setup_and_scrape_offers("high_volume", "olx")
         except Exception as e:
@@ -61,7 +84,9 @@ class TestScraper(unittest.TestCase):
 
         self._verify_scraping_results()
 
-    def test_otodom_scrape_offers(self):
+    def test_otodom_scrape_offers(self) -> None:
+        """Tests scraping offers specifically from Otodom."""
+
         try:
             self._setup_and_scrape_offers("high_volume", "otodom")
         except Exception as e:
@@ -69,7 +94,9 @@ class TestScraper(unittest.TestCase):
 
         self._verify_scraping_results()
 
-    def _setup_and_scrape_offers(self, volume_type, domain):
+    def _setup_and_scrape_offers(self, volume_type: str, domain: str) -> None:
+        """Sets up and executes the scraping process for a given domain and volume type."""
+
         search_criteria = self.search_criteria.copy()
         search_criteria["location_query"] = self.location_query[volume_type]
         offers_cap = search_criteria["scraped_offers_cap"]
@@ -99,7 +126,9 @@ class TestScraper(unittest.TestCase):
                 self.driver, search_criteria, timestamp, progress, scraped_urls
             )
 
-    def _verify_scraping_results(self):
+    def _verify_scraping_results(self) -> None:
+        """Verifies the results of scraping by checking the generated folders and files."""
+
         existing_folders_after = set(os.listdir(self.scraped_folder))
         self.new_folders = existing_folders_after - self.existing_folders_before
 
@@ -114,7 +143,9 @@ class TestScraper(unittest.TestCase):
 
         self._check_csv_files()
 
-    def _check_csv_files(self):
+    def _check_csv_files(self) -> None:
+        """Checks if CSV files in new folders meet expected conditions."""
+
         for new_folder in self.new_folders:
             new_files = os.listdir(os.path.join(self.scraped_folder, new_folder))
             self.assertGreaterEqual(
