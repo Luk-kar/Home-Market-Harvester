@@ -68,6 +68,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Web platform stuff:
+chromedriver.exe
+
 # Sphinx documentation
 docs/_build/
 
