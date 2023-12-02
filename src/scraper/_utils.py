@@ -12,7 +12,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import logging
 import random
 import time
-from typing import Dict, List
 from config import SCRAPER
 
 
@@ -56,8 +55,7 @@ def wait_for_conditions(
         retry_count = 0
         while retry_count < max_retries:
             try:
-                required_component = presence_of_element(condition)
-                WebDriverWait(driver, timeout).until(required_component)
+                WebDriverWait(driver, timeout).until(condition)
                 break  # Condition met, exit retry loop
             except TimeoutException:
                 retry_count += 1
@@ -78,27 +76,3 @@ def get_text_by_selector(
 
 def presence_of_element(selector: str):
     return EC.presence_of_element_located((By.CSS_SELECTOR, selector))
-
-
-def extract_data(
-    source_element: BeautifulSoup | WebElement,
-    field_selectors: Dict[str, str],
-    fields_to_extract: List[str],
-    record: Dict[str, str],
-):
-    """
-    Extracts data from the given source element and updates the record dictionary.
-
-    Args:
-    - field_selectors (Dict[str, str]): A dictionary mapping field names to their CSS selectors.
-    - source_element: The BeautifulSoup object or WebElement from which to extract data.
-    - record (Dict[str, str]): The dictionary to update with extracted data.
-    - fields_to_extract (List[str]): A list of field names to extract from the source element.
-    """
-    record.update(
-        {
-            field: get_text_by_selector(source_element, field_selectors[field])
-            for field in fields_to_extract
-            if field in field_selectors
-        }
-    )
