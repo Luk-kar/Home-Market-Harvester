@@ -37,13 +37,13 @@ class DataPathCleaningManager:
             "target_folder": self.cleaned_path,
             "olx": {
                 "csv": f"{self.raw_path}\\olx.pl.csv",
-                "schema": "olx_pl_schema.json",
+                "schema": f"{self.cleaned_path}\\olx_pl_schema.json",
                 "cleaned": f"{self.cleaned_path}\\olx.pl.csv",
                 "raw": f"{self.raw_path}\\olx.pl.csv",
             },
             "otodom": {
                 "csv": f"{self.raw_path}\\otodom.pl.csv",
-                "schema": "otodom_pl_schema.json",
+                "schema": f"{self.cleaned_path}\\otodom_pl_schema.json",
                 "cleaned": f"{self.cleaned_path}\\otodom.pl.csv",
                 "raw": f"{self.raw_path}\\otodom.pl.csv",
             },
@@ -62,11 +62,12 @@ class DataPathCleaningManager:
             domain (str): The domain (e.g., 'olx', 'otodom') specifying the folder.
         """
 
-        target_schema = f"{self.paths['target_folder']}\\{self.paths[domain]['schema']}"
-        target_CSV = f"{self.paths['target_folder']}\\{self.paths[domain]['csv']}"
+        data_paths = self.paths
+        target_schema = data_paths[domain]["schema"]
+        target_CSV = data_paths[domain]["cleaned"]
 
         if not os.path.exists(target_schema):
-            self._save_dtype_and_index_schema(df, target_schema)
+            self._save_dtype_and_index_schema(df, domain)
 
         if not os.path.exists(target_CSV):
             df.to_csv(target_CSV, index=False)
@@ -109,6 +110,7 @@ class DataPathCleaningManager:
         schema_info = {"dtypes": dtype_info, "index": index_info}
 
         # Ensure the directory exists; if not, create it
+        print(f"Saving schema to {schema_file_path}")
         os.makedirs(os.path.dirname(schema_file_path), exist_ok=True)
 
         with open(schema_file_path, "w") as file:
@@ -120,14 +122,14 @@ class DataPathCleaningManager:
         else:
             return self._load_raw_df(domain)
 
-    def _load_raw_df(self, domain: str) -> pd.DataFrame:
+    def _load_raw_df(self, domain: Domain) -> pd.DataFrame:
         data_paths = self.paths
 
         data_file = data_paths[domain]["raw"]
         df = pd.read_csv(data_file)
         return df
 
-    def _load_cleaned_df(self, domain: str) -> pd.DataFrame:
+    def _load_cleaned_df(self, domain: Domain) -> pd.DataFrame:
         data_paths = self.paths
 
         data_file = data_paths[domain]["cleaned"]
