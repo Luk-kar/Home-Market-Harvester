@@ -1,96 +1,172 @@
-from typing import Any
+from typing import Any, Literal
 import pandas as pd
 import os
 import json
 
 Data_Paths = dict[str, Any]
+Domain = Literal["olx", "otodom"]
 
-location_and_time = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
-base_dir = "..\\data"
-
-cleaned_path = f"{base_dir}\\cleaned\\{location_and_time}"
-raw_path = f"{base_dir}\\raw\\{location_and_time}"
-
-paths = {
-    "target_folder": cleaned_path,
-    "olx": {
-        "csv": f"{raw_path}\\olx.pl.csv",
-        "schema": "olx_pl_schema.json",
-        "cleaned": f"{cleaned_path}\\olx.pl.csv",
-        "raw": f"{raw_path}\\olx.pl.csv",
-    },
-    "otodom": {
-        "csv": f"{raw_path}\\otodom.pl.csv",
-        "schema": "otodom_pl_schema.json",
-        "cleaned": f"{cleaned_path}\\otodom.pl.csv",
-        "raw": f"{raw_path}\\otodom.pl.csv",
-    },
-}
+data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
 
 
-def save_df(df: pd.DataFrame, data_paths: Data_Paths, domain: str):
-    target_schema = f"{data_paths['target_folder']}\\{data_paths[domain]['schema']}"
-    target_CSV = f"{data_paths['target_folder']}\\{data_paths[domain]['csv']}"
+class DataPathCleaningManager:
+    """
+    Manages the paths for cleaned and raw data based on a given time and location.
 
-    if not os.path.exists(target_schema):
-        save_dtype_and_index_schema(df, target_schema)
+    This class is responsible for constructing paths for storing and accessing
+    cleaned and raw data files, based on a specific time and place identifier.
 
-    if not os.path.exists(target_CSV):
-        df.to_csv(target_CSV, index=False)
+    Attributes:
+        cleaned_path (str): Path to the directory for cleaned data files.
+        raw_path (str): Path to the directory for raw data files.
+        paths (dict): Dictionary containing structured paths for data files.
+    """
 
+    def __init__(self, data_timeplace: str):
+        """
+        Initialize the DataPathCleaningManager with a specific time and place.
 
-def save_dtype_and_index_schema(df: pd.DataFrame, schema_file_path: str):
-    dtype_info = {str(key): str(value) for key, value in df.dtypes.items()}
+        Args:
+            data_timeplace (str): A string identifier combining time and location.
+        """
+        base_dir = "..\\data"
+        self.cleaned_path = f"{base_dir}\\cleaned\\{data_timeplace}"
+        self.raw_path = f"{base_dir}\\raw\\{data_timeplace}"
 
-    if isinstance(df.index, pd.MultiIndex):
-        # Convert multi-level index names and dtypes to string
-        index_info = {
-            "index_names": [str(name) for name in df.index.names],
-            "index_dtypes": [str(dtype) for dtype in df.index.to_series().dtypes],
-        }
-    else:
-        # Convert single-level index name and dtype to string
-        index_info = {
-            "index_names": str(df.index.name),
-            "index_dtypes": str(df.index.to_series().dtype),
+        self.paths = {
+            "target_folder": self.cleaned_path,
+            "olx": {
+                "csv": f"{self.raw_path}\\olx.pl.csv",
+                "schema": "olx_pl_schema.json",
+                "cleaned": f"{self.cleaned_path}\\olx.pl.csv",
+                "raw": f"{self.raw_path}\\olx.pl.csv",
+            },
+            "otodom": {
+                "csv": f"{self.raw_path}\\otodom.pl.csv",
+                "schema": "otodom_pl_schema.json",
+                "cleaned": f"{self.cleaned_path}\\otodom.pl.csv",
+                "raw": f"{self.raw_path}\\otodom.pl.csv",
+            },
         }
 
-    schema_info = {"dtypes": dtype_info, "index": index_info}
+    def save_df(self, df: pd.DataFrame, domain: Domain):
+        """
+        Saves a DataFrame to a CSV file in the target folder.
 
-    # Ensure the directory exists; if not, create it
-    os.makedirs(os.path.dirname(schema_file_path), exist_ok=True)
+        This method saves the given DataFrame to a CSV file, based on the domain
+        specified (e.g., 'olx', 'otodom'). It also ensures the schema file
+        is created if it doesn't exist.
 
-    with open(schema_file_path, "w") as file:
-        json.dump(schema_info, file)
+        Args:
+            df (pd.DataFrame): The DataFrame to be saved.
+            domain (str): The domain (e.g., 'olx', 'otodom') specifying the folder.
+        """
 
+        target_schema = f"{self.paths['target_folder']}\\{self.paths[domain]['schema']}"
+        target_CSV = f"{self.paths['target_folder']}\\{self.paths[domain]['csv']}"
 
-def load_df(data_paths: Data_Paths, domain: str) -> pd.DataFrame:
-    # Construct the full file paths
-    data_file = f"{data_paths['target_folder']}\\{data_paths[domain]['csv']}"
-    schema_file = f"{data_paths['target_folder']}\\{data_paths[domain]['schema']}"
+        if not os.path.exists(target_schema):
+            self._save_dtype_and_index_schema(df, target_schema)
 
-    # Load the DataFrame from the data file
-    if domain == "olx":
+        if not os.path.exists(target_CSV):
+            df.to_csv(target_CSV, index=False)
+
+    def _save_dtype_and_index_schema(self, df: pd.DataFrame, domain: Domain):
+        """
+        Saves data types and index information of a DataFrame to a JSON schema file.
+
+        This function creates a schema file that stores the data types and index
+        information of the DataFrame, which is useful for ensuring consistency
+        when reloading the data.
+
+        Args:
+            df (pd.DataFrame): The DataFrame whose schema is to be saved.
+        """
+
+        schema_file_path = None
+        if domain == "olx":
+            schema_file_path = self.paths["olx"]["schema"]
+        elif domain == "otodom":
+            schema_file_path = self.paths["otodom"]["schema"]
+        else:
+            raise KeyError(f"Invalid domain '{domain}' specified.")
+
+        dtype_info = {str(key): str(value) for key, value in df.dtypes.items()}
+
+        if isinstance(df.index, pd.MultiIndex):
+            # Convert multi-level index names and dtypes to string
+            index_info = {
+                "index_names": [str(name) for name in df.index.names],
+                "index_dtypes": [str(dtype) for dtype in df.index.to_series().dtypes],
+            }
+        else:
+            # Convert single-level index name and dtype to string
+            index_info = {
+                "index_names": str(df.index.name),
+                "index_dtypes": str(df.index.to_series().dtype),
+            }
+
+        schema_info = {"dtypes": dtype_info, "index": index_info}
+
+        # Ensure the directory exists; if not, create it
+        os.makedirs(os.path.dirname(schema_file_path), exist_ok=True)
+
+        with open(schema_file_path, "w") as file:
+            json.dump(schema_info, file)
+
+    def load_df(self, domain: Domain, is_cleaned: bool) -> pd.DataFrame:
+        if is_cleaned:
+            return self._load_cleaned_df(domain)
+        else:
+            return self._load_raw_df(domain)
+
+    def _load_raw_df(self, domain: str) -> pd.DataFrame:
+        data_paths = self.paths
+
+        data_file = data_paths[domain]["raw"]
         df = pd.read_csv(data_file)
-    elif domain == "otodom":
-        df = pd.read_csv(data_file, header=[0, 1])
+        return df
 
-    # Load the schema information
-    with open(schema_file, "r") as file:
-        schema_info = json.load(file)
+    def _load_cleaned_df(self, domain: str) -> pd.DataFrame:
+        data_paths = self.paths
 
-    # Check if the DataFrame columns are a MultiIndex
-    if domain == "olx":
-        # Apply dtypes for regular index columns
-        for col, dtype in schema_info["dtypes"].items():
-            col_name = col.strip("()").replace("'", "").replace(", ", "_")
-            df[col_name] = df[col_name].astype(dtype)
-    elif domain == "otodom":
-        # Apply dtypes for MultiIndex columns
-        for col, dtype in schema_info["dtypes"].items():
-            col = tuple(col.strip("()").replace("'", "").split(", "))
-            df[col] = df[col].astype(dtype)
-    else:
-        raise KeyError(f"Invalid domain '{domain}' specified.")
+        data_file = data_paths[domain]["cleaned"]
+        schema_file = data_paths[domain]["schema"]
 
-    return df
+        # Load the DataFrame from the data file
+        if domain == "olx":
+            df = pd.read_csv(data_file)
+        elif domain == "otodom":
+            df = pd.read_csv(data_file, header=[0, 1])
+        else:
+            raise KeyError(f"Invalid domain '{domain}' specified.")
+
+            # Load the schema information
+        with open(schema_file, "r") as file:
+            schema_info = json.load(file)
+
+            # Check if the DataFrame columns are a MultiIndex
+        if domain == "olx":
+            # Apply dtypes for regular index columns
+            for col, dtype in schema_info["dtypes"].items():
+                col_name = col.strip("()").replace("'", "").replace(", ", "_")
+                df[col_name] = df[col_name].astype(dtype)
+        elif domain == "otodom":
+            # Apply dtypes for MultiIndex columns
+            for col, dtype in schema_info["dtypes"].items():
+                col = tuple(col.strip("()").replace("'", "").split(", "))
+                df[col] = df[col].astype(dtype)
+        else:
+            raise KeyError(f"Invalid domain '{domain}' specified.")
+        return df
+
+
+# Usage
+# data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
+# processor = DataPathCleaningManager(data_timeplace)
+
+# Example of saving a DataFrame
+# processor.save_df(df, "olx")
+
+# Example of loading a DataFrame
+# df = processor.load_df("olx")
