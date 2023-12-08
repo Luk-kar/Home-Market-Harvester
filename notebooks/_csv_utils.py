@@ -4,7 +4,7 @@ import os
 import json
 
 Data_Paths = dict[str, Any]
-Domain = Literal["olx", "otodom"]
+Domain = Literal["olx", "otodom", "combined"]
 
 data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
 
@@ -36,16 +36,18 @@ class DataPathCleaningManager:
         self.paths = {
             "target_folder": self.cleaned_path,
             "olx": {
-                "csv": f"{self.raw_path}\\olx.pl.csv",
                 "schema": f"{self.cleaned_path}\\olx_pl_schema.json",
                 "cleaned": f"{self.cleaned_path}\\olx.pl.csv",
                 "raw": f"{self.raw_path}\\olx.pl.csv",
             },
             "otodom": {
-                "csv": f"{self.raw_path}\\otodom.pl.csv",
                 "schema": f"{self.cleaned_path}\\otodom_pl_schema.json",
                 "cleaned": f"{self.cleaned_path}\\otodom.pl.csv",
                 "raw": f"{self.raw_path}\\otodom.pl.csv",
+            },
+            "combined": {
+                "schema": f"{self.cleaned_path}\\combined.json",
+                "cleaned": f"{self.cleaned_path}\\combined.csv",
             },
         }
 
@@ -71,6 +73,7 @@ class DataPathCleaningManager:
 
         if not os.path.exists(target_CSV):
             df.to_csv(target_CSV, index=False)
+            print(f"Saving CSV to {target_CSV}")
 
     def _save_dtype_and_index_schema(self, df: pd.DataFrame, domain: Domain):
         """
@@ -89,6 +92,8 @@ class DataPathCleaningManager:
             schema_file_path = self.paths["olx"]["schema"]
         elif domain == "otodom":
             schema_file_path = self.paths["otodom"]["schema"]
+        elif domain == "combined":
+            schema_file_path = self.paths["combined"]["schema"]
         else:
             raise KeyError(f"Invalid domain '{domain}' specified.")
 
@@ -117,10 +122,12 @@ class DataPathCleaningManager:
             json.dump(schema_info, file)
 
     def load_df(self, domain: Domain, is_cleaned: bool) -> pd.DataFrame:
-        if is_cleaned:
+        if domain in ["olx", "otodom", "combined"] and is_cleaned:
             return self._load_cleaned_df(domain)
-        else:
+        elif domain in ["olx", "otodom"] and not is_cleaned:
             return self._load_raw_df(domain)
+        else:
+            raise KeyError(f"Invalid domain '{domain}' specified.")
 
     def _load_raw_df(self, domain: Domain) -> pd.DataFrame:
         data_paths = self.paths
@@ -138,7 +145,7 @@ class DataPathCleaningManager:
         # Load the DataFrame from the data file
         if domain == "olx":
             df = pd.read_csv(data_file)
-        elif domain == "otodom":
+        elif domain in ["otodom", "combined"]:
             df = pd.read_csv(data_file, header=[0, 1])
         else:
             raise KeyError(f"Invalid domain '{domain}' specified.")
@@ -153,7 +160,7 @@ class DataPathCleaningManager:
             for col, dtype in schema_info["dtypes"].items():
                 col_name = col.strip("()").replace("'", "").replace(", ", "_")
                 df[col_name] = df[col_name].astype(dtype)
-        elif domain == "otodom":
+        elif domain in ["otodom", "combined"]:
             # Apply dtypes for MultiIndex columns
             for col, dtype in schema_info["dtypes"].items():
                 col = tuple(col.strip("()").replace("'", "").split(", "))
@@ -161,14 +168,3 @@ class DataPathCleaningManager:
         else:
             raise KeyError(f"Invalid domain '{domain}' specified.")
         return df
-
-
-# Usage
-# data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
-# processor = DataPathCleaningManager(data_timeplace)
-
-# Example of saving a DataFrame
-# processor.save_df(df, "olx")
-
-# Example of loading a DataFrame
-# df = processor.load_df("olx")

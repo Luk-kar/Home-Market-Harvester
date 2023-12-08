@@ -11,6 +11,7 @@ pandas = "*"
 selenium = "*"
 webdriver-manager = "*"
 enlighten = "*"
+scipy = "*"
 
 [dev-packages]
 pylint = "*"
