@@ -12,6 +12,8 @@ selenium = "*"
 webdriver-manager = "*"
 enlighten = "*"
 scipy = "*"
+seaborn = "*"
+matplotlib = "*"
 
 [dev-packages]
 pylint = "*"
