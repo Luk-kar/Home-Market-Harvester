@@ -4,7 +4,7 @@ import os
 import json
 
 Data_Paths = dict[str, Any]
-Domain = Literal["olx", "otodom", "combined"]
+Domain = Literal["olx", "otodom", "combined"], "map"
 
 data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
 
@@ -49,6 +49,10 @@ class DataPathCleaningManager:
                 "schema": f"{self.cleaned_path}\\combined.json",
                 "cleaned": f"{self.cleaned_path}\\combined.csv",
             },
+            "map": {
+                "schema": f"{self.cleaned_path}\\map_df_schema.json",
+                "cleaned": f"{self.cleaned_path}\\map_df.csv",
+            },
         }
 
     def save_df(self, df: pd.DataFrame, domain: Domain):
@@ -61,7 +65,7 @@ class DataPathCleaningManager:
 
         Args:
             df (pd.DataFrame): The DataFrame to be saved.
-            domain (str): The domain (e.g., 'olx', 'otodom') specifying the folder.
+            domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
         """
 
         data_paths = self.paths
@@ -94,6 +98,8 @@ class DataPathCleaningManager:
             schema_file_path = self.paths["otodom"]["schema"]
         elif domain == "combined":
             schema_file_path = self.paths["combined"]["schema"]
+        elif domain == "map":
+            schema_file_path = self.paths["map"]["schema"]
         else:
             raise KeyError(f"Invalid domain '{domain}' specified.")
 
@@ -122,7 +128,7 @@ class DataPathCleaningManager:
             json.dump(schema_info, file)
 
     def load_df(self, domain: Domain, is_cleaned: bool) -> pd.DataFrame:
-        if domain in ["olx", "otodom", "combined"] and is_cleaned:
+        if domain in ["olx", "otodom", "combined", "map"] and is_cleaned:
             return self._load_cleaned_df(domain)
         elif domain in ["olx", "otodom"] and not is_cleaned:
             return self._load_raw_df(domain)
@@ -143,7 +149,7 @@ class DataPathCleaningManager:
         schema_file = data_paths[domain]["schema"]
 
         # Load the DataFrame from the data file
-        if domain == "olx":
+        if domain in ["olx", "map"]:
             df = pd.read_csv(data_file)
         elif domain in ["otodom", "combined"]:
             df = pd.read_csv(data_file, header=[0, 1])
@@ -155,7 +161,7 @@ class DataPathCleaningManager:
             schema_info = json.load(file)
 
             # Check if the DataFrame columns are a MultiIndex
-        if domain == "olx":
+        if domain in ["olx", "map"]:
             # Apply dtypes for regular index columns
             for col, dtype in schema_info["dtypes"].items():
                 col_name = col.strip("()").replace("'", "").replace(", ", "_")
