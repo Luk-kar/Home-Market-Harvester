@@ -16,6 +16,7 @@ seaborn = "*"
 matplotlib = "*"
 geopy = "*"
 haversine = "*"
+streamlit = "*"
 
 [dev-packages]
 pylint = "*"
