@@ -51,6 +51,8 @@ def plot_bar_chart(data, title):
 
 
 def render_dashboard(data, plot_bar_chart):
+    your_offers_df, other_offers_df, map_offers_df = data
+
     text = "Rent comparisons"
     st.markdown(
         f"<h1 style='text-align: center; font-style: italic;'>{text}</h1>",
@@ -93,18 +95,18 @@ def upload_data():
     return your_offers_df, other_offers_df, map_offers_df
 
 
-your_offers_df, other_offers_df, map_offers_df = upload_data()
-
 # Mock data
-data = pd.DataFrame(
-    {
-        "flat": [1, 2, 3],
-        "floor": [1, 2, 3],
-        "furnished": [True, False, True],
-        "price per meter": [1000, 1100, 1000],
-        "area": [20, 14, 20],
-    }
-)
+# data = pd.DataFrame(
+#     {
+#         "flat": [1, 2, 3],
+#         "floor": [1, 2, 3],
+#         "furnished": [True, False, True],
+#         "price per meter": [1000, 1100, 1000],
+#         "area": [20, 14, 20],
+#     }
+# )
+
+data = upload_data()
 
 render_dashboard(data, plot_bar_chart)
 
