@@ -19,7 +19,7 @@ aesthetics_plots = {
     "label_color": "#435672",
     "palette": "viridis",
     "figsize": {
-        "multiplot": (15, 10),  # (width, height) in inches
+        "multiplot": (10, 6),  # (width, height) in inches
         "singleplot": (8, 6),
     },
 }
@@ -35,7 +35,6 @@ def get_darker_shade(color: str, factor=0.5) -> str:
 
 def set_plot_aesthetics(
     ax,
-    data_series,
     title=None,
     xlabel=None,
     ylabel=None,
@@ -98,7 +97,7 @@ def plot_bar_chart(data, title, xlabel, ylabel):
     fig, ax = plt.subplots(figsize=aesthetics_plots["figsize"]["multiplot"])
     sns.barplot(x="Category", y="Price", data=df, ax=ax, palette="viridis")
 
-    set_plot_aesthetics(ax, df["Price"], title=title, xlabel=xlabel, ylabel=ylabel)
+    set_plot_aesthetics(ax, title=title, xlabel=xlabel, ylabel=ylabel)
 
     return fig
 
@@ -112,8 +111,7 @@ def render_dashboard(data):
 
     display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df)
 
-    # Display the table
-    st.table(data)
+    display_table(your_offers_df, other_offers_df)
 
 
 def display_title():
@@ -125,9 +123,9 @@ def display_title():
 
 
 def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
-    text = "median price"
+    text = "⚖️ median price"
     st.markdown(
-        f"<h3 style='text-align: center; font-style: italic;'>{text}</h3>",
+        f"<h3 style='text-align: center;'>{text}</h3>",
         unsafe_allow_html=True,
     )
 
@@ -158,13 +156,14 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
 
     col_per_meter, col_per_offer = st.columns(2)
 
-    space = " " * 62
+    space = " " * 36
     categories = ["Yours", "Local", "20 km radius"]
 
     max_length = max(len(category) for category in categories)
     centered_categories = [category.center(max_length) for category in categories]
 
     xlabel = space.join(centered_categories)
+    ylabel = "Price (PLN)"
 
     with col_per_meter:
         per_meter_data = {
@@ -195,7 +194,7 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
                 per_meter_data,
                 "Price per meter",
                 xlabel,
-                "Price",
+                ylabel,
             )
         )
 
@@ -223,17 +222,167 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
                 per_offer_data,
                 "Price per offer",
                 xlabel,
-                "Price",
+                ylabel,
             )
         )
 
 
-def get_absolute_path(relative_path):
-    current_dir = os.getcwd()
-    absolute_path = os.path.join(current_dir, relative_path)
-    normalized_path = os.path.normpath(absolute_path)
+def calculate_price_differences(
+    df, column_prefix, base_price_col, base_price_per_meter_col
+):
+    price_col = f"{column_prefix}_price"
+    price_per_meter_col = f"{column_prefix}_price_per_meter"
 
-    return normalized_path
+    df[f"{price_col}_%"] = round(((df[price_col] / df[base_price_col]) - 1) * 100, 2)
+    df[price_col] = df[price_col] - df[base_price_col]
+
+    df[f"{price_per_meter_col}_%"] = round(
+        ((df[price_per_meter_col] / df[base_price_per_meter_col]) - 1) * 100, 2
+    )
+    df[price_per_meter_col] = df[price_per_meter_col] - df[base_price_per_meter_col]
+
+    # Round price per meter columns
+    df[price_per_meter_col] = df[price_per_meter_col].round(2)
+
+
+def display_table(your_offers_df, other_offers_df):
+    text = "📊 Data"
+    st.markdown(
+        f"<h3 style='text-align: center;'>{text}</h3>",
+        unsafe_allow_html=True,
+    )
+
+    local_offers_df = other_offers_df[
+        other_offers_df["location"]["city"] == "będziński"
+    ].copy()
+
+    offers_20km_df = other_offers_df.copy()
+
+    medians = {
+        "local": {
+            "price": local_offers_df["pricing"]["total_rent"].median(),
+            "price_per_meter": local_offers_df["pricing"]["total_rent_sqm"].median(),
+        },
+        "in_20_km": {
+            "price": offers_20km_df["pricing"]["total_rent"].median(),
+            "price_per_meter": offers_20km_df["pricing"]["total_rent_sqm"].median(),
+        },
+        "unfurnished": {
+            # "price": offers_20km_df[offers_20km_df["equipment"]["furniture"] == False][
+            #     "pricing"
+            # ]["total_rent"].median(),
+            "price_per_meter": offers_20km_df[
+                offers_20km_df["equipment"]["furniture"] == False
+            ]["pricing"]["total_rent_sqm"].median(),
+        },
+        "furnished": {
+            # "price": offers_20km_df[offers_20km_df["equipment"]["furniture"] == True][
+            #     "pricing"
+            # ]["total_rent"].median(),
+            "price_per_meter": offers_20km_df[
+                offers_20km_df["equipment"]["furniture"] == True
+            ]["pricing"]["total_rent_sqm"].median(),
+        },
+    }
+
+    medians_df = pd.DataFrame(index=your_offers_df.index)
+
+    # Iterate over the medians dictionary to create columns with key as prefix
+    for key, value_dict in medians.items():
+        for value_key in value_dict:
+            column_name = f"{key}_{value_key}"  # e.g. "local_price"
+            medians_df[column_name] = value_dict[value_key]
+
+    # Now concatenate your_offers_df with medians_df
+    df_to_display = pd.concat([your_offers_df, medians_df], axis=1)
+
+    # median local
+    df_to_display["local_price_%"] = round(
+        ((df_to_display["local_price"] / df_to_display["price"]) - 1) * 100, 2
+    )
+    df_to_display["local_price"] = df_to_display["local_price"] - df_to_display["price"]
+
+    df_to_display["local_price_per_meter_%"] = round(
+        (
+            (df_to_display["local_price_per_meter"] / df_to_display["price_per_meter"])
+            - 1
+        )
+        * 100,
+        2,
+    )
+    df_to_display["local_price_per_meter"] = (
+        df_to_display["local_price_per_meter"] - df_to_display["price_per_meter"]
+    )
+
+    # median in 20 km %
+    df_to_display["in_20_km_price_%"] = round(
+        ((df_to_display["in_20_km_price"] / df_to_display["price"]) - 1) * 100, 2
+    )
+    df_to_display["in_20_km_price"] = (
+        df_to_display["in_20_km_price"] - df_to_display["price"]
+    )
+
+    df_to_display["in_20_km_price_per_meter_%"] = round(
+        (
+            (
+                df_to_display["in_20_km_price_per_meter"]
+                / df_to_display["price_per_meter"]
+            )
+            - 1
+        )
+        * 100,
+        2,
+    )
+    df_to_display["in_20_km_price_per_meter"] = (
+        df_to_display["in_20_km_price_per_meter"] - df_to_display["price_per_meter"]
+    )
+
+    # median unfurnished
+    df_to_display["unfurnished_price_per_meter_%"] = round(
+        (
+            (
+                df_to_display["unfurnished_price_per_meter"]
+                / df_to_display["price_per_meter"]
+            )
+            - 1
+        )
+        * 100,
+        2,
+    )
+    df_to_display["unfurnished_price_per_meter"] = (
+        df_to_display["unfurnished_price_per_meter"] - df_to_display["price_per_meter"]
+    )
+    df_to_display["furnished_price_per_meter_%"] = round(
+        (
+            (
+                df_to_display["furnished_price_per_meter"]
+                / df_to_display["price_per_meter"]
+            )
+            - 1
+        )
+        * 100,
+        2,
+    )
+    df_to_display["furnished_price_per_meter"] = (
+        df_to_display["furnished_price_per_meter"] - df_to_display["price_per_meter"]
+    )
+
+    # round prices
+    df_to_display["in_20_km_price_per_meter"] = df_to_display[
+        "in_20_km_price_per_meter"
+    ].round(2)
+    df_to_display["local_price_per_meter"] = df_to_display[
+        "local_price_per_meter"
+    ].round(2)
+    df_to_display["furnished_price_per_meter"] = df_to_display[
+        "furnished_price_per_meter"
+    ].round(2)
+    df_to_display["unfurnished_price_per_meter"] = df_to_display[
+        "unfurnished_price_per_meter"
+    ].round(2)
+
+    # Display the resulting DataFrame
+    st.dataframe(df_to_display)
 
 
 def update_paths(d: dict, old_str: str, new_str: str) -> None:
@@ -270,7 +419,6 @@ def upload_data():
     your_offers_df["flat_id"] = your_offers_df["flat_id"].astype("Int64")
     your_offers_df["floor"] = your_offers_df["floor"].astype("Int64")
     your_offers_df["area"] = your_offers_df["area"].astype("Float64")
-    your_offers_df["is_furnished_o"] = your_offers_df["is_furnished"]
     your_offers_df["is_furnished"] = your_offers_df["is_furnished"].astype("bool")
     your_offers_df["price"] = your_offers_df["price"].astype("Float64")
     your_offers_df["price_per_meter"] = your_offers_df.apply(
@@ -285,22 +433,6 @@ def upload_data():
     return your_offers_df, other_offers_df, map_offers_df
 
 
-# Mock data
-# data = pd.DataFrame(
-#     {
-#         "flat": [1, 2, 3],
-#         "floor": [1, 2, 3],
-#         "furnished": [True, False, True],
-#         "price per meter": [1000, 1100, 1000],
-#         "area": [20, 14, 20],
-#     }
-# )
-
 data = upload_data()
 
 render_dashboard(data)
-
-# Display additional tables or charts as necessary
-
-# Run this from your command line:
-# streamlit run your_script_name.py
