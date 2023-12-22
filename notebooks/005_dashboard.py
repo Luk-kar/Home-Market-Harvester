@@ -230,19 +230,29 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
 def calculate_price_differences(
     df, column_prefix, base_price_col, base_price_per_meter_col
 ):
+    # Calculate the absolute difference and percentage difference for price
     price_col = f"{column_prefix}_price"
+    if price_col in df.columns:
+        df[f"{price_col}_diff"] = df[price_col] - df[base_price_col]
+        df[f"{price_col}_%"] = round(
+            ((df[price_col] / df[base_price_col]) - 1) * 100, 2
+        )
+
+    # Calculate the absolute difference and percentage difference for price per meter
     price_per_meter_col = f"{column_prefix}_price_per_meter"
+    if price_per_meter_col in df.columns:
+        df[f"{price_per_meter_col}_diff"] = (
+            df[price_per_meter_col] - df[base_price_per_meter_col]
+        )
+        df[f"{price_per_meter_col}_%"] = round(
+            ((df[price_per_meter_col] / df[base_price_per_meter_col]) - 1) * 100, 2
+        )
 
-    df[f"{price_col}_%"] = round(((df[price_col] / df[base_price_col]) - 1) * 100, 2)
-    df[price_col] = df[price_col] - df[base_price_col]
+        # Round the difference columns for price per meter
+        df[f"{price_per_meter_col}_diff"] = df[f"{price_per_meter_col}_diff"].round(2)
 
-    df[f"{price_per_meter_col}_%"] = round(
-        ((df[price_per_meter_col] / df[base_price_per_meter_col]) - 1) * 100, 2
-    )
-    df[price_per_meter_col] = df[price_per_meter_col] - df[base_price_per_meter_col]
 
-    # Round price per meter columns
-    df[price_per_meter_col] = df[price_per_meter_col].round(2)
+# The rest of your display_table function follows...
 
 
 def display_table(your_offers_df, other_offers_df):
@@ -252,12 +262,13 @@ def display_table(your_offers_df, other_offers_df):
         unsafe_allow_html=True,
     )
 
+    # Copy the original dataframes to avoid modifying them
     local_offers_df = other_offers_df[
         other_offers_df["location"]["city"] == "będziński"
     ].copy()
-
     offers_20km_df = other_offers_df.copy()
 
+    # Calculate median values for local and 20 km radius offers
     medians = {
         "local": {
             "price": local_offers_df["pricing"]["total_rent"].median(),
@@ -267,121 +278,47 @@ def display_table(your_offers_df, other_offers_df):
             "price": offers_20km_df["pricing"]["total_rent"].median(),
             "price_per_meter": offers_20km_df["pricing"]["total_rent_sqm"].median(),
         },
+        # Assuming you have columns structured like other_offers_df["equipment"]["furniture"]
         "unfurnished": {
-            # "price": offers_20km_df[offers_20km_df["equipment"]["furniture"] == False][
-            #     "pricing"
-            # ]["total_rent"].median(),
             "price_per_meter": offers_20km_df[
                 offers_20km_df["equipment"]["furniture"] == False
             ]["pricing"]["total_rent_sqm"].median(),
         },
         "furnished": {
-            # "price": offers_20km_df[offers_20km_df["equipment"]["furniture"] == True][
-            #     "pricing"
-            # ]["total_rent"].median(),
             "price_per_meter": offers_20km_df[
                 offers_20km_df["equipment"]["furniture"] == True
             ]["pricing"]["total_rent_sqm"].median(),
         },
     }
 
+    # Initialize a DataFrame to store the medians with the same index as your_offers_df
     medians_df = pd.DataFrame(index=your_offers_df.index)
 
-    # Iterate over the medians dictionary to create columns with key as prefix
-    for key, value_dict in medians.items():
-        for value_key in value_dict:
-            column_name = f"{key}_{value_key}"  # e.g. "local_price"
-            medians_df[column_name] = value_dict[value_key]
+    # Add median values to the DataFrame
+    for key, stats in medians.items():
+        for stat_name, value in stats.items():
+            medians_df[f"{key}_{stat_name}"] = value
 
-    # Now concatenate your_offers_df with medians_df
+    # Concatenate the original DataFrame with the medians DataFrame
     df_to_display = pd.concat([your_offers_df, medians_df], axis=1)
 
-    # median local
-    df_to_display["local_price_%"] = round(
-        ((df_to_display["local_price"] / df_to_display["price"]) - 1) * 100, 2
+    # Calculate price differences for local and in 20 km offers
+    calculate_price_differences(df_to_display, "local", "price", "price_per_meter")
+    calculate_price_differences(df_to_display, "in_20_km", "price", "price_per_meter")
+    calculate_price_differences(
+        df_to_display, "unfurnished", "price", "price_per_meter"
     )
-    df_to_display["local_price"] = df_to_display["local_price"] - df_to_display["price"]
+    calculate_price_differences(df_to_display, "furnished", "price", "price_per_meter")
 
-    df_to_display["local_price_per_meter_%"] = round(
-        (
-            (df_to_display["local_price_per_meter"] / df_to_display["price_per_meter"])
-            - 1
-        )
-        * 100,
-        2,
-    )
-    df_to_display["local_price_per_meter"] = (
-        df_to_display["local_price_per_meter"] - df_to_display["price_per_meter"]
-    )
+    columns_to_round = [
+        "in_20_km_price_per_meter",
+        "unfurnished_price_per_meter",
+        "furnished_price_per_meter",
+    ]
+    for column in columns_to_round:
+        df_to_display[column] = df_to_display[column].round(2)
 
-    # median in 20 km %
-    df_to_display["in_20_km_price_%"] = round(
-        ((df_to_display["in_20_km_price"] / df_to_display["price"]) - 1) * 100, 2
-    )
-    df_to_display["in_20_km_price"] = (
-        df_to_display["in_20_km_price"] - df_to_display["price"]
-    )
-
-    df_to_display["in_20_km_price_per_meter_%"] = round(
-        (
-            (
-                df_to_display["in_20_km_price_per_meter"]
-                / df_to_display["price_per_meter"]
-            )
-            - 1
-        )
-        * 100,
-        2,
-    )
-    df_to_display["in_20_km_price_per_meter"] = (
-        df_to_display["in_20_km_price_per_meter"] - df_to_display["price_per_meter"]
-    )
-
-    # median unfurnished
-    df_to_display["unfurnished_price_per_meter_%"] = round(
-        (
-            (
-                df_to_display["unfurnished_price_per_meter"]
-                / df_to_display["price_per_meter"]
-            )
-            - 1
-        )
-        * 100,
-        2,
-    )
-    df_to_display["unfurnished_price_per_meter"] = (
-        df_to_display["unfurnished_price_per_meter"] - df_to_display["price_per_meter"]
-    )
-    df_to_display["furnished_price_per_meter_%"] = round(
-        (
-            (
-                df_to_display["furnished_price_per_meter"]
-                / df_to_display["price_per_meter"]
-            )
-            - 1
-        )
-        * 100,
-        2,
-    )
-    df_to_display["furnished_price_per_meter"] = (
-        df_to_display["furnished_price_per_meter"] - df_to_display["price_per_meter"]
-    )
-
-    # round prices
-    df_to_display["in_20_km_price_per_meter"] = df_to_display[
-        "in_20_km_price_per_meter"
-    ].round(2)
-    df_to_display["local_price_per_meter"] = df_to_display[
-        "local_price_per_meter"
-    ].round(2)
-    df_to_display["furnished_price_per_meter"] = df_to_display[
-        "furnished_price_per_meter"
-    ].round(2)
-    df_to_display["unfurnished_price_per_meter"] = df_to_display[
-        "unfurnished_price_per_meter"
-    ].round(2)
-
-    # Display the resulting DataFrame
+    # Display the DataFrame in Streamlit
     st.dataframe(df_to_display)
 
 
