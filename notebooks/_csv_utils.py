@@ -9,27 +9,6 @@ Domain = Literal["olx", "otodom", "combined"], "map"
 data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
 
 
-def get_absolute_path(relative_path: str) -> str:
-    """
-    Returns the absolute path for a given relative path.
-
-    This function returns the absolute path for a given relative path, based
-    on the current working directory.
-
-    Args:
-        relative_path (str): The relative path to be converted.
-
-    Returns:
-        str: The absolute path.
-    """
-
-    current_dir = os.getcwd()
-    absolute_path = os.path.join(current_dir, relative_path)
-    normalized_path = os.path.normpath(absolute_path)
-
-    return normalized_path
-
-
 class DataPathCleaningManager:
     """
     Manages the paths for cleaned and raw data based on a given time and location.
