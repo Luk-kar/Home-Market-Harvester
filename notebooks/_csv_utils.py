@@ -9,6 +9,27 @@ Domain = Literal["olx", "otodom", "combined"], "map"
 data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
 
 
+def get_absolute_path(relative_path: str) -> str:
+    """
+    Returns the absolute path for a given relative path.
+
+    This function returns the absolute path for a given relative path, based
+    on the current working directory.
+
+    Args:
+        relative_path (str): The relative path to be converted.
+
+    Returns:
+        str: The absolute path.
+    """
+
+    current_dir = os.getcwd()
+    absolute_path = os.path.join(current_dir, relative_path)
+    normalized_path = os.path.normpath(absolute_path)
+
+    return normalized_path
+
+
 class DataPathCleaningManager:
     """
     Manages the paths for cleaned and raw data based on a given time and location.
@@ -68,9 +89,8 @@ class DataPathCleaningManager:
             domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
         """
 
-        data_paths = self.paths
-        target_schema = data_paths[domain]["schema"]
-        target_CSV = data_paths[domain]["cleaned"]
+        target_schema = self.paths[domain]["schema"]
+        target_CSV = self.paths[domain]["cleaned"]
 
         if not os.path.exists(target_schema):
             self._save_dtype_and_index_schema(df, domain)
@@ -143,10 +163,8 @@ class DataPathCleaningManager:
         return df
 
     def _load_cleaned_df(self, domain: Domain) -> pd.DataFrame:
-        data_paths = self.paths
-
-        data_file = data_paths[domain]["cleaned"]
-        schema_file = data_paths[domain]["schema"]
+        data_file = self.paths[domain]["cleaned"]
+        schema_file = self.paths[domain]["schema"]
 
         # Load the DataFrame from the data file
         if domain in ["olx", "map"]:
