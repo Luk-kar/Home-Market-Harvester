@@ -8,9 +8,12 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 import matplotlib.colors as mcolors
+import plotly.graph_objects as go
 
 # Local imports
 from _csv_utils import data_timeplace, DataPathCleaningManager
+
+pd.set_option("display.precision", 2)
 
 aesthetics_plots = {
     "title_size": 16,
@@ -19,10 +22,132 @@ aesthetics_plots = {
     "label_color": "#435672",
     "palette": "viridis",
     "figsize": {
-        "multiplot": (10, 6),  # (width, height) in inches
-        "singleplot": (8, 6),
+        "singleplot": (10, 6),  # (width, height) in inches
+        "map": (8, 6),
     },
 }
+
+
+def show_property_map(
+    map_df: pd.DataFrame,
+    title: str = "",
+    center_coords: tuple[float, float] = None,
+    center_marker_name: str = "Mierzęcice, Będziński, Śląskie",
+    zoom: float = 10.0,
+):
+    def extract_lat_lon(coord):
+        coord_parts = coord.strip("()").split(", ")
+        coord_tuple = tuple(
+            float(part) if part.strip() != "None" else None for part in coord_parts
+        )
+        return coord_tuple
+
+    def create_heatmap_data(plot_data: pd.DataFrame) -> go.Figure:
+        def get_hovertemplate(row):
+            labels = [
+                "City:",
+                "Complete Address:",
+                "Total Price:",
+                "Price:",
+                "Rent:",
+                "Square Meters:",
+                "Price/Sqm:",
+                "Furnished:",
+            ]
+            max_label_length = max(len(label) for label in labels)
+            font_style = "font-family:monospace;"
+
+            return (
+                f"<span style='{font_style}'>{'City:'.ljust(max_label_length)}</span> {row['city']}<br>"
+                f"<span style='{font_style}'>{'Street:'.ljust(max_label_length)}</span> {row['complete_address'].replace((', ' + row['city']), '') if row['city'] else row['complete_address']}<br>"
+                f"<span style='{font_style}'>{'Total Price:'.ljust(max_label_length)}</span> {row['price_total']}<br>"
+                f"<span style='{font_style}'>{'Price:'.ljust(max_label_length)}</span> {row['price']}<br>"
+                f"<span style='{font_style}'>{'Rent:'.ljust(max_label_length)}</span> {row['rent']}<br>"
+                f"<span style='{font_style}'>{'Square Meters:'.ljust(max_label_length)}</span> {row['sqm']}<br>"
+                f"<span style='{font_style}'>{'Price/Sqm:'.ljust(max_label_length)}</span> {row['rent_sqm']}<br>"
+                f"<span style='{font_style}'>{'Furnished:'.ljust(max_label_length)}</span> {row['is_furnished']}<extra></extra>"
+            )
+
+        offer_counts = (
+            plot_data.groupby(["Latitude", "Longitude"])
+            .size()
+            .reset_index(name="offer_count")
+        )
+        plot_data = plot_data.merge(offer_counts, on=["Latitude", "Longitude"])
+
+        plot_data["hovertemplate"] = plot_data.apply(get_hovertemplate, axis=1)
+
+        return go.Densitymapbox(
+            lat=plot_data["Latitude"],
+            lon=plot_data["Longitude"],
+            z=plot_data["offer_count"],  # Use offer count as density
+            radius=10,
+            colorscale="Viridis",
+            zmin=0,
+            zmax=plot_data["offer_count"].max(),  # Maximum count of offers
+            hovertemplate=plot_data["hovertemplate"],
+            colorbar=dict(
+                title="Number<br>of<br>offers:",
+            ),
+        )
+
+    def update_fig(
+        fig: go.Figure, mapbox_zoom: float, mapbox_center: dict, height: int = None
+    ):
+        layout_update = {
+            "title_text": title,
+            "mapbox_style": "carto-positron",
+            "mapbox_zoom": mapbox_zoom,
+            "mapbox_center": mapbox_center,
+            "margin": dict(l=0, r=0, t=40, b=0),
+            "coloraxis_colorbar": dict(
+                title="Number<br>of<br>offers:",
+                title_side="right",
+                title_font=dict(size=20),
+                y=-2,
+                yanchor="middle",
+            ),
+        }
+
+        # If height is specified, add it to the layout update dictionary
+        if height is not None:
+            layout_update["height"] = height
+
+        fig.update_layout(**layout_update)
+        return fig
+
+    map_df["rent_sqm"] = map_df["rent_sqm"].round(2)
+
+    lat_lon = map_df["coords"].apply(extract_lat_lon)
+    map_df["Latitude"], map_df["Longitude"] = zip(*lat_lon)
+
+    heatmap = create_heatmap_data(map_df)
+    fig = go.Figure(data=[heatmap])
+
+    # Determine the center of the map
+    if center_coords is None:
+        center_coords = {
+            "lat": map_df["Latitude"].mean(),
+            "lon": map_df["Longitude"].mean(),
+        }
+    else:
+        center_coords = {"lat": center_coords[0], "lon": center_coords[1]}
+        # Add a pin (marker) at the center coordinates
+        fig.add_trace(
+            go.Scattermapbox(
+                lat=[center_coords["lat"]],
+                lon=[center_coords["lon"]],
+                mode="markers+text",  # Include 'text' in the mode
+                marker=go.scattermapbox.Marker(size=10, color="red"),
+                text=[center_marker_name],  # Set the label text
+                textposition="bottom right",  # Position the text
+                showlegend=False,
+            )
+        )
+
+    fig = update_fig(fig, mapbox_center=center_coords, mapbox_zoom=zoom, height=600)
+    # fig.show() # as separate window
+    st.plotly_chart(fig, use_container_width=True)  # in streamlit
 
 
 def get_darker_shade(color: str, factor=0.5) -> str:
@@ -94,7 +219,7 @@ def plot_bar_chart(data, title, xlabel, ylabel):
     df = pd.DataFrame(list(data.items()), columns=["Category", "Price"])
 
     # Create the bar plot using Seaborn
-    fig, ax = plt.subplots(figsize=aesthetics_plots["figsize"]["multiplot"])
+    fig, ax = plt.subplots(figsize=aesthetics_plots["figsize"]["singleplot"])
     sns.barplot(x="Category", y="Price", data=df, ax=ax, palette="viridis")
 
     set_plot_aesthetics(ax, title=title, xlabel=xlabel, ylabel=ylabel)
@@ -112,6 +237,19 @@ def render_dashboard(data):
     display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df)
 
     display_table(your_offers_df, other_offers_df)
+
+    text = "🗺️ Map"
+    st.markdown(
+        f"<h1 style='text-align: center;'>{text}</h1>",
+        unsafe_allow_html=True,
+    )
+    show_property_map(
+        map_offers_df,
+        "Property Prices Heatmap",
+        center_coords=(50.460740, 19.093210),
+        center_marker_name="Mierzęcice, Będziński, Śląskie",
+        zoom=9,
+    )
 
 
 def display_title():
@@ -231,12 +369,12 @@ def calculate_price_differences(
     df, column_prefix, base_price_col, base_price_per_meter_col
 ):
     # Calculate the absolute difference and percentage difference for price
-    price_col = f"{column_prefix}_price"
-    if price_col in df.columns:
-        df[f"{price_col}_diff"] = df[price_col] - df[base_price_col]
-        df[f"{price_col}_%"] = round(
-            ((df[price_col] / df[base_price_col]) - 1) * 100, 2
-        )
+    # price_col = f"{column_prefix}_price"
+    # if price_col in df.columns:
+    #     df[f"{price_col}_diff"] = df[price_col] - df[base_price_col]
+    #     df[f"{price_col}_%"] = round(
+    #         ((df[price_col] / df[base_price_col]) - 1) * 100, 2
+    #     )
 
     # Calculate the absolute difference and percentage difference for price per meter
     price_per_meter_col = f"{column_prefix}_price_per_meter"
@@ -300,26 +438,82 @@ def display_table(your_offers_df, other_offers_df):
             medians_df[f"{key}_{stat_name}"] = value
 
     # Concatenate the original DataFrame with the medians DataFrame
-    df_to_display = pd.concat([your_offers_df, medians_df], axis=1)
+    df_per_flat = pd.concat([your_offers_df, medians_df], axis=1)
 
     # Calculate price differences for local and in 20 km offers
-    calculate_price_differences(df_to_display, "local", "price", "price_per_meter")
-    calculate_price_differences(df_to_display, "in_20_km", "price", "price_per_meter")
-    calculate_price_differences(
-        df_to_display, "unfurnished", "price", "price_per_meter"
-    )
-    calculate_price_differences(df_to_display, "furnished", "price", "price_per_meter")
+    calculate_price_differences(df_per_flat, "local", "price", "price_per_meter")
+    calculate_price_differences(df_per_flat, "in_20_km", "price", "price_per_meter")
+    calculate_price_differences(df_per_flat, "unfurnished", "price", "price_per_meter")
+    calculate_price_differences(df_per_flat, "furnished", "price", "price_per_meter")
 
-    columns_to_round = [
+    columns_to_delete = [
+        "local_price",
+        "in_20_km_price",
+        "local_price_per_meter",
         "in_20_km_price_per_meter",
         "unfurnished_price_per_meter",
         "furnished_price_per_meter",
     ]
-    for column in columns_to_round:
-        df_to_display[column] = df_to_display[column].round(2)
+    for column in columns_to_delete:
+        del df_per_flat[column]
+
+    # Rename all columns by replacing "_" with " "
+    df_per_flat.columns = [col.replace("_", " ") for col in df_per_flat.columns]
+
+    # Calculate summary statistics as a dictionary
+    summary_stats = {
+        "flats": len(df_per_flat["flat id"].unique()),
+        "floor max": df_per_flat["floor"].max(),
+        "avg area": df_per_flat["area"].mean(),
+        "furnished sum": df_per_flat["is furnished"].sum(),
+        "avg price": df_per_flat["price"].mean(),
+        "avg price per meter": df_per_flat["price per meter"].mean(),
+        "avg local price per meter diff": df_per_flat[
+            "local price per meter diff"
+        ].mean(),
+        "avg local price per meter %": df_per_flat["local price per meter %"].mean(),
+        "avg in 20 km price per meter diff": df_per_flat[
+            "in 20 km price per meter diff"
+        ].mean(),
+        "avg in 20 km price per meter %": df_per_flat[
+            "in 20 km price per meter %"
+        ].mean(),
+        "avg unfurnished price per meter diff": df_per_flat[
+            "unfurnished price per meter diff"
+        ].mean(),
+        "avg unfurnished price per meter %": df_per_flat[
+            "unfurnished price per meter %"
+        ].mean(),
+        "avg furnished price per meter diff": df_per_flat[
+            "furnished price per meter diff"
+        ].mean(),
+        "avg furnished price per meter %": df_per_flat[
+            "furnished price per meter %"
+        ].mean(),
+    }
+
+    # Convert summary statistics dictionary to a DataFrame
+    df_summary = pd.DataFrame([summary_stats])
+
+    display_table_per_flat(df_per_flat)
 
     # Display the DataFrame in Streamlit
-    st.dataframe(df_to_display)
+    display_table_per_flat(df_summary)
+
+
+def display_table_per_flat(df_per_flat):
+    float_columns = df_per_flat.select_dtypes(include="float").columns
+    df_per_flat[float_columns] = df_per_flat[float_columns].applymap(
+        lambda x: f"{x:.2f}"
+    )
+
+    st.table(df_per_flat)
+
+    # # Transpose the DataFrame if you want each statistic to be a row instead of a column
+    # df_summary = df_summary.T
+
+    # # Display the DataFrame in Streamlit
+    # st.table(df_summary)
 
 
 def update_paths(d: dict, old_str: str, new_str: str) -> None:
