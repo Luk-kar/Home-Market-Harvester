@@ -374,7 +374,7 @@ def calculate_price_differences(df, column_prefix, base_price_per_meter_col):
     # Calculate the absolute difference and percentage difference for price per meter
     price_per_meter_col = f"{column_prefix}_price_per_meter"
     if price_per_meter_col in df.columns:
-        df[f"{price_per_meter_col}_%"] = round(
+        df[f"{column_prefix}_price_difference_%"] = round(
             ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
         )
 
@@ -434,8 +434,8 @@ def display_table(your_offers_df, other_offers_df):
         "furnished sum": df_per_flat["is furnished"].sum(),
         "avg price": df_per_flat["price"].mean(),
         "avg price per meter": df_per_flat["price per meter"].mean(),
-        "avg in 5 km price per meter %": df_per_flat[
-            "in 5 km price per meter %"
+        "avg in 5 km price difference %": df_per_flat[
+            "in 5 km price difference %"
         ].mean(),
     }
 
