@@ -365,24 +365,13 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
         )
 
 
-def calculate_price_differences(
-    df, column_prefix, base_price_col, base_price_per_meter_col
-):
+def calculate_price_differences(df, column_prefix, base_price_per_meter_col):
     # Calculate the absolute difference and percentage difference for price per meter
     price_per_meter_col = f"{column_prefix}_price_per_meter"
     if price_per_meter_col in df.columns:
-        df[f"{price_per_meter_col}_diff"] = (
-            df[price_per_meter_col] - df[base_price_per_meter_col]
-        )
         df[f"{price_per_meter_col}_%"] = round(
             ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
         )
-
-        # Round the difference columns for price per meter
-        df[f"{price_per_meter_col}_diff"] = df[f"{price_per_meter_col}_diff"].round(2)
-
-
-# The rest of your display_table function follows...
 
 
 def display_table(your_offers_df, other_offers_df):
@@ -394,13 +383,15 @@ def display_table(your_offers_df, other_offers_df):
 
     # Copy the original dataframes to avoid modifying them
     local_offers_df = other_offers_df[
-        other_offers_df["location"]["city"] == "będziński"
+        (other_offers_df["location"]["city"] == "będziński")
+        | (other_offers_df["location"]["city"] == "Zawada")
     ].copy()
+
     offers_20km_df = other_offers_df.copy()
 
     # Calculate median values for local and 20 km radius offers
     medians = {
-        "local": {
+        "in_5_km": {
             "price": local_offers_df["pricing"]["total_rent"].median(),
             "price_per_meter": local_offers_df["pricing"]["total_rent_sqm"].median(),
         },
@@ -433,15 +424,13 @@ def display_table(your_offers_df, other_offers_df):
     df_per_flat = pd.concat([your_offers_df, medians_df], axis=1)
 
     # Calculate price differences for local and in 20 km offers
-    calculate_price_differences(df_per_flat, "local", "price", "price_per_meter")
-    calculate_price_differences(df_per_flat, "in_20_km", "price", "price_per_meter")
-    calculate_price_differences(df_per_flat, "unfurnished", "price", "price_per_meter")
-    calculate_price_differences(df_per_flat, "furnished", "price", "price_per_meter")
+    calculate_price_differences(df_per_flat, "in_5_km", "price_per_meter")
+    calculate_price_differences(df_per_flat, "in_20_km", "price_per_meter")
 
     columns_to_delete = [
-        "local_price",
+        "in_5_km_price",
         "in_20_km_price",
-        "local_price_per_meter",
+        "in_5_km_price_per_meter",
         "in_20_km_price_per_meter",
         "unfurnished_price_per_meter",
         "furnished_price_per_meter",
@@ -460,27 +449,11 @@ def display_table(your_offers_df, other_offers_df):
         "furnished sum": df_per_flat["is furnished"].sum(),
         "avg price": df_per_flat["price"].mean(),
         "avg price per meter": df_per_flat["price per meter"].mean(),
-        "avg local price per meter diff": df_per_flat[
-            "local price per meter diff"
-        ].mean(),
-        "avg local price per meter %": df_per_flat["local price per meter %"].mean(),
-        "avg in 20 km price per meter diff": df_per_flat[
-            "in 20 km price per meter diff"
+        "avg in_5 km price per meter %": df_per_flat[
+            "in 5 km price per meter %"
         ].mean(),
         "avg in 20 km price per meter %": df_per_flat[
             "in 20 km price per meter %"
-        ].mean(),
-        "avg unfurnished price per meter diff": df_per_flat[
-            "unfurnished price per meter diff"
-        ].mean(),
-        "avg unfurnished price per meter %": df_per_flat[
-            "unfurnished price per meter %"
-        ].mean(),
-        "avg furnished price per meter diff": df_per_flat[
-            "furnished price per meter diff"
-        ].mean(),
-        "avg furnished price per meter %": df_per_flat[
-            "furnished price per meter %"
         ].mean(),
     }
 
