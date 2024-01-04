@@ -379,6 +379,10 @@ def calculate_price_differences(df, column_prefix, base_price_per_meter_col):
         )
 
 
+def round_to_nearest_hundred(number):
+    return round(number / 100) * 100
+
+
 def display_table(your_offers_df, other_offers_df):
     text = "📊 Data"
     st.markdown(
@@ -416,6 +420,15 @@ def display_table(your_offers_df, other_offers_df):
     # Calculate price differences for local and in 20 km offers
     calculate_price_differences(df_per_flat, "in_5_km", "price_per_meter")
 
+    df_per_flat["suggested_price_by_median"] = df_per_flat.apply(
+        lambda row: round_to_nearest_hundred(
+            row["in_5_km_price_per_meter"] * row["area"]
+        ),
+        axis=1,
+    )
+
+    # model suggested price TODO
+
     columns_to_delete = [
         "in_5_km_price",
         "in_5_km_price_per_meter",
@@ -437,6 +450,9 @@ def display_table(your_offers_df, other_offers_df):
         "avg in 5 km price difference %": df_per_flat[
             "in 5 km price difference %"
         ].mean(),
+        "avg suggested price by median": df_per_flat[
+            "suggested price by median"
+        ].mean(),
     }
 
     # Convert summary statistics dictionary to a DataFrame
@@ -449,7 +465,7 @@ def display_table(your_offers_df, other_offers_df):
 
 
 def display_table_per_flat(df_per_flat):
-    float_columns = df_per_flat.select_dtypes(include="float").columns
+    float_columns = df_per_flat.select_dtypes(include=["float", "int"]).columns
     df_per_flat[float_columns] = df_per_flat[float_columns].applymap(
         lambda x: f"{x:.2f}"
     )
