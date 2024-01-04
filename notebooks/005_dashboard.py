@@ -377,9 +377,6 @@ def calculate_price_differences(df, column_prefix, base_price_per_meter_col):
         df[f"{price_per_meter_col}_%"] = round(
             ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
         )
-        df[f"{price_per_meter_col}_difference"] = round(
-            (df[base_price_per_meter_col] - df[price_per_meter_col]), 2
-        )
 
 
 def display_table(your_offers_df, other_offers_df):
@@ -439,9 +436,6 @@ def display_table(your_offers_df, other_offers_df):
         "avg price per meter": df_per_flat["price per meter"].mean(),
         "avg in 5 km price per meter %": df_per_flat[
             "in 5 km price per meter %"
-        ].mean(),
-        "avg in 5 km price per meter difference": df_per_flat[
-            "in 5 km price per meter difference"
         ].mean(),
     }
 
