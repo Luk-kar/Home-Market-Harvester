@@ -368,14 +368,6 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
 def calculate_price_differences(
     df, column_prefix, base_price_col, base_price_per_meter_col
 ):
-    # Calculate the absolute difference and percentage difference for price
-    # price_col = f"{column_prefix}_price"
-    # if price_col in df.columns:
-    #     df[f"{price_col}_diff"] = df[price_col] - df[base_price_col]
-    #     df[f"{price_col}_%"] = round(
-    #         ((df[price_col] / df[base_price_col]) - 1) * 100, 2
-    #     )
-
     # Calculate the absolute difference and percentage difference for price per meter
     price_per_meter_col = f"{column_prefix}_price_per_meter"
     if price_per_meter_col in df.columns:
@@ -540,7 +532,7 @@ def update_paths(d: dict, old_str: str, new_str: str) -> None:
             d[key] = value.replace(old_str, new_str)
 
 
-def upload_data():
+def load_data():
     data_path_manager = DataPathCleaningManager(data_timeplace)
 
     update_paths(data_path_manager.paths, "..\\data", "data")
@@ -564,6 +556,6 @@ def upload_data():
     return your_offers_df, other_offers_df, map_offers_df
 
 
-data = upload_data()
+data = load_data()
 
 render_dashboard(data)
