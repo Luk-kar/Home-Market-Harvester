@@ -272,7 +272,7 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
             "furnished": your_offers_df[your_offers_df["is_furnished"] == True],
             "unfurnished": your_offers_df[your_offers_df["is_furnished"] == False],
         },
-        "local": {
+        "5 km radius": {
             "furnished": other_offers_df[
                 (other_offers_df["equipment"]["furniture"] == True)
                 & (other_offers_df["location"]["city"] == "będziński")
@@ -295,7 +295,7 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
     col_per_meter, col_per_offer = st.columns(2)
 
     space = " " * 36
-    categories = ["Yours", "Local", "20 km radius"]
+    categories = ["Yours", "5 km radius", "20 km radius"]
 
     max_length = max(len(category) for category in categories)
     centered_categories = [category.center(max_length) for category in categories]
@@ -308,10 +308,15 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
             "furnished ": offers["yours"]["furnished"]["price_per_meter"].median(),
             "unfurnished ": offers["yours"]["unfurnished"]["price_per_meter"].median(),
             "furnished": round(
-                offers["local"]["furnished"]["pricing"]["total_rent_sqm"].median(), 2
+                offers["5 km radius"]["furnished"]["pricing"][
+                    "total_rent_sqm"
+                ].median(),
+                2,
             ),
             "unfurnished": round(
-                offers["local"]["unfurnished"]["pricing"]["total_rent_sqm"].median(),
+                offers["5 km radius"]["unfurnished"]["pricing"][
+                    "total_rent_sqm"
+                ].median(),
                 2,
             ),
             " furnished": round(
@@ -341,10 +346,10 @@ def display_bar_charts(plot_bar_chart, your_offers_df, other_offers_df):
             "furnished ": offers["yours"]["furnished"]["price"].median(),
             "unfurnished ": offers["yours"]["unfurnished"]["price"].median(),
             "furnished": round(
-                offers["local"]["furnished"]["pricing"]["total_rent"].median(), 2
+                offers["5 km radius"]["furnished"]["pricing"]["total_rent"].median(), 2
             ),
             "unfurnished": round(
-                offers["local"]["unfurnished"]["pricing"]["total_rent"].median(),
+                offers["5 km radius"]["unfurnished"]["pricing"]["total_rent"].median(),
                 2,
             ),
             " furnished": round(
@@ -372,6 +377,9 @@ def calculate_price_differences(df, column_prefix, base_price_per_meter_col):
         df[f"{price_per_meter_col}_%"] = round(
             ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
         )
+        df[f"{price_per_meter_col}_difference"] = round(
+            (df[base_price_per_meter_col] - df[price_per_meter_col]), 2
+        )
 
 
 def display_table(your_offers_df, other_offers_df):
@@ -380,36 +388,21 @@ def display_table(your_offers_df, other_offers_df):
         f"<h3 style='text-align: center;'>{text}</h3>",
         unsafe_allow_html=True,
     )
+    st.markdown(
+        "<p style='text-align: center;'>Price in PLN</p>", unsafe_allow_html=True
+    )
 
-    # Copy the original dataframes to avoid modifying them
-    local_offers_df = other_offers_df[
+    offers_5km_df = other_offers_df[
         (other_offers_df["location"]["city"] == "będziński")
         | (other_offers_df["location"]["city"] == "Zawada")
     ].copy()
 
-    offers_20km_df = other_offers_df.copy()
-
     # Calculate median values for local and 20 km radius offers
     medians = {
         "in_5_km": {
-            "price": local_offers_df["pricing"]["total_rent"].median(),
-            "price_per_meter": local_offers_df["pricing"]["total_rent_sqm"].median(),
-        },
-        "in_20_km": {
-            "price": offers_20km_df["pricing"]["total_rent"].median(),
-            "price_per_meter": offers_20km_df["pricing"]["total_rent_sqm"].median(),
-        },
-        # Assuming you have columns structured like other_offers_df["equipment"]["furniture"]
-        "unfurnished": {
-            "price_per_meter": offers_20km_df[
-                offers_20km_df["equipment"]["furniture"] == False
-            ]["pricing"]["total_rent_sqm"].median(),
-        },
-        "furnished": {
-            "price_per_meter": offers_20km_df[
-                offers_20km_df["equipment"]["furniture"] == True
-            ]["pricing"]["total_rent_sqm"].median(),
-        },
+            "price": offers_5km_df["pricing"]["total_rent"].median(),
+            "price_per_meter": offers_5km_df["pricing"]["total_rent_sqm"].median(),
+        }
     }
 
     # Initialize a DataFrame to store the medians with the same index as your_offers_df
@@ -425,15 +418,10 @@ def display_table(your_offers_df, other_offers_df):
 
     # Calculate price differences for local and in 20 km offers
     calculate_price_differences(df_per_flat, "in_5_km", "price_per_meter")
-    calculate_price_differences(df_per_flat, "in_20_km", "price_per_meter")
 
     columns_to_delete = [
         "in_5_km_price",
-        "in_20_km_price",
         "in_5_km_price_per_meter",
-        "in_20_km_price_per_meter",
-        "unfurnished_price_per_meter",
-        "furnished_price_per_meter",
     ]
     for column in columns_to_delete:
         del df_per_flat[column]
@@ -452,8 +440,8 @@ def display_table(your_offers_df, other_offers_df):
         "avg in 5 km price per meter %": df_per_flat[
             "in 5 km price per meter %"
         ].mean(),
-        "avg in 20 km price per meter %": df_per_flat[
-            "in 20 km price per meter %"
+        "avg in 5 km price per meter difference": df_per_flat[
+            "in 5 km price per meter difference"
         ].mean(),
     }
 
