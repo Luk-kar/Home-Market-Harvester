@@ -375,7 +375,7 @@ def calculate_price_differences(
             df[price_per_meter_col] - df[base_price_per_meter_col]
         )
         df[f"{price_per_meter_col}_%"] = round(
-            ((df[price_per_meter_col] / df[base_price_per_meter_col]) - 1) * 100, 2
+            ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
         )
 
         # Round the difference columns for price per meter
