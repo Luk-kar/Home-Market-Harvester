@@ -449,7 +449,7 @@ def display_table(your_offers_df, other_offers_df):
         "furnished sum": df_per_flat["is furnished"].sum(),
         "avg price": df_per_flat["price"].mean(),
         "avg price per meter": df_per_flat["price per meter"].mean(),
-        "avg in_5 km price per meter %": df_per_flat[
+        "avg in 5 km price per meter %": df_per_flat[
             "in 5 km price per meter %"
         ].mean(),
         "avg in 20 km price per meter %": df_per_flat[
