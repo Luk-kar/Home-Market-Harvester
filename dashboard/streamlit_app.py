@@ -12,7 +12,24 @@ from bar_chart_visualizer import BarChartVisualizer
 from table_visualizer import TableVisualizer
 
 
-def main():
+def streamlit_app():
+    your_offers_df, other_offers_df, map_offers_df = load_data()
+
+    render_data(your_offers_df, other_offers_df, map_offers_df)
+
+
+def load_data():
+    """
+    Loads data from the given CSV file path, converts data types, and creates additional data fields.
+
+    Returns:
+        tuple: A tuple containing DataFrames for your offers, other offers, and map offers.
+
+    Raises:
+        pd.errors.EmptyDataError: If the CSV file is empty.
+        pd.errors.ParserError: If there is an error parsing the CSV file.
+        Exception: If an unspecified error occurs.
+    """
     data_processor = DataLoader()
 
     your_offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
@@ -24,6 +41,21 @@ def main():
         your_offers_path=your_offers_path
     )
 
+    return your_offers_df, other_offers_df, map_offers_df
+
+
+def render_data(your_offers_df, other_offers_df, map_offers_df):
+    """
+    Renders the data in the application.
+
+    Args:
+        your_offers_df (pd.DataFrame): A DataFrame containing your offers.
+        other_offers_df (pd.DataFrame): A DataFrame containing other offers.
+        map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
+
+    Raises:
+        Exception: If an unspecified error occurs.
+    """
     st.set_page_config(layout="wide")
 
     display_title("🔍🏠 Rent comparisons")
@@ -73,4 +105,4 @@ def check_if_file_exists(your_offers_path):
     return True
 
 
-main()
+streamlit_app()
