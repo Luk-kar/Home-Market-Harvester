@@ -21,11 +21,11 @@ def main():
     )
     bar_chart_visualizer.display()
 
-    # map_visualizer = MapVisualizer(aesthetics_config)
-    # map_visualizer.display(map_offers_df)
+    table_visualizer = TableVisualizer(aesthetics_config)
+    table_visualizer.display(your_offers_df, other_offers_df)
 
-    # table_visualizer = TableVisualizer(aesthetics_config)
-    # table_visualizer.display(your_offers_df, other_offers_df)
+    map_visualizer = MapVisualizer(aesthetics_config)
+    map_visualizer.display(map_offers_df)
 
 
 def display_title(title: str):
