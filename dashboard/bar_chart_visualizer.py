@@ -90,7 +90,7 @@ class BarChartVisualizer:
                 ),
             }
             st.pyplot(
-                plot_bar_chart(
+                self._plot_bar_chart(
                     per_meter_data,
                     "Price per meter",
                     xlabel,
@@ -128,7 +128,7 @@ class BarChartVisualizer:
                 ),
             }
             st.pyplot(
-                plot_bar_chart(
+                self._plot_bar_chart(
                     per_offer_data,
                     "Price per offer",
                     xlabel,
@@ -144,6 +144,8 @@ class BarChartVisualizer:
 
     def _set_plot_aesthetics(self, ax, title=None, xlabel=None, ylabel=None):
         aesthetics = self.aesthetics
+
+        # Set the title and axis labels
         if title:
             ax.set_title(
                 title,
@@ -155,15 +157,19 @@ class BarChartVisualizer:
         if ylabel:
             ax.set_ylabel(ylabel, fontweight=aesthetics["fontweight"])
 
+        # Set the color of the tick labels
         ax.tick_params(colors=aesthetics["label_color"], which="both")
         ax.yaxis.label.set_color(aesthetics["label_color"])
         ax.xaxis.label.set_color(aesthetics["label_color"])
 
+        # Remove the top and right spines from plot
         sns.despine(right=True, top=True)
 
+        # Set the color of the axes
         for spine in ax.spines.values():
             spine.set_edgecolor(aesthetics["label_color"])
 
+        # Add annotations for each bar
         for p in ax.patches:
             value = p.get_height()
             if value > 0:
@@ -178,6 +184,26 @@ class BarChartVisualizer:
                     xytext=(0, 2),
                     textcoords="offset points",
                 )
+
+        # Set the color of each bar
+        lime_green = "#42cd42"
+        gold = "#FFD700"
+        tomato = "#FF6347"
+
+        my_palette = [
+            lime_green,
+            self._get_darker_shade(lime_green),
+            gold,
+            self._get_darker_shade(gold),
+            tomato,
+            self._get_darker_shade(tomato),
+        ]
+
+        for index, p in enumerate(ax.patches):
+            color_index = index % len(
+                my_palette
+            )  # Ensure the index loops over my_palette
+            p.set_color(my_palette[color_index])
 
     def _plot_bar_chart(self, data, title, xlabel, ylabel):
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])

@@ -2,7 +2,6 @@
 This module configures logging for the application.
 """
 
-
 # Standard imports
 import logging
 import os
