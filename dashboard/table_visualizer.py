@@ -15,17 +15,17 @@ class TableVisualizer:
 
         df_per_flat = self.add_statistical_data_to_offers(your_offers_df, offers_5km_df)
 
-        self._add_column_calculated_price_differences(
+        df_per_flat = self._add_column_calculated_price_differences(
             df_per_flat, "in_5_km", "price_per_meter"
         )
 
-        self._add_column_suggested_price_by_median(df_per_flat)
+        df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
 
         # model suggested price TODO
 
-        self.remove_unnecessary_columns(df_per_flat)
+        df_per_flat = self.remove_unnecessary_columns(df_per_flat)
 
-        self.make_columns_titles_more_readable(df_per_flat)
+        df_per_flat = self.make_columns_titles_more_readable(df_per_flat)
 
         df_summary = self.get_summary_data(df_per_flat)
 
@@ -41,6 +41,7 @@ class TableVisualizer:
             ),
             axis=1,
         )
+        return df_per_flat
 
     def get_summary_data(self, df_per_flat):
         summary_stats = {
@@ -63,6 +64,8 @@ class TableVisualizer:
     def make_columns_titles_more_readable(self, df_per_flat):
         df_per_flat.columns = [col.replace("_", " ") for col in df_per_flat.columns]
 
+        return df_per_flat
+
     def remove_unnecessary_columns(self, df_per_flat):
         columns_to_delete = [
             "in_5_km_price",
@@ -70,6 +73,8 @@ class TableVisualizer:
         ]
         for column in columns_to_delete:
             del df_per_flat[column]
+
+        return df_per_flat
 
     def add_statistical_data_to_offers(self, your_offers_df, offers_5km_df):
         medians_5km = {
@@ -131,6 +136,8 @@ class TableVisualizer:
             df[f"{column_prefix}_price_difference_%"] = round(
                 ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
             )
+
+        return df
 
     def _round_to_nearest_hundred(self, number):
         return round(number / 100) * 100
