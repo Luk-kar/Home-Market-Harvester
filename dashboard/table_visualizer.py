@@ -29,10 +29,9 @@ class TableVisualizer:
 
         df_summary = self.get_summary_data(df_per_flat)
 
-        self._display_table_per_flat(df_per_flat)
+        self._display_table(df_per_flat)
 
-        # Display the DataFrame in Streamlit
-        self._display_table_per_flat(df_summary)
+        self._display_table(df_summary)
 
     def _add_column_suggested_price_by_median(self, df_per_flat):
         df_per_flat["suggested_price_by_median"] = df_per_flat.apply(
@@ -142,7 +141,7 @@ class TableVisualizer:
     def _round_to_nearest_hundred(self, number):
         return round(number / 100) * 100
 
-    def _display_table_per_flat(self, df_per_flat):
+    def _display_table(self, df_per_flat):
         float_columns = df_per_flat.select_dtypes(include=["float"]).columns
         df_per_flat[float_columns] = df_per_flat[float_columns].applymap(
             lambda x: f"{x:.2f}"
