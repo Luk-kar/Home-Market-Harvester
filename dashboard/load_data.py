@@ -4,6 +4,9 @@ import sys
 import pandas as pd
 import numpy as np
 
+# Third-party imports
+import streamlit as st
+
 
 # Local imports
 def add_project_root_to_sys_path():
@@ -18,22 +21,57 @@ from notebooks._csv_utils import data_timeplace, DataPathCleaningManager
 
 
 class DataLoader:
+    """
+    DataLoader is responsible for loading and preparing data for the application.
+
+    It manages the paths for data files, loads data from CSV files, and preprocesses
+    the data by converting data types and creating additional data fields.
+
+    Attributes:
+        data_path_manager (DataPathCleaningManager): A manager that handles the paths to data files
+                                                     and provides utilities for cleaning data paths.
+    """
+
     def __init__(self):
         data_path_manager = DataPathCleaningManager(data_timeplace)
         self._update_paths(data_path_manager.paths, "..\\data", "data")
         self.data_path_manager = data_path_manager
 
-    def load_data(self):
-        your_offers_df = pd.read_csv("../to_compare_example_data.csv")
+    def load_data(self, your_offers_path):
+        """
+        Loads data from the given CSV file path, converts data types, and creates additional data fields.
 
-        self._convert_data_types(your_offers_df)
+        Args:
+            your_offers_path (str): The file path to your offers CSV file.
 
-        self._create_additional_data_types(your_offers_df)
+        Returns:
+            tuple: A tuple containing DataFrames for your offers, other offers, and map offers.
 
-        other_offers_df = self.data_path_manager._load_cleaned_df(domain="combined")
-        map_offers_df = self.data_path_manager.load_df("map", is_cleaned=True)
+        Raises:
+            pd.errors.EmptyDataError: If the CSV file is empty.
+            pd.errors.ParserError: If there is an error parsing the CSV file.
+            Exception: If an unspecified error occurs.
+        """
+        try:
+            your_offers_df = pd.read_csv(your_offers_path)
 
-        return your_offers_df, other_offers_df, map_offers_df
+            self._convert_data_types(your_offers_df)
+
+            self._create_additional_data_types(your_offers_df)
+
+            other_offers_df = self.data_path_manager._load_cleaned_df(domain="combined")
+            map_offers_df = self.data_path_manager.load_df("map", is_cleaned=True)
+
+            return your_offers_df, other_offers_df, map_offers_df
+
+        except pd.errors.EmptyDataError:
+            st.error(f"The file is empty: {your_offers_path}")
+        except pd.errors.ParserError:
+            st.error(
+                f"There was a parsing error when trying to read the file: {your_offers_path}"
+            )
+        except Exception as e:
+            st.error(f"An error occurred when trying to read the file: {e}")
 
     def _update_paths(self, d: dict, old_str: str, new_str: str) -> None:
         """

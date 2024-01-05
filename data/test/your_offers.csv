@@ -1,0 +1,11 @@
+flat_id,floor,area,is_furnished,price
+1,0,61.4,True,1600
+2,0,50.5,True,1800
+3,0,60.5,True,1700
+4,1,40.8,True,1600
+5,1,50.4,True,1000
+6,1,43.9,False,1300
+7,2,70.8,False,1500
+8,2,60.4,True,1700
+9,3,40.9,False,1600
+10,3,50.8,True,1400
