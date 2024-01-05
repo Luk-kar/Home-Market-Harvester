@@ -15,20 +15,37 @@ class MapVisualizer:
         center_marker_name: str = "Default",
         zoom: float = 10.0,
     ):
+        """
+        Display a map visualization using Plotly and Scattermapbox.
+
+        Args:
+            map_df (pd.DataFrame): DataFrame containing map data.
+            title (str, optional): Title for the map visualization. Defaults to "".
+            center_coords (tuple[float, float], optional): Coordinates for the center of the map. Defaults to None.
+            center_marker_name (str, optional): Name for the center marker. Defaults to "Default".
+            zoom (float, optional): Zoom level of the map. Defaults to 10.0.
+        """
+
+        # Extract latitude and longitude from 'coords' column in map_df
         map_df["Latitude"], map_df["Longitude"] = zip(
             *map_df["coords"].apply(self._extract_lat_lon)
         )
+
+        # Create heatmap data
         heatmap = self._create_heatmap_data(map_df)
         fig = go.Figure(data=[heatmap])
 
         if center_coords is None:
+            # Calculate center coordinates as the mean of Latitude and Longitude columns in map_df
             center_coords = {
                 "lat": map_df["Latitude"].mean(),
                 "lon": map_df["Longitude"].mean(),
             }
         else:
+            # Use the provided center_coords
             center_coords = {"lat": center_coords[0], "lon": center_coords[1]}
 
+        # Add scattermapbox trace for the center marker
         fig.add_trace(
             go.Scattermapbox(
                 lat=[center_coords["lat"]],
@@ -41,8 +58,15 @@ class MapVisualizer:
             )
         )
 
+        # Update figure with mapbox center, zoom, and height
         fig = self._update_fig(
             fig, mapbox_center=center_coords, mapbox_zoom=zoom, height=600
+        )
+
+        # Display title and map
+        st.markdown(
+            f"<h3 style='text-align: center;'>{title}</h3>",
+            unsafe_allow_html=True,
         )
         st.plotly_chart(fig, use_container_width=True)
 

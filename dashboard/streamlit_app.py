@@ -25,7 +25,13 @@ def main():
     table_visualizer.display(your_offers_df, other_offers_df)
 
     map_visualizer = MapVisualizer(aesthetics_config)
-    map_visualizer.display(map_offers_df)
+    map_visualizer.display(
+        map_offers_df,
+        "🗺️ Property Prices Heatmap",
+        center_coords=(50.460740, 19.093210),
+        center_marker_name="Mierzęcice, Będziński, Śląskie",
+        zoom=9,
+    )
 
 
 def display_title(title: str):
