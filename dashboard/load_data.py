@@ -86,7 +86,7 @@ class DataLoader:
                 d[key] = value.replace(old_str, new_str)
 
     def _convert_data_types(self, your_offers_df):
-        your_offers_df["flat_id"] = your_offers_df["flat_id"].astype("Int64")
+        your_offers_df["flat_id"] = your_offers_df["flat_id"].astype("string")
         your_offers_df["floor"] = your_offers_df["floor"].astype("Int64")
         your_offers_df["area"] = your_offers_df["area"].astype("Float64")
         your_offers_df["is_furnished"] = your_offers_df["is_furnished"].astype("bool")

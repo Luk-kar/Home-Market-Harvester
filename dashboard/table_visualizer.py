@@ -7,42 +7,34 @@ class TableVisualizer:
         self.aesthetics = aesthetics
 
     def display(self, your_offers_df, other_offers_df):
-        text = "📊 Data"
-        st.markdown(
-            f"<h3 style='text-align: center;'>{text}</h3>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            "<p style='text-align: center;'>Price in PLN</p>", unsafe_allow_html=True
+        your_offers_df, offers_5km_df = self._narrow_data(
+            your_offers_df, other_offers_df
         )
 
-        offers_5km_df = other_offers_df[
-            (other_offers_df["location"]["city"] == "będziński")
-            | (other_offers_df["location"]["city"] == "Zawada")
-        ].copy()
+        self._display_title()
 
-        # Calculate median values for local and 20 km radius offers
-        medians = {
-            "in_5_km": {
-                "price": offers_5km_df["pricing"]["total_rent"].median(),
-                "price_per_meter": offers_5km_df["pricing"]["total_rent_sqm"].median(),
-            }
-        }
+        df_per_flat = self.add_statistical_data_to_offers(your_offers_df, offers_5km_df)
 
-        # Initialize a DataFrame to store the medians with the same index as your_offers_df
-        medians_df = pd.DataFrame(index=your_offers_df.index)
+        self._add_column_calculated_price_differences(
+            df_per_flat, "in_5_km", "price_per_meter"
+        )
 
-        # Add median values to the DataFrame
-        for key, stats in medians.items():
-            for stat_name, value in stats.items():
-                medians_df[f"{key}_{stat_name}"] = value
+        self._add_column_suggested_price_by_median(df_per_flat)
 
-        # Concatenate the original DataFrame with the medians DataFrame
-        df_per_flat = pd.concat([your_offers_df, medians_df], axis=1)
+        # model suggested price TODO
 
-        # Calculate price differences for local and in 20 km offers
-        self._calculate_price_differences(df_per_flat, "in_5_km", "price_per_meter")
+        self.remove_unnecessary_columns(df_per_flat)
 
+        self.make_columns_titles_more_readable(df_per_flat)
+
+        df_summary = self.get_summary_data(df_per_flat)
+
+        self._display_table_per_flat(df_per_flat)
+
+        # Display the DataFrame in Streamlit
+        self._display_table_per_flat(df_summary)
+
+    def _add_column_suggested_price_by_median(self, df_per_flat):
         df_per_flat["suggested_price_by_median"] = df_per_flat.apply(
             lambda row: self._round_to_nearest_hundred(
                 row["in_5_km_price_per_meter"] * row["area"]
@@ -50,19 +42,7 @@ class TableVisualizer:
             axis=1,
         )
 
-        # model suggested price TODO
-
-        columns_to_delete = [
-            "in_5_km_price",
-            "in_5_km_price_per_meter",
-        ]
-        for column in columns_to_delete:
-            del df_per_flat[column]
-
-        # Rename all columns by replacing "_" with " "
-        df_per_flat.columns = [col.replace("_", " ") for col in df_per_flat.columns]
-
-        # Calculate summary statistics as a dictionary
+    def get_summary_data(self, df_per_flat):
         summary_stats = {
             "flats": len(df_per_flat["flat id"].unique()),
             "floor max": df_per_flat["floor"].max(),
@@ -77,16 +57,74 @@ class TableVisualizer:
                 "suggested price by median"
             ].mean(),
         }
-
-        # Convert summary statistics dictionary to a DataFrame
         df_summary = pd.DataFrame([summary_stats])
+        return df_summary
 
-        self._display_table_per_flat(df_per_flat)
+    def make_columns_titles_more_readable(self, df_per_flat):
+        df_per_flat.columns = [col.replace("_", " ") for col in df_per_flat.columns]
 
-        # Display the DataFrame in Streamlit
-        self._display_table_per_flat(df_summary)
+    def remove_unnecessary_columns(self, df_per_flat):
+        columns_to_delete = [
+            "in_5_km_price",
+            "in_5_km_price_per_meter",
+        ]
+        for column in columns_to_delete:
+            del df_per_flat[column]
 
-    def _calculate_price_differences(self, df, column_prefix, base_price_per_meter_col):
+    def add_statistical_data_to_offers(self, your_offers_df, offers_5km_df):
+        medians_5km = {
+            "in_5_km": {
+                "price": offers_5km_df["pricing"]["total_rent"].median(),
+                "price_per_meter": offers_5km_df["pricing"]["total_rent_sqm"].median(),
+            }
+        }
+
+        medians_5km_df = pd.DataFrame(index=your_offers_df.index)
+
+        # Add median values to the DataFrame
+        for key, stats in medians_5km.items():
+            for stat_name, value in stats.items():
+                medians_5km_df[f"{key}_{stat_name}"] = value
+
+        # Concatenate the original DataFrame with the medians DataFrame
+        df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
+        return df_per_flat
+
+    def _display_title(self):
+        text = "📊 Apartments Data"
+        st.markdown(
+            f"<h3 style='text-align: center;'>{text}</h3>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<p style='text-align: center;'>Price in PLN</p>", unsafe_allow_html=True
+        )
+
+    def _narrow_data(self, your_offers_df, other_offers_df):
+        selected_columns = [
+            "deal_id",
+            "flat_id",
+            "floor",
+            "number_of_rooms",
+            "area",
+            "is_furnished",
+            "price",
+            "deposit",
+            "lease_time",
+            "price_per_meter",
+        ]
+        your_offers_df = your_offers_df[selected_columns]
+
+        offers_5km_df = other_offers_df[
+            (other_offers_df["location"]["city"] == "będziński")
+            | (other_offers_df["location"]["city"] == "Zawada")
+        ].copy()
+
+        return your_offers_df, offers_5km_df
+
+    def _add_column_calculated_price_differences(
+        self, df, column_prefix, base_price_per_meter_col
+    ):
         # Calculate the absolute difference and percentage difference for price per meter
         price_per_meter_col = f"{column_prefix}_price_per_meter"
         if price_per_meter_col in df.columns:
@@ -98,7 +136,7 @@ class TableVisualizer:
         return round(number / 100) * 100
 
     def _display_table_per_flat(self, df_per_flat):
-        float_columns = df_per_flat.select_dtypes(include=["float", "int"]).columns
+        float_columns = df_per_flat.select_dtypes(include=["float"]).columns
         df_per_flat[float_columns] = df_per_flat[float_columns].applymap(
             lambda x: f"{x:.2f}"
         )
