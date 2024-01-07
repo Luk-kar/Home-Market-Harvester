@@ -34,8 +34,6 @@ def load_data():
 
     your_offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
 
-    print(your_offers_path)
-
     if not check_if_file_exists(your_offers_path):
         return
 

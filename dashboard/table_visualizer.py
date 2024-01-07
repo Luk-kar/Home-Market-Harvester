@@ -21,7 +21,7 @@ class TableVisualizer:
 
         df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
 
-        # model suggested price TODO
+        self.add_column_calculated_price_by_model(df_per_flat)
 
         df_per_flat = self.remove_unnecessary_columns(df_per_flat)
 
@@ -32,6 +32,21 @@ class TableVisualizer:
         self._display_table(df_per_flat)
 
         self._display_table(df_summary)
+
+    def add_column_calculated_price_by_model(self, df_per_flat):
+        df_model_feed_data = df_per_flat[
+            [
+                # "deal_id",
+                # "flat_id",
+                "floor",
+                # "number_of_rooms",
+                "area",
+                # "is_furnished",
+                "price",
+                # "deposit",
+                # "lease_time",
+            ]
+        ]
 
     def _add_column_suggested_price_by_median(self, df_per_flat):
         df_per_flat["suggested_price_by_median"] = df_per_flat.apply(
