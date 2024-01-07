@@ -1,5 +1,9 @@
+# Third-party imports
 import pandas as pd
 import streamlit as st
+
+# Local imports
+from model_offer_predictor import ModelPredictor
 
 
 class TableVisualizer:
@@ -21,7 +25,9 @@ class TableVisualizer:
 
         df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
 
-        self.add_column_calculated_price_by_model(df_per_flat)
+        # df_per_flat_suggested = self._add_column_calculated_price_by_model(df_per_flat) #TODO
+
+        # print(df_per_flat_suggested.column)
 
         df_per_flat = self.remove_unnecessary_columns(df_per_flat)
 
@@ -33,20 +39,14 @@ class TableVisualizer:
 
         self._display_table(df_summary)
 
-    def add_column_calculated_price_by_model(self, df_per_flat):
-        df_model_feed_data = df_per_flat[
-            [
-                # "deal_id",
-                # "flat_id",
-                "floor",
-                # "number_of_rooms",
-                "area",
-                # "is_furnished",
-                "price",
-                # "deposit",
-                # "lease_time",
-            ]
-        ]
+    def _add_column_calculated_price_by_model(self, df_per_flat: pd.DataFrame):
+        model_path = "notebooks\\gbm_model_file.p"
+        metadata_path = "notebooks\\gbm_model_metadata.json"
+
+        predictor = ModelPredictor(model_path, metadata_path)
+        df_per_flat_plus_price_by_model = predictor.get_price_predictions(df_per_flat)
+
+        return df_per_flat_plus_price_by_model
 
     def _add_column_suggested_price_by_median(self, df_per_flat):
         df_per_flat["suggested_price_by_median"] = df_per_flat.apply(

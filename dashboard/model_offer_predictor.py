@@ -36,10 +36,18 @@ class ModelPredictor:
         metadata (dict): The loaded metadata including column names and data types.
 
     Methods:
-        load_model_and_metadata(): Loads the model and metadata from specified paths.
-        prepare_dataframe(df): Prepares a dataframe for prediction based on the model metadata.
-        predict_and_merge(df): Performs prediction on the dataframe and merges results.
-        get_price_predictions(your_offers_path): Loads offers data, predicts prices, and displays results.
+        get_price_predictions(offers_path): Loads offers data, predicts prices, and displays results.
+
+    Example Usage:
+    --------------
+
+    model_path = "notebooks\\gbm_model_file.p"
+    metadata_path = "notebooks\\gbm_model_metadata.json"
+    offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
+    your_offers_df = pd.read_csv(offers_path)
+
+    predictor = ModelPredictor(model_path, metadata_path)
+    predictor.get_price_predictions(your_offers_df)
     """
 
     def __init__(self, model_path: str, metadata_path: str):
@@ -47,21 +55,30 @@ class ModelPredictor:
             model_path, metadata_path
         )
 
-    def get_price_predictions(self, offers_path: str):
+    def get_price_predictions(self, offers_df: pd.DataFrame):
         """
-        Loads the machine learning model and its associated metadata from the specified file paths.
+        Loads offers data, predicts prices, and displays results.
 
-        The model is expected to be a pickled file, and metadata is expected in JSON format.
-        This method sets the 'model' and 'metadata' attributes of the instance.
+        Args:
+            offers_df (pd.DataFrame): A DataFrame containing offers data.
 
-        Returns:
-            tuple: A tuple containing the loaded model and metadata. If an error occurs during
-            loading, returns (None, None).
+        Raises:
+            Exception: If an unspecified error occurs.
+
+        Example Usage:
+        --------------
+
+        model_path = "notebooks\\gbm_model_file.p"
+        metadata_path = "notebooks\\gbm_model_metadata.json"
+        offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
+        your_offers_df = pd.read_csv(offers_path)
+
+        predictor = ModelPredictor(model_path, metadata_path)
+        predictor.get_price_predictions(your_offers_df)
         """
 
         if self.model is not None and self.metadata is not None:
-            your_offers_df = pd.read_csv(offers_path)  # Load your offers dataframe
-            result_df = self._predict_and_merge(your_offers_df)
+            result_df = self._predict_and_merge(offers_df)
 
             if result_df is not None:
                 print("Prediction successful. Dataframe with suggested prices:")
