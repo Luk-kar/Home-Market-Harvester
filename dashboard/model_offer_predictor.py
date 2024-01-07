@@ -55,12 +55,15 @@ class ModelPredictor:
             model_path, metadata_path
         )
 
-    def get_price_predictions(self, offers_df: pd.DataFrame):
+    def get_price_predictions(self, offers_df: pd.DataFrame) -> pd.Series:
         """
         Loads offers data, predicts prices, and displays results.
 
         Args:
             offers_df (pd.DataFrame): A DataFrame containing offers data.
+
+        Returns:
+            pd.Series: A Series containing the predicted prices.
 
         Raises:
             Exception: If an unspecified error occurs.
@@ -78,11 +81,11 @@ class ModelPredictor:
         """
 
         if self.model is not None and self.metadata is not None:
-            result_df = self._predict_and_merge(offers_df)
+            result_series = self._predict_prices(offers_df)
 
-            if result_df is not None:
+            if result_series is not None:
                 print("Prediction successful. Dataframe with suggested prices:")
-                print(result_df.head())
+                return result_series
             else:
                 print("Prediction failed.")
         else:
@@ -134,7 +137,7 @@ class ModelPredictor:
             print(f"Error in preparing dataframe: {e}")
             return None
 
-    def _predict_and_merge(self, df: pd.DataFrame):
+    def _predict_prices(self, df: pd.DataFrame) -> pd.Series:
         try:
             # Prepare the data frame
             prepared_df = self._prepare_dataframe(df)
@@ -142,9 +145,7 @@ class ModelPredictor:
             if prepared_df is not None:
                 # Predict using the model
                 predictions = self.model.predict(prepared_df)
-                df["suggested_price"] = predictions
-
-                return df
+                return predictions
             else:
                 return None
         except Exception as e:
