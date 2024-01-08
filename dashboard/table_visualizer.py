@@ -98,19 +98,37 @@ class TableVisualizer:
         return df_per_flat
 
     def _add_statistical_data_to_offers(self, your_offers_df, offers_5km_df):
-        medians_5km = {
-            "in_5_km": {
-                "price": offers_5km_df["pricing"]["total_rent"].median(),
-                "price_per_meter": offers_5km_df["pricing"]["total_rent_sqm"].median(),
-            }
+        # Create separate DataFrames for furnished and non-furnished offers
+        furnished_offers = offers_5km_df[
+            offers_5km_df["equipment"]["furniture"] == True
+        ]
+        non_furnished_offers = offers_5km_df[
+            offers_5km_df["equipment"]["furniture"] == False
+        ]
+
+        # Calculate medians for furnished and non-furnished offers
+        medians_furnished = {
+            "price": furnished_offers["pricing"]["total_rent"].median(),
+            "price_per_meter": furnished_offers["pricing"]["total_rent_sqm"].median(),
+        }
+        medians_non_furnished = {
+            "price": non_furnished_offers["pricing"]["total_rent"].median(),
+            "price_per_meter": non_furnished_offers["pricing"][
+                "total_rent_sqm"
+            ].median(),
         }
 
+        # Initialize an empty DataFrame to store the median values
         medians_5km_df = pd.DataFrame(index=your_offers_df.index)
 
-        # Add median values to the DataFrame
-        for key, stats in medians_5km.items():
-            for stat_name, value in stats.items():
-                medians_5km_df[f"{key}_{stat_name}"] = value
+        # Iterate over rows in your_offers_df and add the corresponding medians
+        for idx, row in your_offers_df.iterrows():
+            if row["is_furnished"]:
+                for key, value in medians_furnished.items():
+                    medians_5km_df.at[idx, f"in_5_km_{key}"] = value
+            else:
+                for key, value in medians_non_furnished.items():
+                    medians_5km_df.at[idx, f"in_5_km_{key}"] = value
 
         # Concatenate the original DataFrame with the medians DataFrame
         df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
