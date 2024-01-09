@@ -34,6 +34,8 @@ class TableVisualizer:
 
         df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
 
+        df_per_flat = self.move_column(df_per_flat, "suggested_price_by_median", 8)
+
         df_per_flat = self._remove_unnecessary_columns(df_per_flat)
 
         df_per_flat = self._make_columns_titles_more_readable(df_per_flat)
@@ -53,15 +55,18 @@ class TableVisualizer:
         predictor = ModelPredictor(model_path, metadata_path)
         price_by_model = predictor.get_price_predictions(df_per_flat)
 
-        return price_by_model
+        price_by_model_diff = price_by_model - df_per_flat["price"]
+
+        return price_by_model_diff
 
     def _add_column_suggested_price_by_median(self, df_per_flat):
         df_per_flat["suggested_price_by_median"] = df_per_flat.apply(
             lambda row: self._round_to_nearest_hundred(
-                row["in_5_km_price_per_meter"] * row["area"]
+                (row["in_5_km_price_per_meter"] * row["area"]) - row["price"]
             ),
             axis=1,
         )
+
         return df_per_flat
 
     def _get_summary_data(self, df_per_flat):
@@ -130,19 +135,35 @@ class TableVisualizer:
                 for key, value in medians_non_furnished.items():
                     medians_5km_df.at[idx, f"in_5_km_{key}"] = value
 
-        # Calculate the percentile rank for each price in your_offers_df
-        # against the distribution of prices in other_offers_df
-        your_offers_prices = your_offers_df["price"]
-        other_offers_prices = other_offers_df["pricing"]["total_rent"]
+        # Separate prices based on 'is_furnished' column
+        furnished_prices = other_offers_df[
+            other_offers_df["equipment"]["furniture"] == True
+        ]["pricing"]["total_rent"]
+        non_furnished_prices = other_offers_df[
+            other_offers_df["equipment"]["furniture"] == False
+        ]["pricing"]["total_rent"]
 
-        # Create a Series of all prices from other_offers_df for comparison
-        comparison_prices = pd.Series(other_offers_prices.values)
+        # Create Series from the prices for comparison
+        furnished_prices_series = pd.Series(furnished_prices.values)
+        non_furnished_prices_series = pd.Series(non_furnished_prices.values)
 
-        # Calculate percentile ranks
-        your_offers_df["price_percentile"] = your_offers_prices.apply(
-            lambda x: comparison_prices[comparison_prices <= x].count()
-            / len(comparison_prices)
+        # Calculate percentile ranks based on 'is_furnished'
+        def calculate_percentile(row):
+            price = row["price"]
+            is_furnished = row["is_furnished"]
+            if is_furnished:
+                return furnished_prices_series[
+                    furnished_prices_series <= price
+                ].count() / len(furnished_prices_series)
+            else:
+                return non_furnished_prices_series[
+                    non_furnished_prices_series <= price
+                ].count() / len(non_furnished_prices_series)
+
+        your_offers_df["price_percentile"] = your_offers_df.apply(
+            calculate_percentile, axis=1
         )
+
         # Concatenate the original DataFrame with the medians DataFrame
         df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
         return df_per_flat
@@ -166,7 +187,7 @@ class TableVisualizer:
             "area",
             "is_furnished",
             "price",
-            "deposit",
+            # "deposit",
             "lease_time",
             "price_per_meter",
         ]
