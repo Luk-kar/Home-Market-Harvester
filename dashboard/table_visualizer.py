@@ -24,8 +24,6 @@ class TableVisualizer:
             your_offers_df
         )
 
-        df_per_flat = self.move_column(df_per_flat, "price_by_model", 7)
-
         df_per_flat = self._add_statistical_data_to_offers(df_per_flat, offers_5km_df)
 
         df_per_flat = self._add_column_calculated_price_differences(
@@ -34,7 +32,10 @@ class TableVisualizer:
 
         df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
 
-        df_per_flat = self.move_column(df_per_flat, "suggested_price_by_median", 8)
+        df_per_flat = self.move_column(df_per_flat, "price_percentile", 7)
+        df_per_flat = self.move_column(df_per_flat, "price_by_model", 8)
+        df_per_flat = self.move_column(df_per_flat, "suggested_price_by_median", 9)
+        df_per_flat = self.move_column(df_per_flat, "lease_time", 14)
 
         df_per_flat = self._remove_unnecessary_columns(df_per_flat)
 
@@ -77,8 +78,8 @@ class TableVisualizer:
             "furnished sum": df_per_flat["is furnished"].sum(),
             "avg price": df_per_flat["price"].mean(),
             "avg price per meter": df_per_flat["price per meter"].mean(),
-            "avg in 5 km price difference %": df_per_flat[
-                "in 5 km price difference %"
+            "avg price per meter difference %": df_per_flat[
+                "price per meter difference %"
             ].mean(),
             "avg suggested price by median": df_per_flat[
                 "suggested price by median"
@@ -206,7 +207,7 @@ class TableVisualizer:
         # Calculate the absolute difference and percentage difference for price per meter
         price_per_meter_col = f"{column_prefix}_price_per_meter"
         if price_per_meter_col in df.columns:
-            df[f"{column_prefix}_price_difference_%"] = round(
+            df["price per meter difference %"] = round(
                 ((df[base_price_per_meter_col] / df[price_per_meter_col]) - 1) * 100, 2
             )
 

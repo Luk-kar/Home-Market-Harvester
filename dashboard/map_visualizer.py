@@ -31,6 +31,9 @@ class MapVisualizer:
             *map_df["coords"].apply(self._extract_lat_lon)
         )
 
+        # Round ent_sqm to 2 decimal places
+        map_df["rent_sqm"] = map_df["rent_sqm"].round(2)
+
         # Create heatmap data
         heatmap = self._create_heatmap_data(map_df)
         fig = go.Figure(data=[heatmap])
