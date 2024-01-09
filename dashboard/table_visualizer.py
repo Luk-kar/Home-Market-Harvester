@@ -97,13 +97,13 @@ class TableVisualizer:
 
         return df_per_flat
 
-    def _add_statistical_data_to_offers(self, your_offers_df, offers_5km_df):
+    def _add_statistical_data_to_offers(self, your_offers_df, other_offers_df):
         # Create separate DataFrames for furnished and non-furnished offers
-        furnished_offers = offers_5km_df[
-            offers_5km_df["equipment"]["furniture"] == True
+        furnished_offers = other_offers_df[
+            other_offers_df["equipment"]["furniture"] == True
         ]
-        non_furnished_offers = offers_5km_df[
-            offers_5km_df["equipment"]["furniture"] == False
+        non_furnished_offers = other_offers_df[
+            other_offers_df["equipment"]["furniture"] == False
         ]
 
         # Calculate medians for furnished and non-furnished offers
@@ -130,6 +130,19 @@ class TableVisualizer:
                 for key, value in medians_non_furnished.items():
                     medians_5km_df.at[idx, f"in_5_km_{key}"] = value
 
+        # Calculate the percentile rank for each price in your_offers_df
+        # against the distribution of prices in other_offers_df
+        your_offers_prices = your_offers_df["price"]
+        other_offers_prices = other_offers_df["pricing"]["total_rent"]
+
+        # Create a Series of all prices from other_offers_df for comparison
+        comparison_prices = pd.Series(other_offers_prices.values)
+
+        # Calculate percentile ranks
+        your_offers_df["price_percentile"] = your_offers_prices.apply(
+            lambda x: comparison_prices[comparison_prices <= x].count()
+            / len(comparison_prices)
+        )
         # Concatenate the original DataFrame with the medians DataFrame
         df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
         return df_per_flat
