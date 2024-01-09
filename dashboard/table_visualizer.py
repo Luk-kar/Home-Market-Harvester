@@ -16,7 +16,9 @@ class TableVisualizer:
             your_offers_df, other_offers_df
         )
 
-        self._display_title()
+        self._display_title(
+            "📊 Apartments Data", "Price in PLN, medians taken from 5 km radius"
+        )
 
         df_per_flat = your_offers_df.copy()
 
@@ -32,10 +34,10 @@ class TableVisualizer:
 
         df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
 
-        df_per_flat = self.move_column(df_per_flat, "price_percentile", 7)
-        df_per_flat = self.move_column(df_per_flat, "price_by_model", 8)
-        df_per_flat = self.move_column(df_per_flat, "suggested_price_by_median", 9)
-        df_per_flat = self.move_column(df_per_flat, "lease_time", 14)
+        df_per_flat = self._move_column(df_per_flat, "price_percentile", 7)
+        df_per_flat = self._move_column(df_per_flat, "price_by_model", 8)
+        df_per_flat = self._move_column(df_per_flat, "suggested_price_by_median", 9)
+        df_per_flat = self._move_column(df_per_flat, "lease_time", 14)
 
         df_per_flat = self._remove_unnecessary_columns(df_per_flat)
 
@@ -169,15 +171,17 @@ class TableVisualizer:
         df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
         return df_per_flat
 
-    def _display_title(self):
-        text = "📊 Apartments Data"
+    def _display_title(self, text, subtitle):
         st.markdown(
             f"<h3 style='text-align: center;'>{text}</h3>",
             unsafe_allow_html=True,
         )
-        st.markdown(
-            "<p style='text-align: center;'>Price in PLN</p>", unsafe_allow_html=True
-        )
+
+        if subtitle:
+            st.markdown(
+                f"<p style='text-align: center;'>{subtitle}</p>",
+                unsafe_allow_html=True,
+            )
 
     def _narrow_data(self, your_offers_df, other_offers_df):
         selected_columns = [
@@ -217,14 +221,49 @@ class TableVisualizer:
         return round(number / 100) * 100
 
     def _display_table(self, df_per_flat):
+        # Define the columns where the positive values should show '+' sign
+        specific_columns = [
+            "price by model",
+            "suggested price by median",
+            "price per meter difference %",
+        ]
+
+        # Custom formatting function to add '+' for positive values
+        def format_with_plus_sign(value):
+            if pd.isna(value):
+                return value
+            elif isinstance(value, (float, int)) and value > 0:
+                return f"+{value:.2f}"
+            elif isinstance(value, (float, int)):
+                return f"{value:.2f}"
+            else:
+                return value
+
+        # Apply the formatting function to the specific columns
+        for col in specific_columns:
+            if col in df_per_flat.columns:
+                df_per_flat[col] = df_per_flat[col].apply(format_with_plus_sign)
+
+        # Handle other float columns
         float_columns = df_per_flat.select_dtypes(include=["float"]).columns
-        df_per_flat[float_columns] = df_per_flat[float_columns].applymap(
-            lambda x: f"{x:.2f}"
-        )
+        for col in float_columns:
+            if col not in specific_columns:
+                df_per_flat[col] = df_per_flat[col].apply(
+                    lambda x: f"{x:.2f}" if pd.notna(x) else x
+                )
 
-        st.table(df_per_flat)
+        # Handle integer columns
+        int_columns = df_per_flat.select_dtypes(include=["int"]).columns
+        df_per_flat[int_columns] = df_per_flat[int_columns].astype(str)
 
-    def move_column(self, df: pd.DataFrame, column_name: str, position: int):
+        # Apply custom styling
+        styled_df = self._style_dataframe(df_per_flat)
+
+        # Convert DataFrame to HTML and use st.markdown to display it
+        html = styled_df.to_html(escape=False)
+        st.markdown(html, unsafe_allow_html=True)
+
+    def _move_column(self, df: pd.DataFrame, column_name: str, position: int):
         """
         Move a column in the DataFrame to a specified position.
 
@@ -243,3 +282,18 @@ class TableVisualizer:
         else:
             print(f"Column '{column_name}' not found in DataFrame.")
             return df
+
+    def _style_dataframe(self, df):
+        def apply_row_styles(row):
+            for col in row.index:
+                if isinstance(row[col], str) and row[col].startswith("+"):
+                    row[col] = f'<span style="color: green;">{row[col]}</span>'
+                elif isinstance(row[col], str) and row[col].startswith("-"):
+                    row[col] = f'<span style="color: red;">{row[col]}</span>'
+                elif row[col] is True:
+                    row[col] = f'<span style="color: green;">True</span>'
+                elif row[col] is False:
+                    row[col] = f'<span style="color: red;">False</span>'
+            return row
+
+        return df.apply(apply_row_styles, axis=1)
