@@ -43,11 +43,24 @@ class TableVisualizer:
 
         df_per_flat = self._make_columns_titles_more_readable(df_per_flat)
 
-        df_summary = self._get_summary_data(df_per_flat)
+        df_market_positioning = self._get_market_positioning_data(df_per_flat)
+
+        df_owned_flats_summary = self._get_properties_summary_data(df_per_flat)
 
         self._display_table(df_per_flat)
 
-        self._display_table(df_summary)
+        self._display_title(subtitle="Market Positioning")
+
+        self._display_table(df_market_positioning)
+
+    def _get_properties_summary_data(self, df_per_flat: pd.DataFrame) -> pd.Series:
+        pass
+
+    # Summary actual price total
+
+    # Summary price total per model
+
+    # Summary suggested price by median,
 
     def _add_column_calculated_price_by_model(
         self, df_per_flat: pd.DataFrame
@@ -72,22 +85,38 @@ class TableVisualizer:
 
         return df_per_flat
 
-    def _get_summary_data(self, df_per_flat):
+    def _get_market_positioning_data(self, df_per_flat):
         summary_stats = {
             "flats": len(df_per_flat["flat id"].unique()),
             "floor max": df_per_flat["floor"].max(),
             "avg area": df_per_flat["area"].mean(),
             "furnished sum": df_per_flat["is furnished"].sum(),
             "avg price": df_per_flat["price"].mean(),
+            "avg price percentile": df_per_flat["price percentile"].mean(),
+            "avg price by model": df_per_flat["price by model"].mean(),
+            "avg suggested price by median": df_per_flat[
+                "suggested price by median"
+            ].mean(),
             "avg price per meter": df_per_flat["price per meter"].mean(),
             "avg price per meter difference %": df_per_flat[
                 "price per meter difference %"
             ].mean(),
-            "avg suggested price by median": df_per_flat[
-                "suggested price by median"
-            ].mean(),
         }
         df_summary = pd.DataFrame([summary_stats])
+
+        specific_columns = [
+            "avg price by model",
+            "avg suggested price by median",
+            "price per meter difference %",
+        ]
+
+        # Custom formatting function to add '+' for positive values
+
+        # Apply the formatting function to the specific columns
+        for col in specific_columns:
+            if col in df_summary.columns:
+                df_summary[col] = df_summary[col].apply(self._format_with_plus_sign)
+
         return df_summary
 
     def _make_columns_titles_more_readable(self, df_per_flat):
@@ -171,7 +200,7 @@ class TableVisualizer:
         df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
         return df_per_flat
 
-    def _display_title(self, text, subtitle):
+    def _display_title(self, text="", subtitle=""):
         st.markdown(
             f"<h3 style='text-align: center;'>{text}</h3>",
             unsafe_allow_html=True,
@@ -220,6 +249,16 @@ class TableVisualizer:
     def _round_to_nearest_hundred(self, number):
         return round(number / 100) * 100
 
+    def _format_with_plus_sign(self, value):
+        if pd.isna(value):
+            return value
+        elif isinstance(value, (float, int)) and value > 0:
+            return f"+{value:.2f}"
+        elif isinstance(value, (float, int)):
+            return f"{value:.2f}"
+        else:
+            return value
+
     def _display_table(self, df_per_flat):
         # Define the columns where the positive values should show '+' sign
         specific_columns = [
@@ -229,20 +268,11 @@ class TableVisualizer:
         ]
 
         # Custom formatting function to add '+' for positive values
-        def format_with_plus_sign(value):
-            if pd.isna(value):
-                return value
-            elif isinstance(value, (float, int)) and value > 0:
-                return f"+{value:.2f}"
-            elif isinstance(value, (float, int)):
-                return f"{value:.2f}"
-            else:
-                return value
 
         # Apply the formatting function to the specific columns
         for col in specific_columns:
             if col in df_per_flat.columns:
-                df_per_flat[col] = df_per_flat[col].apply(format_with_plus_sign)
+                df_per_flat[col] = df_per_flat[col].apply(self._format_with_plus_sign)
 
         # Handle other float columns
         float_columns = df_per_flat.select_dtypes(include=["float"]).columns
