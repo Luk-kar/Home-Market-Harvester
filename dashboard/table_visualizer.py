@@ -10,6 +10,7 @@ from model_offer_predictor import ModelPredictor
 class TableVisualizer:
     def __init__(self, aesthetics=None):
         self.aesthetics = aesthetics
+        self.selected_percentile = None
 
     def display(self, your_offers_df, other_offers_df):
         your_offers_df, offers_5km_df = self._narrow_data(
@@ -20,6 +21,8 @@ class TableVisualizer:
             "📊 Apartments Data", "Price in PLN, medians taken from 5 km radius"
         )
 
+        self._display_percentile_selectbox()
+
         df_apartments = self._get_apartments_data(your_offers_df, offers_5km_df)
 
         df_market_positioning = self._get_market_positioning_data(df_apartments)
@@ -28,7 +31,9 @@ class TableVisualizer:
 
         df_apartments = self._move_column(df_apartments, "price_percentile", 7)
         df_apartments = self._move_column(df_apartments, "price_by_model", 8)
-        df_apartments = self._move_column(df_apartments, "suggested_price_by_median", 9)
+        df_apartments = self._move_column(
+            df_apartments, "suggested_price_by_percentile", 9
+        )
         df_apartments = self._move_column(df_apartments, "lease_time", 14)
 
         df_apartments = self._remove_unnecessary_columns(df_apartments)
@@ -53,6 +58,18 @@ class TableVisualizer:
 
         self._display_title(subtitle="\n\n")
 
+    def _display_percentile_selectbox(self):
+        # Using st.columns to set the width of st.selectbox
+
+        col1, col2, col3 = st.columns([1, 1, 1])
+
+        with col2:  # Adjust the column index and width ratio as needed
+            self.selected_percentile = st.selectbox(
+                "Select Percentile for Suggested Price Calculation",
+                options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                index=4,  # Default to 0.5
+            )
+
     def _get_apartments_data(self, your_offers_df, offers_5km_df):
         df_apartments = your_offers_df.copy()
 
@@ -60,6 +77,13 @@ class TableVisualizer:
 
         df_apartments["price_by_model"] = self._add_column_calculated_price_by_model(
             df_apartments
+        )
+
+        df_apartments["suggested_price_by_percentile"] = df_apartments.apply(
+            lambda row: self._calculate_suggested_price_by_percentile(
+                row, offers_5km_df, self.selected_percentile
+            ),
+            axis=1,
         )
 
         df_apartments = self._add_statistical_data_to_offers(
@@ -70,27 +94,38 @@ class TableVisualizer:
             df_apartments, "in_5_km", "price_per_meter"
         )
 
-        df_apartments = self._add_column_suggested_price_by_median(df_apartments)
+        # df_apartments = self._add_column_suggested_price_by_median(df_apartments)
         return df_apartments
 
     def _get_properties_summary_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
         actual_price_total = df_apartments["your_price"].sum()
+
         price_total_per_model = (
             actual_price_total + df_apartments["price_by_model"].sum()
         )  # price by model is additional sum
-        suggested_price_by_median_total = (
-            actual_price_total + df_apartments["suggested_price_by_median"].sum()
+
+        suggested_price_by_percentile_total = (
+            actual_price_total + df_apartments["suggested_price_by_percentile"].sum()
         )  # price by median is additional sum
 
         summary_data = pd.DataFrame(
             {
                 "your_price_total": [actual_price_total],
                 "price_total_per_model": [price_total_per_model],
-                "suggested_price_by_median_total": [suggested_price_by_median_total],
+                "suggested_price_by_percentile_total": [
+                    suggested_price_by_percentile_total
+                ],
             }
         )
 
         return summary_data
+
+    def _calculate_suggested_price_by_percentile(self, row, offers_5km_df, percentile):
+        # Calculate the sq_meter_price at the selected percentile
+        sq_meter_price = offers_5km_df["pricing"]["total_rent_sqm"].quantile(percentile)
+
+        # Calculate and return the suggested price
+        return (sq_meter_price * row["area"]) - row["your_price"]
 
     def _add_column_calculated_price_by_model(
         self, df_apartments: pd.DataFrame
@@ -124,8 +159,8 @@ class TableVisualizer:
             "avg_your_price": df_apartments["your_price"].mean(),
             "avg_price_percentile": df_apartments["price_percentile"].mean(),
             "avg_price_by_model": df_apartments["price_by_model"].mean(),
-            "avg_suggested_price_by_median": df_apartments[
-                "suggested_price_by_median"
+            "avg_suggested_price_by_percentile": df_apartments[
+                "suggested_price_by_percentile"
             ].mean(),
             "avg_price_per_meter": df_apartments["price_per_meter"].mean(),
             "avg_price_per_meter_difference_%": df_apartments[
@@ -293,26 +328,22 @@ class TableVisualizer:
         # Define the columns where the positive values should show '+' sign
         specific_columns = [
             "price by model",
-            "suggested price by median",
+            "suggested price by percentile",
             "price per meter difference %",
+            "avg suggested price by percentile",
         ]
 
         # Custom formatting function to add '+' for positive values
-
         # Apply the formatting function to the specific columns
         for col in specific_columns:
             if col in df.columns:
                 df[col] = df[col].apply(self._format_with_plus_sign)
 
-        # Handle other float columns
+        # Round float columns to 2 decimal places
         float_columns = df.select_dtypes(include=["float"]).columns
         for col in float_columns:
             if col not in specific_columns:
                 df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else x)
-
-        # Handle integer columns
-        int_columns = df.select_dtypes(include=["int"]).columns
-        df[int_columns] = df[int_columns].astype(str)
 
         # Apply custom styling
         styled_df = self._style_dataframe(df)
