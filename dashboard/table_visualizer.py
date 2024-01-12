@@ -22,9 +22,9 @@ class TableVisualizer:
 
         df_apartments = self._get_apartments_data(your_offers_df, offers_5km_df)
 
-        df_owned_flats_summary = self._get_properties_summary_data(df_apartments)
-
         df_market_positioning = self._get_market_positioning_data(df_apartments)
+
+        df_owned_flats_summary = self._get_properties_summary_data(df_apartments)
 
         df_apartments = self._move_column(df_apartments, "price_percentile", 7)
         df_apartments = self._move_column(df_apartments, "price_by_model", 8)
@@ -37,8 +37,11 @@ class TableVisualizer:
         df_market_positioning = self._make_columns_titles_more_readable(
             df_market_positioning
         )
+        df_owned_flats_summary = self._make_columns_titles_more_readable(
+            df_owned_flats_summary
+        )
 
-        self._display_table(df_apartments)
+        self._display_table(df_apartments, show_index=True)
 
         self._display_title(subtitle="📈 Market Positioning")
 
@@ -81,9 +84,9 @@ class TableVisualizer:
 
         summary_data = pd.DataFrame(
             {
-                "Actual_Price_Total": [actual_price_total],
-                "Price_Total_per_Model": [price_total_per_model],
-                "Suggested_Price_by_Median_Total": [suggested_price_by_median_total],
+                "your_price_total": [actual_price_total],
+                "price_total_per_model": [price_total_per_model],
+                "suggested_price_by_median_total": [suggested_price_by_median_total],
             }
         )
 
@@ -118,7 +121,7 @@ class TableVisualizer:
             "floor_max": df_apartments["floor"].max(),
             "avg_area": df_apartments["area"].mean(),
             "furnished_sum": df_apartments["is_furnished"].sum(),
-            "avg_price": df_apartments["your_price"].mean(),
+            "avg_your_price": df_apartments["your_price"].mean(),
             "avg_price_percentile": df_apartments["price_percentile"].mean(),
             "avg_price_by_model": df_apartments["price_by_model"].mean(),
             "avg_suggested_price_by_median": df_apartments[
@@ -286,7 +289,7 @@ class TableVisualizer:
         else:
             return value
 
-    def _display_table(self, df):
+    def _display_table(self, df, show_index=False):
         # Define the columns where the positive values should show '+' sign
         specific_columns = [
             "price by model",
@@ -315,7 +318,7 @@ class TableVisualizer:
         styled_df = self._style_dataframe(df)
 
         # Convert DataFrame to HTML and use st.markdown to display it
-        html = styled_df.to_html(escape=False)
+        html = styled_df.to_html(escape=False, index=show_index)
         centered_html = f"""
         <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
             <div style='text-align: center;'>{html}</div>
