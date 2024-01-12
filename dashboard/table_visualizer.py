@@ -20,93 +20,120 @@ class TableVisualizer:
             "📊 Apartments Data", "Price in PLN, medians taken from 5 km radius"
         )
 
-        df_per_flat = your_offers_df.copy()
+        df_apartments = self._get_apartments_data(your_offers_df, offers_5km_df)
 
-        df_per_flat["price_by_model"] = self._add_column_calculated_price_by_model(
-            your_offers_df
+        df_owned_flats_summary = self._get_properties_summary_data(df_apartments)
+
+        df_market_positioning = self._get_market_positioning_data(df_apartments)
+
+        df_apartments = self._move_column(df_apartments, "price_percentile", 7)
+        df_apartments = self._move_column(df_apartments, "price_by_model", 8)
+        df_apartments = self._move_column(df_apartments, "suggested_price_by_median", 9)
+        df_apartments = self._move_column(df_apartments, "lease_time", 14)
+
+        df_apartments = self._remove_unnecessary_columns(df_apartments)
+
+        df_apartments = self._make_columns_titles_more_readable(df_apartments)
+        df_market_positioning = self._make_columns_titles_more_readable(
+            df_market_positioning
         )
 
-        df_per_flat = self._add_statistical_data_to_offers(df_per_flat, offers_5km_df)
+        self._display_table(df_apartments)
 
-        df_per_flat = self._add_column_calculated_price_differences(
-            df_per_flat, "in_5_km", "price_per_meter"
-        )
-
-        df_per_flat = self._add_column_suggested_price_by_median(df_per_flat)
-
-        df_per_flat = self._move_column(df_per_flat, "price_percentile", 7)
-        df_per_flat = self._move_column(df_per_flat, "price_by_model", 8)
-        df_per_flat = self._move_column(df_per_flat, "suggested_price_by_median", 9)
-        df_per_flat = self._move_column(df_per_flat, "lease_time", 14)
-
-        df_per_flat = self._remove_unnecessary_columns(df_per_flat)
-
-        df_per_flat = self._make_columns_titles_more_readable(df_per_flat)
-
-        df_market_positioning = self._get_market_positioning_data(df_per_flat)
-
-        df_owned_flats_summary = self._get_properties_summary_data(df_per_flat)
-
-        self._display_table(df_per_flat)
-
-        self._display_title(subtitle="Market Positioning")
+        self._display_title(subtitle="📈 Market Positioning")
 
         self._display_table(df_market_positioning)
 
-    def _get_properties_summary_data(self, df_per_flat: pd.DataFrame) -> pd.Series:
-        pass
+        self._display_title(subtitle="📋 Total Summary")
 
-    # Summary actual price total
+        self._display_table(df_owned_flats_summary)
 
-    # Summary price total per model
+        self._display_title(subtitle="\n\n")
 
-    # Summary suggested price by median,
+    def _get_apartments_data(self, your_offers_df, offers_5km_df):
+        df_apartments = your_offers_df.copy()
+
+        df_apartments = df_apartments.rename(columns={"price": "your_price"})
+
+        df_apartments["price_by_model"] = self._add_column_calculated_price_by_model(
+            df_apartments
+        )
+
+        df_apartments = self._add_statistical_data_to_offers(
+            df_apartments, offers_5km_df
+        )
+
+        df_apartments = self._add_column_calculated_price_differences(
+            df_apartments, "in_5_km", "price_per_meter"
+        )
+
+        df_apartments = self._add_column_suggested_price_by_median(df_apartments)
+        return df_apartments
+
+    def _get_properties_summary_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
+        actual_price_total = df_apartments["your_price"].sum()
+        price_total_per_model = (
+            actual_price_total + df_apartments["price_by_model"].sum()
+        )  # price by model is additional sum
+        suggested_price_by_median_total = (
+            actual_price_total + df_apartments["suggested_price_by_median"].sum()
+        )  # price by median is additional sum
+
+        summary_data = pd.DataFrame(
+            {
+                "Actual_Price_Total": [actual_price_total],
+                "Price_Total_per_Model": [price_total_per_model],
+                "Suggested_Price_by_Median_Total": [suggested_price_by_median_total],
+            }
+        )
+
+        return summary_data
 
     def _add_column_calculated_price_by_model(
-        self, df_per_flat: pd.DataFrame
+        self, df_apartments: pd.DataFrame
     ) -> pd.Series:
         model_path = "notebooks\\gbm_model_file.p"
         metadata_path = "notebooks\\gbm_model_metadata.json"
 
         predictor = ModelPredictor(model_path, metadata_path)
-        price_by_model = predictor.get_price_predictions(df_per_flat)
+        price_by_model = predictor.get_price_predictions(df_apartments)
 
-        price_by_model_diff = price_by_model - df_per_flat["price"]
+        price_by_model_diff = price_by_model - df_apartments["your_price"]
 
         return price_by_model_diff
 
-    def _add_column_suggested_price_by_median(self, df_per_flat):
-        df_per_flat["suggested_price_by_median"] = df_per_flat.apply(
+    def _add_column_suggested_price_by_median(self, df_apartments):
+        df_apartments["suggested_price_by_median"] = df_apartments.apply(
             lambda row: self._round_to_nearest_hundred(
-                (row["in_5_km_price_per_meter"] * row["area"]) - row["price"]
+                (row["in_5_km_price_per_meter"] * row["area"]) - row["your_price"]
             ),
             axis=1,
         )
 
-        return df_per_flat
+        return df_apartments
 
-    def _get_market_positioning_data(self, df_per_flat):
+    def _get_market_positioning_data(self, df_apartments):
         summary_stats = {
-            "flats": len(df_per_flat["flat id"].unique()),
-            "floor max": df_per_flat["floor"].max(),
-            "avg area": df_per_flat["area"].mean(),
-            "furnished sum": df_per_flat["is furnished"].sum(),
-            "avg price": df_per_flat["price"].mean(),
-            "avg price percentile": df_per_flat["price percentile"].mean(),
-            "avg price by model": df_per_flat["price by model"].mean(),
-            "avg suggested price by median": df_per_flat[
-                "suggested price by median"
+            "flats": len(df_apartments["flat_id"].unique()),
+            "floor_max": df_apartments["floor"].max(),
+            "avg_area": df_apartments["area"].mean(),
+            "furnished_sum": df_apartments["is_furnished"].sum(),
+            "avg_price": df_apartments["your_price"].mean(),
+            "avg_price_percentile": df_apartments["price_percentile"].mean(),
+            "avg_price_by_model": df_apartments["price_by_model"].mean(),
+            "avg_suggested_price_by_median": df_apartments[
+                "suggested_price_by_median"
             ].mean(),
-            "avg price per meter": df_per_flat["price per meter"].mean(),
-            "avg price per meter difference %": df_per_flat[
+            "avg_price_per_meter": df_apartments["price_per_meter"].mean(),
+            "avg_price_per_meter_difference_%": df_apartments[
                 "price per meter difference %"
             ].mean(),
         }
         df_summary = pd.DataFrame([summary_stats])
 
         specific_columns = [
-            "avg price by model",
-            "avg suggested price by median",
+            "avg_price_by_model",
+            "avg_suggested_price_by_median",
             "price per meter difference %",
         ]
 
@@ -119,20 +146,20 @@ class TableVisualizer:
 
         return df_summary
 
-    def _make_columns_titles_more_readable(self, df_per_flat):
-        df_per_flat.columns = [col.replace("_", " ") for col in df_per_flat.columns]
+    def _make_columns_titles_more_readable(self, df_apartments):
+        df_apartments.columns = [col.replace("_", " ") for col in df_apartments.columns]
 
-        return df_per_flat
+        return df_apartments
 
-    def _remove_unnecessary_columns(self, df_per_flat):
+    def _remove_unnecessary_columns(self, df_apartments):
         columns_to_delete = [
             "in_5_km_price",
             "in_5_km_price_per_meter",
         ]
         for column in columns_to_delete:
-            del df_per_flat[column]
+            del df_apartments[column]
 
-        return df_per_flat
+        return df_apartments
 
     def _add_statistical_data_to_offers(self, your_offers_df, other_offers_df):
         # Create separate DataFrames for furnished and non-furnished offers
@@ -181,7 +208,7 @@ class TableVisualizer:
 
         # Calculate percentile ranks based on 'is_furnished'
         def calculate_percentile(row):
-            price = row["price"]
+            price = row["your_price"]
             is_furnished = row["is_furnished"]
             if is_furnished:
                 return furnished_prices_series[
@@ -197,8 +224,8 @@ class TableVisualizer:
         )
 
         # Concatenate the original DataFrame with the medians DataFrame
-        df_per_flat = pd.concat([your_offers_df, medians_5km_df], axis=1)
-        return df_per_flat
+        df_apartments = pd.concat([your_offers_df, medians_5km_df], axis=1)
+        return df_apartments
 
     def _display_title(self, text="", subtitle=""):
         st.markdown(
@@ -259,7 +286,7 @@ class TableVisualizer:
         else:
             return value
 
-    def _display_table(self, df_per_flat):
+    def _display_table(self, df):
         # Define the columns where the positive values should show '+' sign
         specific_columns = [
             "price by model",
@@ -271,27 +298,30 @@ class TableVisualizer:
 
         # Apply the formatting function to the specific columns
         for col in specific_columns:
-            if col in df_per_flat.columns:
-                df_per_flat[col] = df_per_flat[col].apply(self._format_with_plus_sign)
+            if col in df.columns:
+                df[col] = df[col].apply(self._format_with_plus_sign)
 
         # Handle other float columns
-        float_columns = df_per_flat.select_dtypes(include=["float"]).columns
+        float_columns = df.select_dtypes(include=["float"]).columns
         for col in float_columns:
             if col not in specific_columns:
-                df_per_flat[col] = df_per_flat[col].apply(
-                    lambda x: f"{x:.2f}" if pd.notna(x) else x
-                )
+                df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else x)
 
         # Handle integer columns
-        int_columns = df_per_flat.select_dtypes(include=["int"]).columns
-        df_per_flat[int_columns] = df_per_flat[int_columns].astype(str)
+        int_columns = df.select_dtypes(include=["int"]).columns
+        df[int_columns] = df[int_columns].astype(str)
 
         # Apply custom styling
-        styled_df = self._style_dataframe(df_per_flat)
+        styled_df = self._style_dataframe(df)
 
         # Convert DataFrame to HTML and use st.markdown to display it
         html = styled_df.to_html(escape=False)
-        st.markdown(html, unsafe_allow_html=True)
+        centered_html = f"""
+        <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
+            <div style='text-align: center;'>{html}</div>
+        </div>
+        """
+        st.markdown(centered_html, unsafe_allow_html=True)
 
     def _move_column(self, df: pd.DataFrame, column_name: str, position: int):
         """
