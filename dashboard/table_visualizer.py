@@ -36,7 +36,7 @@ class TableVisualizer:
             user_apartments_narrowed, market_apartments_narrowed
         )
 
-        market_positioning_df = self._calculate_market_positioning(
+        market_positioning_df = self._compute_market_positioning_stats(
             apartments_comparison_df
         )
 
@@ -90,11 +90,10 @@ class TableVisualizer:
 
         apartments_df["price_by_model"] = self._calculate_price_by_model(apartments_df)
 
-        apartments_df["percentile_based_suggested_price"] = apartments_df.apply(
-            lambda row: self._calculate_percentile_based_suggested_price(
-                row, market_apartments_df, self.selected_percentile
-            ),
-            axis=1,
+        apartments_df[
+            "percentile_based_suggested_price"
+        ] = self._calculate_percentile_based_suggested_price(
+            apartments_df, market_apartments_df
         )
 
         apartments_df[
@@ -103,16 +102,15 @@ class TableVisualizer:
             apartments_df, market_apartments_df
         )
 
-        apartments_df["price_per_meter_by_percentile"] = apartments_df.apply(
-            lambda row: self._calculate_price_per_meter_differences(
-                row, market_apartments_df, self.selected_percentile
-            ),
-            axis=1,
+        apartments_df[
+            "price_per_meter_by_percentile"
+        ] = self._calculate_price_per_meter_differences(
+            apartments_df, market_apartments_df
         )
 
         return apartments_df
 
-    def _calculate_market_positioning(
+    def _compute_market_positioning_stats(
         self, apartments_comparison_df: pd.DataFrame
     ) -> pd.DataFrame:
         """
@@ -137,7 +135,7 @@ class TableVisualizer:
                 "price_per_meter_by_percentile"
             ].mean(),
         }
-        df_summary = pd.DataFrame([summary_stats])
+        market_positioning_summary_df = pd.DataFrame([summary_stats])
 
         plus_minus_columns = [
             "avg_price_by_model",
@@ -148,10 +146,12 @@ class TableVisualizer:
         # Custom formatting function to add '+' for positive values
         # Apply the formatting function to the specific columns
         for col in plus_minus_columns:
-            if col in df_summary.columns:
-                df_summary[col] = df_summary[col].apply(self._format_with_plus_sign)
+            if col in market_positioning_summary_df.columns:
+                market_positioning_summary_df[col] = market_positioning_summary_df[
+                    col
+                ].apply(self._format_with_plus_sign)
 
-        return df_summary
+        return market_positioning_summary_df
 
     def _aggregate_properties_data(
         self, apartments_comparison_df: pd.DataFrame
@@ -183,31 +183,34 @@ class TableVisualizer:
         return summary_data
 
     def _calculate_percentile_based_suggested_price(
-        self, row: pd.Series, apartments_comparison_df: pd.DataFrame, percentile: float
-    ) -> float:
+        self, apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
+    ) -> pd.Series:
         """
-        Calculate suggested price based on percentile.
+        Calculate the suggested price based on percentile for each apartment.
         """
 
-        furnished_offers = apartments_comparison_df[
-            apartments_comparison_df["equipment"]["furniture"] == True
-        ]
-        non_furnished_offers = apartments_comparison_df[
-            apartments_comparison_df["equipment"]["furniture"] == False
-        ]
+        def calculate_price(row):
+            furnished_offers = market_apartments_df[
+                market_apartments_df["equipment"]["furniture"] == True
+            ]
+            non_furnished_offers = market_apartments_df[
+                market_apartments_df["equipment"]["furniture"] == False
+            ]
 
-        sq_meter_price = None
-        if row["is_furnished"]:
-            sq_meter_price = furnished_offers["pricing"]["total_rent_sqm"].quantile(
-                percentile
-            )
-        else:
-            sq_meter_price = non_furnished_offers["pricing"]["total_rent_sqm"].quantile(
-                percentile
-            )
+            sq_meter_price = None
+            if row["is_furnished"]:
+                sq_meter_price = furnished_offers["pricing"]["total_rent_sqm"].quantile(
+                    self.selected_percentile
+                )
+            else:
+                sq_meter_price = non_furnished_offers["pricing"][
+                    "total_rent_sqm"
+                ].quantile(self.selected_percentile)
 
-        total_price_difference = sq_meter_price * row["area"] - row["your_price"]
-        return total_price_difference
+            total_price_difference = sq_meter_price * row["area"] - row["your_price"]
+            return total_price_difference
+
+        return apartments_df.apply(calculate_price, axis=1)
 
     def _calculate_price_by_model(self, apartments_df: pd.DataFrame) -> pd.Series:
         """
@@ -235,13 +238,17 @@ class TableVisualizer:
         return apartments_df
 
     def _calculate_yours_price_percentile_against_others(
-        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
+        self, apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> pd.Series:
         """
         Calculate the percentile of user the price compared to the market offers.
         """
 
-        # Separate prices based on 'is_furnished' column
+        def calculate_percentile(row, prices_series):
+            return prices_series[prices_series <= row["your_price"]].count() / len(
+                prices_series
+            )
+
         furnished_prices = market_apartments_df[
             market_apartments_df["equipment"]["furniture"] == True
         ]["pricing"]["total_rent"]
@@ -249,19 +256,18 @@ class TableVisualizer:
             market_apartments_df["equipment"]["furniture"] == False
         ]["pricing"]["total_rent"]
 
-        # Create Series from the prices for comparison
         furnished_prices_series = pd.Series(furnished_prices.values)
         non_furnished_prices_series = pd.Series(non_furnished_prices.values)
 
-        # Calculate percentile ranks based on 'is_furnished'
-        user_prices_as_percentiles_of_other_markets_offers = user_apartments_df.apply(
-            lambda row: self._calculate_percentile(
-                row, furnished_prices_series, non_furnished_prices_series
+        return apartments_df.apply(
+            lambda row: calculate_percentile(
+                row,
+                furnished_prices_series
+                if row["is_furnished"]
+                else non_furnished_prices_series,
             ),
             axis=1,
         )
-
-        return user_prices_as_percentiles_of_other_markets_offers
 
     def _calculate_percentile(
         self,
@@ -366,36 +372,37 @@ class TableVisualizer:
         return user_apartments_df, filtered_df
 
     def _calculate_price_per_meter_differences(
-        self, row: pd.Series, market_apartments_df: pd.DataFrame, percentile: float
-    ) -> float:
+        self, apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
+    ) -> pd.Series:
         """
-        Calculate the difference between the price per meter of the user's apartment
-        and the price per meter of other apartments in the market.
+        Calculate the price per meter differences for each apartment.
         """
-        furnished_offers = market_apartments_df[
-            market_apartments_df["equipment"]["furniture"] == True
-        ]
-        non_furnished_offers = market_apartments_df[
-            market_apartments_df["equipment"]["furniture"] == False
-        ]
 
-        sq_meter_price_others = None
-        if row["is_furnished"]:
-            sq_meter_price_others = furnished_offers["pricing"][
-                "total_rent_sqm"
-            ].quantile(percentile)
-        else:
-            sq_meter_price_others = non_furnished_offers["pricing"][
-                "total_rent_sqm"
-            ].quantile(percentile)
+        def calculate_difference(row):
+            furnished_offers = market_apartments_df[
+                market_apartments_df["equipment"]["furniture"] == True
+            ]
+            non_furnished_offers = market_apartments_df[
+                market_apartments_df["equipment"]["furniture"] == False
+            ]
 
-        sq_meter_price_yours = row["your_price_per_meter"]
+            sq_meter_price_others = (
+                furnished_offers["pricing"]["total_rent_sqm"].quantile(
+                    self.selected_percentile
+                )
+                if row["is_furnished"]
+                else non_furnished_offers["pricing"]["total_rent_sqm"].quantile(
+                    self.selected_percentile
+                )
+            )
 
-        percent_difference = round(
-            ((sq_meter_price_others / sq_meter_price_yours) - 1) * 100, 2
-        )
+            sq_meter_price_yours = row["your_price_per_meter"]
+            percent_difference = round(
+                ((sq_meter_price_others / sq_meter_price_yours) - 1) * 100, 2
+            )
+            return percent_difference
 
-        return percent_difference
+        return apartments_df.apply(calculate_difference, axis=1)
 
     def _round_to_nearest_hundred(self, number: float) -> int:
         return round(number / 100) * 100
