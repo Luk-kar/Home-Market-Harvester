@@ -1,3 +1,6 @@
+# Standard imports
+from typing import Tuple, Optional
+
 # Third-party imports
 import pandas as pd
 import streamlit as st
@@ -8,11 +11,13 @@ from model_offer_predictor import ModelPredictor
 
 # TODO is furnished adjust to the offers
 class TableVisualizer:
-    def __init__(self, aesthetics=None):
+    def __init__(self, aesthetics: Optional[dict] = None):
         self.aesthetics = aesthetics
-        self.selected_percentile = None
+        self.selected_percentile: Optional[float] = None
 
-    def display(self, your_offers_df, other_offers_df):
+    def display(
+        self, your_offers_df: pd.DataFrame, other_offers_df: pd.DataFrame
+    ) -> None:
         your_offers_df, offers_narrowed_df = self._narrow_data(
             your_offers_df, other_offers_df
         )
@@ -56,7 +61,7 @@ class TableVisualizer:
 
         self._display_title(subtitle="\n\n")
 
-    def _display_percentile_selectbox(self):
+    def _display_percentile_selectbox(self) -> None:
         # Using st.columns to set the width of st.selectbox
 
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -68,7 +73,9 @@ class TableVisualizer:
                 index=4,  # Default to 0.5
             )
 
-    def _get_apartments_data(self, your_offers_df, offers_other_df):
+    def _get_apartments_data(
+        self, your_offers_df: pd.DataFrame, offers_other_df: pd.DataFrame
+    ) -> pd.DataFrame:
         df_apartments = your_offers_df.copy()
 
         df_apartments = df_apartments.rename(columns={"price": "your_price"})
@@ -121,8 +128,8 @@ class TableVisualizer:
         return summary_data
 
     def _calculate_suggested_price_by_percentile(
-        self, row, other_offers_df, percentile
-    ):
+        self, row: pd.Series, other_offers_df: pd.DataFrame, percentile: float
+    ) -> float:
         furnished_offers = other_offers_df[
             other_offers_df["equipment"]["furniture"] == True
         ]
@@ -160,7 +167,9 @@ class TableVisualizer:
 
         return price_by_model_diff
 
-    def _add_column_suggested_price_by_median(self, df_apartments):
+    def _add_column_suggested_price_by_median(
+        self, df_apartments: pd.DataFrame
+    ) -> pd.DataFrame:
         df_apartments["suggested_price_by_median"] = df_apartments.apply(
             lambda row: self._round_to_nearest_hundred(
                 (row["in_5_km_price_per_meter"] * row["area"]) - row["your_price"]
@@ -170,7 +179,7 @@ class TableVisualizer:
 
         return df_apartments
 
-    def _get_market_positioning_data(self, df_apartments):
+    def _get_market_positioning_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
         summary_stats = {
             "flats": len(df_apartments["flat_id"].unique()),
             "floor_max": df_apartments["floor"].max(),
@@ -204,14 +213,16 @@ class TableVisualizer:
 
         return df_summary
 
-    def _make_columns_titles_more_readable(self, df_apartments):
+    def _make_columns_titles_more_readable(
+        self, df_apartments: pd.DataFrame
+    ) -> pd.DataFrame:
         df_apartments.columns = [col.replace("_", " ") for col in df_apartments.columns]
 
         return df_apartments
 
     def _calculate_yours_price_percentile_against_others(
-        self, your_offers_df, other_offers_df
-    ):
+        self, your_offers_df: pd.DataFrame, other_offers_df: pd.DataFrame
+    ) -> pd.Series:
         # Separate prices based on 'is_furnished' column
         furnished_prices = other_offers_df[
             other_offers_df["equipment"]["furniture"] == True
@@ -235,8 +246,11 @@ class TableVisualizer:
         return your_price_as_percentile_of_other_offers
 
     def _calculate_percentile(
-        self, row, furnished_prices_series, non_furnished_prices_series
-    ):
+        self,
+        row: pd.Series,
+        furnished_prices_series: pd.Series,
+        non_furnished_prices_series: pd.Series,
+    ) -> float:
         price = row["your_price"]
         is_furnished = row["is_furnished"]
         if is_furnished:
@@ -248,7 +262,7 @@ class TableVisualizer:
                 non_furnished_prices_series <= price
             ].count() / len(non_furnished_prices_series)
 
-    def _display_title(self, text="", subtitle=""):
+    def _display_title(self, text: str = "", subtitle: str = "") -> None:
         st.markdown(
             f"<h3 style='text-align: center;'>{text}</h3>",
             unsafe_allow_html=True,
@@ -260,7 +274,9 @@ class TableVisualizer:
                 unsafe_allow_html=True,
             )
 
-    def _narrow_data(self, your_offers_df, other_offers_df):
+    def _narrow_data(
+        self, your_offers_df: pd.DataFrame, other_offers_df: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         selected_columns = [
             "deal_id",
             "flat_id",
@@ -275,7 +291,7 @@ class TableVisualizer:
         ]
         your_offers_df = your_offers_df[selected_columns]
 
-        def filter_row(row):
+        def filter_row(row: pd.Series) -> bool:
             try:
                 city = row["location"]["city"]
                 building_type = (
@@ -313,7 +329,9 @@ class TableVisualizer:
 
         return your_offers_df, narrowed_df
 
-    def _calculate_price_per_meter_differences(self, row, offers_others_df, percentile):
+    def _calculate_price_per_meter_differences(
+        self, row: pd.Series, offers_others_df: pd.DataFrame, percentile: float
+    ) -> float:
         furnished_offers = offers_others_df[
             offers_others_df["equipment"]["furniture"] == True
         ]
@@ -339,10 +357,10 @@ class TableVisualizer:
 
         return percent_difference
 
-    def _round_to_nearest_hundred(self, number):
+    def _round_to_nearest_hundred(self, number: float) -> int:
         return round(number / 100) * 100
 
-    def _format_with_plus_sign(self, value):
+    def _format_with_plus_sign(self, value) -> str:
         if pd.isna(value):
             return value
         elif isinstance(value, (float, int)) and value > 0:
@@ -352,7 +370,7 @@ class TableVisualizer:
         else:
             return value
 
-    def _display_table(self, df, show_index=False):
+    def _display_table(self, df: pd.DataFrame, show_index: bool = False) -> None:
         # Define the columns where the positive values should show '+' sign
         columns_with_plus_and_minus_at_front = [
             "price by model",
@@ -396,7 +414,9 @@ class TableVisualizer:
         """
         st.markdown(centered_html, unsafe_allow_html=True)
 
-    def _move_column(self, df: pd.DataFrame, column_name: str, position: int):
+    def _move_column(
+        self, df: pd.DataFrame, column_name: str, position: int
+    ) -> pd.DataFrame:
         """
         Move a column in the DataFrame to a specified position.
 
@@ -416,7 +436,7 @@ class TableVisualizer:
             print(f"Column '{column_name}' not found in DataFrame.")
             return df
 
-    def _style_dataframe(self, df):
+    def _style_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         def apply_row_styles(row):
             for col in row.index:
                 if isinstance(row[col], str) and row[col].startswith("+"):
