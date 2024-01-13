@@ -148,7 +148,13 @@ class TableVisualizer:
         metadata_path = "notebooks\\svm_model_metadata.json"
 
         predictor = ModelPredictor(model_path, metadata_path)
-        price_by_model = predictor.get_price_predictions(df_apartments)
+        price_predictions = predictor.get_price_predictions(df_apartments)
+        price_by_model = pd.Series(price_predictions)
+        price_by_model = price_by_model.apply(self._round_to_nearest_hundred)
+
+        print(f"price_by_model: {price_by_model}")
+
+        print(f"your_price: {df_apartments}")
 
         price_by_model_diff = price_by_model - df_apartments["your_price"]
 
