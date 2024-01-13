@@ -19,7 +19,7 @@ class BarChartVisualizer:
         )
 
         offers = {
-            "yours": {
+            "Yours": {
                 "furnished": self.your_offers_df[
                     self.your_offers_df["is_furnished"] == True
                 ],
@@ -27,7 +27,7 @@ class BarChartVisualizer:
                     self.your_offers_df["is_furnished"] == False
                 ],
             },
-            "5 km radius": {
+            "Similar": {
                 "furnished": self.other_offers_df[
                     (self.other_offers_df["equipment"]["furniture"] == True)
                     & (self.other_offers_df["location"]["city"] == "będziński")
@@ -37,7 +37,7 @@ class BarChartVisualizer:
                     & (self.other_offers_df["location"]["city"] == "będziński")
                 ],
             },
-            "20 km radius": {
+            "All in 20 km radius": {
                 "furnished": self.other_offers_df[
                     self.other_offers_df["equipment"]["furniture"] == True
                 ],
@@ -50,7 +50,7 @@ class BarChartVisualizer:
         col_per_meter, col_per_offer = st.columns(2)
 
         space = " " * 36
-        categories = ["Yours", "5 km radius", "20 km radius"]
+        categories = ["Yours", "Similar", "All in 20 km radius"]
 
         max_length = max(len(category) for category in categories)
         centered_categories = [category.center(max_length) for category in categories]
@@ -60,30 +60,30 @@ class BarChartVisualizer:
 
         with col_per_meter:
             per_meter_data = {
-                "furnished ": offers["yours"]["furnished"]["price_per_meter"].median(),
-                "unfurnished ": offers["yours"]["unfurnished"][
+                "furnished ": offers["Yours"]["furnished"]["price_per_meter"].median(),
+                "unfurnished ": offers["Yours"]["unfurnished"][
                     "price_per_meter"
                 ].median(),
                 "furnished": round(
-                    offers["5 km radius"]["furnished"]["pricing"][
+                    offers["Similar"]["furnished"]["pricing"][
                         "total_rent_sqm"
                     ].median(),
                     2,
                 ),
                 "unfurnished": round(
-                    offers["5 km radius"]["unfurnished"]["pricing"][
+                    offers["Similar"]["unfurnished"]["pricing"][
                         "total_rent_sqm"
                     ].median(),
                     2,
                 ),
                 " furnished": round(
-                    offers["20 km radius"]["furnished"]["pricing"][
+                    offers["All in 20 km radius"]["furnished"]["pricing"][
                         "total_rent_sqm"
                     ].median(),
                     2,
                 ),
                 " unfurnished": round(
-                    offers["20 km radius"]["unfurnished"]["pricing"][
+                    offers["All in 20 km radius"]["unfurnished"]["pricing"][
                         "total_rent_sqm"
                     ].median(),
                     2,
@@ -100,28 +100,24 @@ class BarChartVisualizer:
 
         with col_per_offer:
             per_offer_data = {
-                "furnished ": offers["yours"]["furnished"]["price"].median(),
-                "unfurnished ": offers["yours"]["unfurnished"]["price"].median(),
+                "furnished ": offers["Yours"]["furnished"]["price"].median(),
+                "unfurnished ": offers["Yours"]["unfurnished"]["price"].median(),
                 "furnished": round(
-                    offers["5 km radius"]["furnished"]["pricing"][
-                        "total_rent"
-                    ].median(),
+                    offers["Similar"]["furnished"]["pricing"]["total_rent"].median(),
                     2,
                 ),
                 "unfurnished": round(
-                    offers["5 km radius"]["unfurnished"]["pricing"][
-                        "total_rent"
-                    ].median(),
+                    offers["Similar"]["unfurnished"]["pricing"]["total_rent"].median(),
                     2,
                 ),
                 " furnished": round(
-                    offers["20 km radius"]["furnished"]["pricing"][
+                    offers["All in 20 km radius"]["furnished"]["pricing"][
                         "total_rent"
                     ].median(),
                     2,
                 ),
                 " unfurnished": round(
-                    offers["20 km radius"]["unfurnished"]["pricing"][
+                    offers["All in 20 km radius"]["unfurnished"]["pricing"][
                         "total_rent"
                     ].median(),
                     2,
