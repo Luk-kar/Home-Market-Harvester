@@ -18,6 +18,10 @@ class TableVisualizer:
     def display(
         self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> None:
+        """
+        Display the data in a table format.
+        """
+
         user_apartments_narrowed, market_apartments_narrowed = self._filter_data(
             user_apartments_df, market_apartments_df
         )
@@ -52,7 +56,7 @@ class TableVisualizer:
         market_positioning_df = self._format_column_titles(market_positioning_df)
         property_summary_df = self._format_column_titles(property_summary_df)
 
-        self._show_data_table(apartments_comparison_df, show_index=True)
+        self._show_data_table(apartments_comparison_df, with_index=True)
         self._display_header(subtitle="📈 Market Positioning")
         self._show_data_table(market_positioning_df)
         self._display_header(subtitle="📋 Total Summary")
@@ -60,11 +64,13 @@ class TableVisualizer:
         self._display_header(subtitle="\n\n")
 
     def _select_price_percentile(self) -> None:
-        # Using st.columns to set the width of st.selectbox
+        """
+        Display a selection box for choosing a price percentile.
+        """
 
-        col1, col2, col3 = st.columns([1, 1, 1])
+        column_1, column_2, column_3 = st.columns([1, 1, 1])
 
-        with col2:  # Adjust the column index and width ratio as needed
+        with column_2:
             self.selected_percentile = st.selectbox(
                 "Select Percentile for Suggested Price Calculation",
                 options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
@@ -72,45 +78,96 @@ class TableVisualizer:
             )
 
     def _compile_apartments_data(
-        self, user_apartments_df: pd.DataFrame, offers_other_df: pd.DataFrame
+        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> pd.DataFrame:
-        df_apartments = user_apartments_df.copy()
+        """
+        Compile data from user apartments and market apartments into a single DataFrame.
+        """
 
-        df_apartments = df_apartments.rename(columns={"price": "your_price"})
+        apartments_df = user_apartments_df.copy()
 
-        df_apartments["price_by_model"] = self._calculate_price_by_model(df_apartments)
+        apartments_df = apartments_df.rename(columns={"price": "your_price"})
 
-        df_apartments["percentile_based_suggested_price"] = df_apartments.apply(
+        apartments_df["price_by_model"] = self._calculate_price_by_model(apartments_df)
+
+        apartments_df["percentile_based_suggested_price"] = apartments_df.apply(
             lambda row: self._calculate_percentile_based_suggested_price(
-                row, offers_other_df, self.selected_percentile
+                row, market_apartments_df, self.selected_percentile
             ),
             axis=1,
         )
 
-        df_apartments[
+        apartments_df[
             "price_percentile"
         ] = self._calculate_yours_price_percentile_against_others(
-            df_apartments, offers_other_df
+            apartments_df, market_apartments_df
         )
 
-        df_apartments["price_per_meter_by_percentile"] = df_apartments.apply(
+        apartments_df["price_per_meter_by_percentile"] = apartments_df.apply(
             lambda row: self._calculate_price_per_meter_differences(
-                row, offers_other_df, self.selected_percentile
+                row, market_apartments_df, self.selected_percentile
             ),
             axis=1,
         )
 
-        return df_apartments
+        return apartments_df
 
-    def _aggregate_properties_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
-        actual_price_total = df_apartments["your_price"].sum()
+    def _calculate_market_positioning(
+        self, apartments_comparison_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        """
+        Calculate and return market positioning data.
+        """
+
+        summary_stats = {
+            "flats": len(apartments_comparison_df["flat_id"].unique()),
+            "floor_max": apartments_comparison_df["floor"].max(),
+            "avg_area": apartments_comparison_df["area"].mean(),
+            "furnished_sum": apartments_comparison_df["is_furnished"].sum(),
+            "avg_your_price": apartments_comparison_df["your_price"].mean(),
+            "avg_price_percentile": apartments_comparison_df["price_percentile"].mean(),
+            "avg_price_by_model": apartments_comparison_df["price_by_model"].mean(),
+            "avg_percentile_based_suggested_price": apartments_comparison_df[
+                "percentile_based_suggested_price"
+            ].mean(),
+            "avg_your_price_per_meter": apartments_comparison_df[
+                "your_price_per_meter"
+            ].mean(),
+            "avg_price_per_meter_by_percentile": apartments_comparison_df[
+                "price_per_meter_by_percentile"
+            ].mean(),
+        }
+        df_summary = pd.DataFrame([summary_stats])
+
+        plus_minus_columns = [
+            "avg_price_by_model",
+            "avg_suggested_price_by_median",
+            "price_per_meter_by_percentile",
+        ]
+
+        # Custom formatting function to add '+' for positive values
+        # Apply the formatting function to the specific columns
+        for col in plus_minus_columns:
+            if col in df_summary.columns:
+                df_summary[col] = df_summary[col].apply(self._format_with_plus_sign)
+
+        return df_summary
+
+    def _aggregate_properties_data(
+        self, apartments_comparison_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        actual_price_total = apartments_comparison_df["your_price"].sum()
+        """
+        Aggregate and return summary data for properties.
+        """
 
         price_total_per_model = (
-            actual_price_total + df_apartments["price_by_model"].sum()
+            actual_price_total + apartments_comparison_df["price_by_model"].sum()
         )  # price by model is additional sum
 
         percentile_based_suggested_price_total = (
-            actual_price_total + df_apartments["percentile_based_suggested_price"].sum()
+            actual_price_total
+            + apartments_comparison_df["percentile_based_suggested_price"].sum()
         )  # price by median is additional sum
 
         summary_data = pd.DataFrame(
@@ -126,13 +183,17 @@ class TableVisualizer:
         return summary_data
 
     def _calculate_percentile_based_suggested_price(
-        self, row: pd.Series, market_apartments_df: pd.DataFrame, percentile: float
+        self, row: pd.Series, apartments_comparison_df: pd.DataFrame, percentile: float
     ) -> float:
-        furnished_offers = market_apartments_df[
-            market_apartments_df["equipment"]["furniture"] == True
+        """
+        Calculate suggested price based on percentile.
+        """
+
+        furnished_offers = apartments_comparison_df[
+            apartments_comparison_df["equipment"]["furniture"] == True
         ]
-        non_furnished_offers = market_apartments_df[
-            market_apartments_df["equipment"]["furniture"] == False
+        non_furnished_offers = apartments_comparison_df[
+            apartments_comparison_df["equipment"]["furniture"] == False
         ]
 
         sq_meter_price = None
@@ -148,68 +209,27 @@ class TableVisualizer:
         total_price_difference = sq_meter_price * row["area"] - row["your_price"]
         return total_price_difference
 
-    def _calculate_price_by_model(self, df_apartments: pd.DataFrame) -> pd.Series:
+    def _calculate_price_by_model(self, apartments_df: pd.DataFrame) -> pd.Series:
+        """
+        Calculate price by model.
+        """
         model_path = "notebooks\\svm_model_file.p"
         metadata_path = "notebooks\\svm_model_metadata.json"
 
         predictor = ModelPredictor(model_path, metadata_path)
-        price_predictions = predictor.get_price_predictions(df_apartments)
-        price_by_model = pd.Series(price_predictions)
-        price_by_model = price_by_model.apply(self._round_to_nearest_hundred)
+        price_predictions = predictor.get_price_predictions(apartments_df)
+        price_by_model_df = pd.Series(price_predictions)
+        price_by_model_df = price_by_model_df.apply(self._round_to_nearest_hundred)
 
-        price_by_model_diff = price_by_model - df_apartments["your_price"]
+        price_by_model_diff = price_by_model_df - apartments_df["your_price"]
 
         return price_by_model_diff
 
-    def _add_column_suggested_price_by_median(
-        self, df_apartments: pd.DataFrame
-    ) -> pd.DataFrame:
-        df_apartments["suggested_price_by_median"] = df_apartments.apply(
-            lambda row: self._round_to_nearest_hundred(
-                (row["in_5_km_price_per_meter"] * row["area"]) - row["your_price"]
-            ),
-            axis=1,
-        )
-
-        return df_apartments
-
-    def _calculate_market_positioning(
-        self, df_apartments: pd.DataFrame
-    ) -> pd.DataFrame:
-        summary_stats = {
-            "flats": len(df_apartments["flat_id"].unique()),
-            "floor_max": df_apartments["floor"].max(),
-            "avg_area": df_apartments["area"].mean(),
-            "furnished_sum": df_apartments["is_furnished"].sum(),
-            "avg_your_price": df_apartments["your_price"].mean(),
-            "avg_price_percentile": df_apartments["price_percentile"].mean(),
-            "avg_price_by_model": df_apartments["price_by_model"].mean(),
-            "avg_percentile_based_suggested_price": df_apartments[
-                "percentile_based_suggested_price"
-            ].mean(),
-            "avg_your_price_per_meter": df_apartments["your_price_per_meter"].mean(),
-            "avg_price_per_meter_by_percentile": df_apartments[
-                "price_per_meter_by_percentile"
-            ].mean(),
-        }
-        df_summary = pd.DataFrame([summary_stats])
-
-        specific_columns = [
-            "avg_price_by_model",
-            "avg_suggested_price_by_median",
-            "price_per_meter_by_percentile",
-        ]
-
-        # Custom formatting function to add '+' for positive values
-
-        # Apply the formatting function to the specific columns
-        for col in specific_columns:
-            if col in df_summary.columns:
-                df_summary[col] = df_summary[col].apply(self._format_with_plus_sign)
-
-        return df_summary
-
     def _format_column_titles(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
+        """
+        Format the column titles to be more readable.
+        """
+
         df_apartments.columns = [col.replace("_", " ") for col in df_apartments.columns]
 
         return df_apartments
@@ -366,7 +386,11 @@ class TableVisualizer:
         else:
             return value
 
-    def _show_data_table(self, df: pd.DataFrame, show_index: bool = False) -> None:
+    def _show_data_table(self, df: pd.DataFrame, with_index: bool = False) -> None:
+        """
+        Display a formatted table of the DataFrame.
+        """
+
         # Define the columns where the positive values should show '+' sign
         columns_with_plus_and_minus_at_front = [
             "price by model",
@@ -402,7 +426,7 @@ class TableVisualizer:
         styled_df = self._style_dataframe(df)
 
         # Convert DataFrame to HTML and use st.markdown to display it
-        html = styled_df.to_html(escape=False, index=show_index)
+        html = styled_df.to_html(escape=False, index=with_index)
         centered_html = f"""
         <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
             <div style='text-align: center;'>{html}</div>
