@@ -36,8 +36,6 @@ class TableVisualizer:
         )
         df_apartments = self._move_column(df_apartments, "lease_time", 14)
 
-        df_apartments = self._remove_unnecessary_columns(df_apartments)
-
         df_apartments = self._make_columns_titles_more_readable(df_apartments)
         df_market_positioning = self._make_columns_titles_more_readable(
             df_market_positioning
@@ -75,9 +73,7 @@ class TableVisualizer:
 
         df_apartments = df_apartments.rename(columns={"price": "your_price"})
 
-        df_apartments["price_by_model"] = self._add_column_calculated_price_by_model(
-            df_apartments
-        )
+        df_apartments["price_by_model"] = self._calculate_price_by_model(df_apartments)
 
         df_apartments["suggested_price_by_percentile"] = df_apartments.apply(
             lambda row: self._calculate_suggested_price_by_percentile(
@@ -86,12 +82,14 @@ class TableVisualizer:
             axis=1,
         )
 
-        df_apartments = self._add_statistical_data_to_offers(
+        df_apartments[
+            "price_percentile"
+        ] = self._calculate_yours_price_percentile_against_others(
             df_apartments, offers_other_df
         )
 
         df_apartments["price_per_meter_by_percentile"] = df_apartments.apply(
-            lambda row: self._calculated_price_per_meter_differences(
+            lambda row: self._calculate_price_per_meter_differences(
                 row, offers_other_df, self.selected_percentile
             ),
             axis=1,
@@ -145,9 +143,7 @@ class TableVisualizer:
         total_price_difference = sq_meter_price * row["area"] - row["your_price"]
         return total_price_difference
 
-    def _add_column_calculated_price_by_model(
-        self, df_apartments: pd.DataFrame
-    ) -> pd.Series:
+    def _calculate_price_by_model(self, df_apartments: pd.DataFrame) -> pd.Series:
         model_path = "notebooks\\svm_model_file.p"
         metadata_path = "notebooks\\svm_model_metadata.json"
 
@@ -180,7 +176,7 @@ class TableVisualizer:
             "avg_suggested_price_by_percentile": df_apartments[
                 "suggested_price_by_percentile"
             ].mean(),
-            "avg_your_price_per_meter": df_apartments["price_per_meter"].mean(),
+            "avg_your_price_per_meter": df_apartments["your_price_per_meter"].mean(),
             "avg_price_per_meter_by_percentile": df_apartments[
                 "price_per_meter_by_percentile"
             ].mean(),
@@ -207,49 +203,9 @@ class TableVisualizer:
 
         return df_apartments
 
-    def _remove_unnecessary_columns(self, df_apartments):
-        columns_to_delete = [
-            "in_5_km_price",
-            "in_5_km_price_per_meter",
-        ]
-        for column in columns_to_delete:
-            del df_apartments[column]
-
-        return df_apartments
-
-    def _add_statistical_data_to_offers(self, your_offers_df, other_offers_df):
-        # Create separate DataFrames for furnished and non-furnished offers
-        furnished_offers = other_offers_df[
-            other_offers_df["equipment"]["furniture"] == True
-        ]
-        non_furnished_offers = other_offers_df[
-            other_offers_df["equipment"]["furniture"] == False
-        ]
-
-        # Calculate medians for furnished and non-furnished offers
-        medians_furnished = {
-            "price": furnished_offers["pricing"]["total_rent"].median(),
-            "price_per_meter": furnished_offers["pricing"]["total_rent_sqm"].median(),
-        }
-        medians_non_furnished = {
-            "price": non_furnished_offers["pricing"]["total_rent"].median(),
-            "price_per_meter": non_furnished_offers["pricing"][
-                "total_rent_sqm"
-            ].median(),
-        }
-
-        # Initialize an empty DataFrame to store the median values
-        medians_5km_df = pd.DataFrame(index=your_offers_df.index)
-
-        # Iterate over rows in your_offers_df and add the corresponding medians
-        for idx, row in your_offers_df.iterrows():
-            if row["is_furnished"]:
-                for key, value in medians_furnished.items():
-                    medians_5km_df.at[idx, f"in_5_km_{key}"] = value
-            else:
-                for key, value in medians_non_furnished.items():
-                    medians_5km_df.at[idx, f"in_5_km_{key}"] = value
-
+    def _calculate_yours_price_percentile_against_others(
+        self, your_offers_df, other_offers_df
+    ):
         # Separate prices based on 'is_furnished' column
         furnished_prices = other_offers_df[
             other_offers_df["equipment"]["furniture"] == True
@@ -263,25 +219,28 @@ class TableVisualizer:
         non_furnished_prices_series = pd.Series(non_furnished_prices.values)
 
         # Calculate percentile ranks based on 'is_furnished'
-        def calculate_percentile(row):
-            price = row["your_price"]
-            is_furnished = row["is_furnished"]
-            if is_furnished:
-                return furnished_prices_series[
-                    furnished_prices_series <= price
-                ].count() / len(furnished_prices_series)
-            else:
-                return non_furnished_prices_series[
-                    non_furnished_prices_series <= price
-                ].count() / len(non_furnished_prices_series)
-
-        your_offers_df["price_percentile"] = your_offers_df.apply(
-            calculate_percentile, axis=1
+        your_price_as_percentile_of_other_offers = your_offers_df.apply(
+            lambda row: self._calculate_percentile(
+                row, furnished_prices_series, non_furnished_prices_series
+            ),
+            axis=1,
         )
 
-        # Concatenate the original DataFrame with the medians DataFrame
-        df_apartments = pd.concat([your_offers_df, medians_5km_df], axis=1)
-        return df_apartments
+        return your_price_as_percentile_of_other_offers
+
+    def _calculate_percentile(
+        self, row, furnished_prices_series, non_furnished_prices_series
+    ):
+        price = row["your_price"]
+        is_furnished = row["is_furnished"]
+        if is_furnished:
+            return furnished_prices_series[
+                furnished_prices_series <= price
+            ].count() / len(furnished_prices_series)
+        else:
+            return non_furnished_prices_series[
+                non_furnished_prices_series <= price
+            ].count() / len(non_furnished_prices_series)
 
     def _display_title(self, text="", subtitle=""):
         st.markdown(
@@ -342,11 +301,13 @@ class TableVisualizer:
 
         narrowed_df = other_offers_df[other_offers_df.apply(filter_row, axis=1)].copy()
 
+        your_offers_df = your_offers_df.rename(
+            columns={"price_per_meter": "your_price_per_meter"}
+        )
+
         return your_offers_df, narrowed_df
 
-    def _calculated_price_per_meter_differences(
-        self, row, offers_others_df, percentile
-    ):
+    def _calculate_price_per_meter_differences(self, row, offers_others_df, percentile):
         furnished_offers = offers_others_df[
             offers_others_df["equipment"]["furniture"] == True
         ]
@@ -364,7 +325,7 @@ class TableVisualizer:
                 "total_rent_sqm"
             ].quantile(percentile)
 
-        sq_meter_price_yours = row["price_per_meter"]
+        sq_meter_price_yours = row["your_price_per_meter"]
 
         percent_difference = round(
             ((sq_meter_price_others / sq_meter_price_yours) - 1) * 100, 2
@@ -387,7 +348,7 @@ class TableVisualizer:
 
     def _display_table(self, df, show_index=False):
         # Define the columns where the positive values should show '+' sign
-        specific_columns = [
+        columns_with_plus_and_minus_at_front = [
             "price by model",
             "suggested price by percentile",
             "price per meter by percentile",
@@ -399,14 +360,23 @@ class TableVisualizer:
         # Round float columns to 2 decimal places
         float_columns = df.select_dtypes(include=["float"]).columns
         for col in float_columns:
-            if col not in specific_columns:
+            if col not in columns_with_plus_and_minus_at_front:
                 df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else x)
 
         # Custom formatting function to add '+' for positive values
         # Apply the formatting function to the specific columns
-        for col in specific_columns:
+        for col in columns_with_plus_and_minus_at_front:
             if col in df.columns:
                 df[col] = df[col].apply(self._format_with_plus_sign)
+
+        columns_with_percent_at_end = [
+            "price per meter by percentile",
+            "avg price per meter by percentile",
+        ]
+        # add percent sign at the end
+        for col in columns_with_percent_at_end:
+            if col in df.columns:
+                df[col] = df[col].apply(lambda x: f"{x}%" if pd.notna(x) else x)
 
         # Apply custom styling
         styled_df = self._style_dataframe(df)
