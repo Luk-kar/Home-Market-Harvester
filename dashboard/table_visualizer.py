@@ -130,8 +130,8 @@ class TableVisualizer:
     def _add_column_calculated_price_by_model(
         self, df_apartments: pd.DataFrame
     ) -> pd.Series:
-        model_path = "notebooks\\gbm_model_file.p"
-        metadata_path = "notebooks\\gbm_model_metadata.json"
+        model_path = "notebooks\\svm_model_file.p"
+        metadata_path = "notebooks\\svm_model_metadata.json"
 
         predictor = ModelPredictor(model_path, metadata_path)
         price_by_model = predictor.get_price_predictions(df_apartments)
@@ -292,12 +292,39 @@ class TableVisualizer:
         ]
         your_offers_df = your_offers_df[selected_columns]
 
-        offers_5km_df = other_offers_df[
-            (other_offers_df["location"]["city"] == "będziński")
-            | (other_offers_df["location"]["city"] == "Zawada")
-        ].copy()
+        def filter_row(row):
+            try:
+                city = row["location"]["city"]
+                building_type = (
+                    row["type_and_year"]["building_type"]
+                    if pd.notna(row["type_and_year"].get("building_type"))
+                    else False
+                )
+                build_year = (
+                    row["type_and_year"]["build_year"]
+                    if pd.notna(row["type_and_year"].get("build_year"))
+                    else False
+                )
+                return (
+                    city
+                    in [
+                        "będziński",
+                        "Zawada",
+                        "Siewierz",
+                        "tarnogórski",
+                        "Piekary Śląskie",
+                        "zawierciański",
+                        "Siemianowice Śląskie",
+                    ]
+                    and building_type in ["block_of_flats", "apartment_building"]
+                    and build_year <= 1970
+                )
+            except KeyError:
+                return False
 
-        return your_offers_df, offers_5km_df
+        narrowed_df = other_offers_df[other_offers_df.apply(filter_row, axis=1)].copy()
+
+        return your_offers_df, narrowed_df
 
     def _add_column_calculated_price_differences(
         self, df, column_prefix, base_price_per_meter_col
