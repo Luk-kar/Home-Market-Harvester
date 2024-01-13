@@ -11,57 +11,58 @@ from model_offer_predictor import ModelPredictor
 
 # TODO is furnished adjust to the offers
 class TableVisualizer:
-    def __init__(self, aesthetics: Optional[dict] = None):
-        self.aesthetics = aesthetics
+    def __init__(self, display_settings: Optional[dict] = None):
+        self.display_settings = display_settings
         self.selected_percentile: Optional[float] = None
 
     def display(
-        self, your_offers_df: pd.DataFrame, other_offers_df: pd.DataFrame
+        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> None:
-        your_offers_df, offers_narrowed_df = self._narrow_data(
-            your_offers_df, other_offers_df
+        user_apartments_narrowed, market_apartments_narrowed = self._filter_data(
+            user_apartments_df, market_apartments_df
         )
 
-        self._display_title(
+        self._display_header(
             "📊 Apartments Data", "Price in PLN, medians taken from 5 km radius"
         )
 
-        self._display_percentile_selectbox()
+        self._select_price_percentile()
 
-        df_apartments = self._get_apartments_data(your_offers_df, offers_narrowed_df)
-
-        df_market_positioning = self._get_market_positioning_data(df_apartments)
-
-        df_owned_flats_summary = self._get_properties_summary_data(df_apartments)
-
-        df_apartments = self._move_column(df_apartments, "price_percentile", 7)
-        df_apartments = self._move_column(df_apartments, "price_by_model", 8)
-        df_apartments = self._move_column(
-            df_apartments, "suggested_price_by_percentile", 9
-        )
-        df_apartments = self._move_column(df_apartments, "lease_time", 14)
-
-        df_apartments = self._make_columns_titles_more_readable(df_apartments)
-        df_market_positioning = self._make_columns_titles_more_readable(
-            df_market_positioning
-        )
-        df_owned_flats_summary = self._make_columns_titles_more_readable(
-            df_owned_flats_summary
+        apartments_comparison_df = self._compile_apartments_data(
+            user_apartments_narrowed, market_apartments_narrowed
         )
 
-        self._display_table(df_apartments, show_index=True)
+        market_positioning_df = self._calculate_market_positioning(
+            apartments_comparison_df
+        )
 
-        self._display_title(subtitle="📈 Market Positioning")
+        property_summary_df = self._aggregate_properties_data(apartments_comparison_df)
 
-        self._display_table(df_market_positioning)
+        apartments_comparison_df = self._move_column(
+            apartments_comparison_df, "price_percentile", 7
+        )
+        apartments_comparison_df = self._move_column(
+            apartments_comparison_df, "price_by_model", 8
+        )
+        apartments_comparison_df = self._move_column(
+            apartments_comparison_df, "suggested_price_by_percentile", 9
+        )
+        apartments_comparison_df = self._move_column(
+            apartments_comparison_df, "lease_time", 14
+        )
 
-        self._display_title(subtitle="📋 Total Summary")
+        apartments_comparison_df = self._format_column_titles(apartments_comparison_df)
+        market_positioning_df = self._format_column_titles(market_positioning_df)
+        property_summary_df = self._format_column_titles(property_summary_df)
 
-        self._display_table(df_owned_flats_summary)
+        self._show_data_table(apartments_comparison_df, show_index=True)
+        self._display_header(subtitle="📈 Market Positioning")
+        self._show_data_table(market_positioning_df)
+        self._display_header(subtitle="📋 Total Summary")
+        self._show_data_table(property_summary_df)
+        self._display_header(subtitle="\n\n")
 
-        self._display_title(subtitle="\n\n")
-
-    def _display_percentile_selectbox(self) -> None:
+    def _select_price_percentile(self) -> None:
         # Using st.columns to set the width of st.selectbox
 
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -73,10 +74,10 @@ class TableVisualizer:
                 index=4,  # Default to 0.5
             )
 
-    def _get_apartments_data(
-        self, your_offers_df: pd.DataFrame, offers_other_df: pd.DataFrame
+    def _compile_apartments_data(
+        self, user_apartments_df: pd.DataFrame, offers_other_df: pd.DataFrame
     ) -> pd.DataFrame:
-        df_apartments = your_offers_df.copy()
+        df_apartments = user_apartments_df.copy()
 
         df_apartments = df_apartments.rename(columns={"price": "your_price"})
 
@@ -104,7 +105,7 @@ class TableVisualizer:
 
         return df_apartments
 
-    def _get_properties_summary_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
+    def _aggregate_properties_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
         actual_price_total = df_apartments["your_price"].sum()
 
         price_total_per_model = (
@@ -128,13 +129,13 @@ class TableVisualizer:
         return summary_data
 
     def _calculate_suggested_price_by_percentile(
-        self, row: pd.Series, other_offers_df: pd.DataFrame, percentile: float
+        self, row: pd.Series, market_apartments_df: pd.DataFrame, percentile: float
     ) -> float:
-        furnished_offers = other_offers_df[
-            other_offers_df["equipment"]["furniture"] == True
+        furnished_offers = market_apartments_df[
+            market_apartments_df["equipment"]["furniture"] == True
         ]
-        non_furnished_offers = other_offers_df[
-            other_offers_df["equipment"]["furniture"] == False
+        non_furnished_offers = market_apartments_df[
+            market_apartments_df["equipment"]["furniture"] == False
         ]
 
         sq_meter_price = None
@@ -159,10 +160,6 @@ class TableVisualizer:
         price_by_model = pd.Series(price_predictions)
         price_by_model = price_by_model.apply(self._round_to_nearest_hundred)
 
-        print(f"price_by_model: {price_by_model}")
-
-        print(f"your_price: {df_apartments}")
-
         price_by_model_diff = price_by_model - df_apartments["your_price"]
 
         return price_by_model_diff
@@ -179,7 +176,9 @@ class TableVisualizer:
 
         return df_apartments
 
-    def _get_market_positioning_data(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
+    def _calculate_market_positioning(
+        self, df_apartments: pd.DataFrame
+    ) -> pd.DataFrame:
         summary_stats = {
             "flats": len(df_apartments["flat_id"].unique()),
             "floor_max": df_apartments["floor"].max(),
@@ -213,22 +212,20 @@ class TableVisualizer:
 
         return df_summary
 
-    def _make_columns_titles_more_readable(
-        self, df_apartments: pd.DataFrame
-    ) -> pd.DataFrame:
+    def _format_column_titles(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
         df_apartments.columns = [col.replace("_", " ") for col in df_apartments.columns]
 
         return df_apartments
 
     def _calculate_yours_price_percentile_against_others(
-        self, your_offers_df: pd.DataFrame, other_offers_df: pd.DataFrame
+        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> pd.Series:
         # Separate prices based on 'is_furnished' column
-        furnished_prices = other_offers_df[
-            other_offers_df["equipment"]["furniture"] == True
+        furnished_prices = market_apartments_df[
+            market_apartments_df["equipment"]["furniture"] == True
         ]["pricing"]["total_rent"]
-        non_furnished_prices = other_offers_df[
-            other_offers_df["equipment"]["furniture"] == False
+        non_furnished_prices = market_apartments_df[
+            market_apartments_df["equipment"]["furniture"] == False
         ]["pricing"]["total_rent"]
 
         # Create Series from the prices for comparison
@@ -236,7 +233,7 @@ class TableVisualizer:
         non_furnished_prices_series = pd.Series(non_furnished_prices.values)
 
         # Calculate percentile ranks based on 'is_furnished'
-        your_price_as_percentile_of_other_offers = your_offers_df.apply(
+        your_price_as_percentile_of_other_offers = user_apartments_df.apply(
             lambda row: self._calculate_percentile(
                 row, furnished_prices_series, non_furnished_prices_series
             ),
@@ -262,7 +259,7 @@ class TableVisualizer:
                 non_furnished_prices_series <= price
             ].count() / len(non_furnished_prices_series)
 
-    def _display_title(self, text: str = "", subtitle: str = "") -> None:
+    def _display_header(self, text: str = "", subtitle: str = "") -> None:
         st.markdown(
             f"<h3 style='text-align: center;'>{text}</h3>",
             unsafe_allow_html=True,
@@ -274,8 +271,8 @@ class TableVisualizer:
                 unsafe_allow_html=True,
             )
 
-    def _narrow_data(
-        self, your_offers_df: pd.DataFrame, other_offers_df: pd.DataFrame
+    def _filter_data(
+        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         selected_columns = [
             "deal_id",
@@ -289,7 +286,7 @@ class TableVisualizer:
             "lease_time",
             "price_per_meter",
         ]
-        your_offers_df = your_offers_df[selected_columns]
+        user_apartments_df = user_apartments_df[selected_columns]
 
         def filter_row(row: pd.Series) -> bool:
             try:
@@ -321,13 +318,15 @@ class TableVisualizer:
             except KeyError:
                 return False
 
-        narrowed_df = other_offers_df[other_offers_df.apply(filter_row, axis=1)].copy()
+        narrowed_df = market_apartments_df[
+            market_apartments_df.apply(filter_row, axis=1)
+        ].copy()
 
-        your_offers_df = your_offers_df.rename(
+        user_apartments_df = user_apartments_df.rename(
             columns={"price_per_meter": "your_price_per_meter"}
         )
 
-        return your_offers_df, narrowed_df
+        return user_apartments_df, narrowed_df
 
     def _calculate_price_per_meter_differences(
         self, row: pd.Series, offers_others_df: pd.DataFrame, percentile: float
@@ -370,7 +369,7 @@ class TableVisualizer:
         else:
             return value
 
-    def _display_table(self, df: pd.DataFrame, show_index: bool = False) -> None:
+    def _show_data_table(self, df: pd.DataFrame, show_index: bool = False) -> None:
         # Define the columns where the positive values should show '+' sign
         columns_with_plus_and_minus_at_front = [
             "price by model",
