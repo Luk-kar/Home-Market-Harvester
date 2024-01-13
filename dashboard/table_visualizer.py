@@ -38,17 +38,14 @@ class TableVisualizer:
 
         property_summary_df = self._aggregate_properties_data(apartments_comparison_df)
 
-        apartments_comparison_df = self._move_column(
-            apartments_comparison_df, "price_percentile", 7
-        )
-        apartments_comparison_df = self._move_column(
-            apartments_comparison_df, "price_by_model", 8
-        )
-        apartments_comparison_df = self._move_column(
-            apartments_comparison_df, "suggested_price_by_percentile", 9
-        )
-        apartments_comparison_df = self._move_column(
-            apartments_comparison_df, "lease_time", 14
+        apartments_comparison_df = self._reorder_columns(
+            apartments_comparison_df,
+            {
+                "price_percentile": 7,
+                "price_by_model": 8,
+                "percentile_based_suggested_price": 9,
+                "lease_time": 14,
+            },
         )
 
         apartments_comparison_df = self._format_column_titles(apartments_comparison_df)
@@ -83,8 +80,8 @@ class TableVisualizer:
 
         df_apartments["price_by_model"] = self._calculate_price_by_model(df_apartments)
 
-        df_apartments["suggested_price_by_percentile"] = df_apartments.apply(
-            lambda row: self._calculate_suggested_price_by_percentile(
+        df_apartments["percentile_based_suggested_price"] = df_apartments.apply(
+            lambda row: self._calculate_percentile_based_suggested_price(
                 row, offers_other_df, self.selected_percentile
             ),
             axis=1,
@@ -112,23 +109,23 @@ class TableVisualizer:
             actual_price_total + df_apartments["price_by_model"].sum()
         )  # price by model is additional sum
 
-        suggested_price_by_percentile_total = (
-            actual_price_total + df_apartments["suggested_price_by_percentile"].sum()
+        percentile_based_suggested_price_total = (
+            actual_price_total + df_apartments["percentile_based_suggested_price"].sum()
         )  # price by median is additional sum
 
         summary_data = pd.DataFrame(
             {
                 "your_price_total": [actual_price_total],
                 "price_total_per_model": [price_total_per_model],
-                "suggested_price_by_percentile_total": [
-                    suggested_price_by_percentile_total
+                "percentile_based_suggested_price_total": [
+                    percentile_based_suggested_price_total
                 ],
             }
         )
 
         return summary_data
 
-    def _calculate_suggested_price_by_percentile(
+    def _calculate_percentile_based_suggested_price(
         self, row: pd.Series, market_apartments_df: pd.DataFrame, percentile: float
     ) -> float:
         furnished_offers = market_apartments_df[
@@ -187,8 +184,8 @@ class TableVisualizer:
             "avg_your_price": df_apartments["your_price"].mean(),
             "avg_price_percentile": df_apartments["price_percentile"].mean(),
             "avg_price_by_model": df_apartments["price_by_model"].mean(),
-            "avg_suggested_price_by_percentile": df_apartments[
-                "suggested_price_by_percentile"
+            "avg_percentile_based_suggested_price": df_apartments[
+                "percentile_based_suggested_price"
             ].mean(),
             "avg_your_price_per_meter": df_apartments["your_price_per_meter"].mean(),
             "avg_price_per_meter_by_percentile": df_apartments[
@@ -413,27 +410,24 @@ class TableVisualizer:
         """
         st.markdown(centered_html, unsafe_allow_html=True)
 
-    def _move_column(
-        self, df: pd.DataFrame, column_name: str, position: int
-    ) -> pd.DataFrame:
+    def _reorder_columns(self, df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
         """
-        Move a column in the DataFrame to a specified position.
+        Reorder the columns of a DataFrame.
 
         Args:
-            df (pd.DataFrame): The DataFrame to modify.
-            column_name (str): The name of the column to move.
-            position (int): The new position for the column (0-indexed).
+            df (pd.DataFrame): The DataFrame to reorder.
+            column_order (dict): A dictionary mapping column names to their new positions.
 
         Returns:
-            pd.DataFrame: The DataFrame with the column moved to the new position.
+            pd.DataFrame: The DataFrame with reordered columns.
         """
         columns = list(df.columns)
-        if column_name in columns:
-            columns.insert(position, columns.pop(columns.index(column_name)))
-            return df[columns]
-        else:
-            print(f"Column '{column_name}' not found in DataFrame.")
-            return df
+        for column_name, new_position in column_order.items():
+            if column_name in columns:
+                columns.insert(new_position, columns.pop(columns.index(column_name)))
+            else:
+                print(f"Column '{column_name}' not found in DataFrame.")
+        return df[columns]
 
     def _style_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         def apply_row_styles(row):
