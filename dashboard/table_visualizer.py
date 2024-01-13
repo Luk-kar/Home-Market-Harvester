@@ -225,18 +225,22 @@ class TableVisualizer:
 
         return price_by_model_diff
 
-    def _format_column_titles(self, df_apartments: pd.DataFrame) -> pd.DataFrame:
+    def _format_column_titles(self, apartments_df: pd.DataFrame) -> pd.DataFrame:
         """
         Format the column titles to be more readable.
         """
 
-        df_apartments.columns = [col.replace("_", " ") for col in df_apartments.columns]
+        apartments_df.columns = [col.replace("_", " ") for col in apartments_df.columns]
 
-        return df_apartments
+        return apartments_df
 
     def _calculate_yours_price_percentile_against_others(
         self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> pd.Series:
+        """
+        Calculate the percentile of user the price compared to the market offers.
+        """
+
         # Separate prices based on 'is_furnished' column
         furnished_prices = market_apartments_df[
             market_apartments_df["equipment"]["furniture"] == True
@@ -250,14 +254,14 @@ class TableVisualizer:
         non_furnished_prices_series = pd.Series(non_furnished_prices.values)
 
         # Calculate percentile ranks based on 'is_furnished'
-        your_price_as_percentile_of_other_offers = user_apartments_df.apply(
+        user_prices_as_percentiles_of_other_markets_offers = user_apartments_df.apply(
             lambda row: self._calculate_percentile(
                 row, furnished_prices_series, non_furnished_prices_series
             ),
             axis=1,
         )
 
-        return your_price_as_percentile_of_other_offers
+        return user_prices_as_percentiles_of_other_markets_offers
 
     def _calculate_percentile(
         self,
@@ -265,6 +269,9 @@ class TableVisualizer:
         furnished_prices_series: pd.Series,
         non_furnished_prices_series: pd.Series,
     ) -> float:
+        """
+        Calculate the percentile ranking of an apartment's price relative to market prices
+        """
         price = row["your_price"]
         is_furnished = row["is_furnished"]
         if is_furnished:
@@ -277,6 +284,9 @@ class TableVisualizer:
             ].count() / len(non_furnished_prices_series)
 
     def _display_header(self, text: str = "", subtitle: str = "") -> None:
+        """
+        Display a formatted header.
+        """
         st.markdown(
             f"<h3 style='text-align: center;'>{text}</h3>",
             unsafe_allow_html=True,
@@ -291,6 +301,10 @@ class TableVisualizer:
     def _filter_data(
         self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Filter the data to only include apartments that are relevant for the analysis.
+        """
+
         selected_columns = [
             "deal_id",
             "flat_id",
@@ -306,6 +320,12 @@ class TableVisualizer:
         user_apartments_df = user_apartments_df[selected_columns]
 
         def filter_row(row: pd.Series) -> bool:
+            """
+            Filter rows based on the following criteria:
+            - City is in the list of cities
+            - Building type is in the list of building types
+            - Build year is less than or equal to 1970
+            """
             try:
                 city = row["location"]["city"]
                 building_type = (
@@ -335,7 +355,7 @@ class TableVisualizer:
             except KeyError:
                 return False
 
-        narrowed_df = market_apartments_df[
+        filtered_df = market_apartments_df[
             market_apartments_df.apply(filter_row, axis=1)
         ].copy()
 
@@ -343,16 +363,20 @@ class TableVisualizer:
             columns={"price_per_meter": "your_price_per_meter"}
         )
 
-        return user_apartments_df, narrowed_df
+        return user_apartments_df, filtered_df
 
     def _calculate_price_per_meter_differences(
-        self, row: pd.Series, offers_others_df: pd.DataFrame, percentile: float
+        self, row: pd.Series, market_apartments_df: pd.DataFrame, percentile: float
     ) -> float:
-        furnished_offers = offers_others_df[
-            offers_others_df["equipment"]["furniture"] == True
+        """
+        Calculate the difference between the price per meter of the user's apartment
+        and the price per meter of other apartments in the market.
+        """
+        furnished_offers = market_apartments_df[
+            market_apartments_df["equipment"]["furniture"] == True
         ]
-        non_furnished_offers = offers_others_df[
-            offers_others_df["equipment"]["furniture"] == False
+        non_furnished_offers = market_apartments_df[
+            market_apartments_df["equipment"]["furniture"] == False
         ]
 
         sq_meter_price_others = None
@@ -377,6 +401,9 @@ class TableVisualizer:
         return round(number / 100) * 100
 
     def _format_with_plus_sign(self, value) -> str:
+        """
+        Format a value with a '+' sign if it is positive.
+        """
         if pd.isna(value):
             return value
         elif isinstance(value, (float, int)) and value > 0:
@@ -454,6 +481,10 @@ class TableVisualizer:
         return df[columns]
 
     def _style_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Apply custom styling to a DataFrame's elements.
+        """
+
         def apply_row_styles(row):
             for col in row.index:
                 if isinstance(row[col], str) and row[col].startswith("+"):
