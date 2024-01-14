@@ -1,4 +1,8 @@
+# Standard imports
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 # Third-party imports
+import matplotlib.axes._axes as Axes
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -9,10 +13,10 @@ import streamlit as st
 class BarChartVisualizer:
     def __init__(
         self,
-        display_settings,
-        user_apartments_df,
-        market_apartments_df,
-        bar_chart_title,
+        display_settings: Dict[str, Any],
+        user_apartments_df: pd.DataFrame,
+        market_apartments_df: pd.DataFrame,
+        bar_chart_title: str,
     ):
         self.display_settings = display_settings
         self.user_apartments_df = user_apartments_df
@@ -23,7 +27,7 @@ class BarChartVisualizer:
         Initializes the bar chart visualizer with necessary data.
         """
 
-    def display(self):
+    def display(self) -> None:
         if self.bar_chart_title:
             st.markdown(
                 f"<h3 style='text-align: center;'>{self.bar_chart_title}</h3>",
@@ -61,13 +65,15 @@ class BarChartVisualizer:
                 )
             )
 
-    def _generate_x_label(self, categories: list):
+    def _generate_x_label(self, categories: List[str]) -> str:
         space = " " * 36
         max_length = max(len(category) for category in categories)
         centered_categories = [category.center(max_length) for category in categories]
         return space.join(centered_categories)
 
-    def _calculate_median_data(self, offers, column):
+    def _calculate_median_data(
+        self, offers: Dict[str, Dict[str, pd.DataFrame]], column: str
+    ) -> Dict[str, float]:
         """
         Calculates the median price per meter for each offer category.
         """
@@ -102,7 +108,9 @@ class BarChartVisualizer:
 
         return data
 
-    def _format_column_name_for_display(self, furniture, position_to_add_space):
+    def _format_column_name_for_display(
+        self, furniture: str, position_to_add_space: Optional[int]
+    ) -> str:
         """
         This method provides a clever workaround to create visually similar names
         for bar chart columns by strategically inserting spaces at various positions along the edges of the names.
@@ -116,7 +124,9 @@ class BarChartVisualizer:
             else furniture
         )
 
-    def _insert_char(self, original_string, position, char_to_insert):
+    def _insert_char(
+        self, original_string: str, position: int, char_to_insert: str
+    ) -> str:
         """
         Inserts a character at the specified position in a string.
         """
@@ -130,7 +140,7 @@ class BarChartVisualizer:
 
         return original_string[:position] + char_to_insert + original_string[position:]
 
-    def _create_offers_dict(self):
+    def _create_offers_dict(self) -> Dict[str, Dict[str, pd.DataFrame]]:
         return {
             "Yours": {
                 "furnished": self.user_apartments_df[
@@ -160,7 +170,7 @@ class BarChartVisualizer:
             },
         }
 
-    def _get_darker_shade(self, color, factor=0.5):
+    def _get_darker_shade(self, color: str, factor: float = 0.5) -> str:
         """
         Darkens a color by a specified factor.
         """
@@ -169,7 +179,13 @@ class BarChartVisualizer:
         darkened_hex = mcolors.rgb2hex(darkened_rgb)
         return darkened_hex
 
-    def _set_plot_aesthetics(self, ax, title=None, xlabel=None, ylabel=None):
+    def _set_plot_aesthetics(
+        self,
+        ax: Axes,
+        title: Optional[str] = None,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+    ) -> None:
         """
         Sets the aesthetics of the plot.
         """
@@ -236,7 +252,9 @@ class BarChartVisualizer:
             )  # Ensure the index loops over my_palette
             p.set_color(my_palette[color_index])
 
-    def _plot_bar_chart(self, data, title, xlabel, ylabel):
+    def _plot_bar_chart(
+        self, data: Dict[str, float], title: str, xlabel: str, ylabel: str
+    ) -> plt.Figure:
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])
         fig, ax = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
         sns.barplot(
