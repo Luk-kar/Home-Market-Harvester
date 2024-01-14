@@ -5,8 +5,8 @@ import streamlit as st
 
 
 class MapVisualizer:
-    def __init__(self, aesthetics):
-        self.aesthetics = aesthetics
+    def __init__(self, display_settings):
+        self.display_settings = display_settings
 
     def display(
         self,

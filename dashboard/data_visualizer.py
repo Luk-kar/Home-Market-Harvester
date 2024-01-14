@@ -24,7 +24,7 @@ class DataVisualizer:
             user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
             market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
             map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
-            display_settings: Configuration for the aesthetics of the visualizations.
+            display_settings: Configuration for the display settings of the visualizations.
             dashboard_title (str): The title of the dashboard.
         """
         self.user_apartments_df = user_apartments_df

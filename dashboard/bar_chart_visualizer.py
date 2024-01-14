@@ -7,8 +7,8 @@ import streamlit as st
 
 
 class BarChartVisualizer:
-    def __init__(self, aesthetics, user_apartments_df, market_apartments_df):
-        self.aesthetics = aesthetics
+    def __init__(self, display_settings, user_apartments_df, market_apartments_df):
+        self.display_settings = display_settings
         self.user_apartments_df = user_apartments_df
         self.market_apartments_df = market_apartments_df
 
@@ -140,31 +140,31 @@ class BarChartVisualizer:
         return darkened_hex
 
     def _set_plot_aesthetics(self, ax, title=None, xlabel=None, ylabel=None):
-        aesthetics = self.aesthetics
+        display_settings = self.display_settings
 
         # Set the title and axis labels
         if title:
             ax.set_title(
                 title,
-                color=aesthetics["label_color"],
-                fontweight=aesthetics["fontweight"],
+                color=display_settings["label_color"],
+                fontweight=display_settings["fontweight"],
             )
         if xlabel:
-            ax.set_xlabel(xlabel, fontweight=aesthetics["fontweight"])
+            ax.set_xlabel(xlabel, fontweight=display_settings["fontweight"])
         if ylabel:
-            ax.set_ylabel(ylabel, fontweight=aesthetics["fontweight"])
+            ax.set_ylabel(ylabel, fontweight=display_settings["fontweight"])
 
         # Set the color of the tick labels
-        ax.tick_params(colors=aesthetics["label_color"], which="both")
-        ax.yaxis.label.set_color(aesthetics["label_color"])
-        ax.xaxis.label.set_color(aesthetics["label_color"])
+        ax.tick_params(colors=display_settings["label_color"], which="both")
+        ax.yaxis.label.set_color(display_settings["label_color"])
+        ax.xaxis.label.set_color(display_settings["label_color"])
 
         # Remove the top and right spines from plot
         sns.despine(right=True, top=True)
 
         # Set the color of the axes
         for spine in ax.spines.values():
-            spine.set_edgecolor(aesthetics["label_color"])
+            spine.set_edgecolor(display_settings["label_color"])
 
         # Add annotations for each bar
         for p in ax.patches:
@@ -176,8 +176,8 @@ class BarChartVisualizer:
                     ha="center",
                     va="bottom",
                     fontsize=10,
-                    weight=aesthetics["fontweight"],
-                    color=aesthetics["label_color"],
+                    weight=display_settings["fontweight"],
+                    color=display_settings["label_color"],
                     xytext=(0, 2),
                     textcoords="offset points",
                 )
@@ -204,9 +204,13 @@ class BarChartVisualizer:
 
     def _plot_bar_chart(self, data, title, xlabel, ylabel):
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])
-        fig, ax = plt.subplots(figsize=self.aesthetics["figsize"]["singleplot"])
+        fig, ax = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
         sns.barplot(
-            x="Category", y="Value", data=df, ax=ax, palette=self.aesthetics["palette"]
+            x="Category",
+            y="Value",
+            data=df,
+            ax=ax,
+            palette=self.display_settings["palette"],
         )
 
         self._set_plot_aesthetics(ax, title=title, xlabel=xlabel, ylabel=ylabel)
