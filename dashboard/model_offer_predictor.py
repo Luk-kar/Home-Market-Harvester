@@ -44,10 +44,10 @@ class ModelPredictor:
     model_path = "notebooks\\gbm_model_file.p"
     metadata_path = "notebooks\\gbm_model_metadata.json"
     offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
-    your_offers_df = pd.read_csv(offers_path)
+    user_apartments_df = pd.read_csv(offers_path)
 
     predictor = ModelPredictor(model_path, metadata_path)
-    predictor.get_price_predictions(your_offers_df)
+    predictor.get_price_predictions(user_apartments_df)
     """
 
     def __init__(self, model_path: str, metadata_path: str):
@@ -74,10 +74,10 @@ class ModelPredictor:
         model_path = "notebooks\\gbm_model_file.p"
         metadata_path = "notebooks\\gbm_model_metadata.json"
         offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
-        your_offers_df = pd.read_csv(offers_path)
+        user_apartments_df = pd.read_csv(offers_path)
 
         predictor = ModelPredictor(model_path, metadata_path)
-        predictor.get_price_predictions(your_offers_df)
+        predictor.get_price_predictions(user_apartments_df)
         """
 
         if self.model is not None and self.metadata is not None:

@@ -13,9 +13,9 @@ from table_visualizer import TableVisualizer
 
 
 def streamlit_app():
-    your_offers_df, other_offers_df, map_offers_df = load_data()
+    user_apartments_df, market_apartments_df, map_offers_df = load_data()
 
-    render_data(your_offers_df, other_offers_df, map_offers_df)
+    render_data(user_apartments_df, market_apartments_df, map_offers_df)
 
 
 def load_data():
@@ -37,20 +37,41 @@ def load_data():
     if not check_if_file_exists(your_offers_path):
         return
 
-    your_offers_df, other_offers_df, map_offers_df = data_processor.load_data(
+    user_apartments_df, market_apartments_df, map_offers_df = data_processor.load_data(
         your_offers_path=your_offers_path
     )
 
-    return your_offers_df, other_offers_df, map_offers_df
+    return user_apartments_df, market_apartments_df, map_offers_df
 
 
-def render_data(your_offers_df, other_offers_df, map_offers_df):
+def check_if_file_exists(file_path: str):
+    # Check if the environment variable was set
+    if file_path is None:
+        st.error(
+            "The environment variable 'YOUR_OFFERS_PATH' is not set. Please set the variable and try again."
+        )
+        return False
+
+    # Check if the file exists
+    if not os.path.isfile(file_path):
+        st.error(f"The file specified does not exist: {file_path}")
+        return False
+
+    # Check if the file is a CSV
+    if not file_path.lower().endswith(".csv"):
+        st.error("The file specified is not a CSV file.")
+        return False
+
+    return True
+
+
+def render_data(user_apartments_df, market_apartments_df, map_offers_df):
     """
     Renders the data in the application.
 
     Args:
-        your_offers_df (pd.DataFrame): A DataFrame containing your offers.
-        other_offers_df (pd.DataFrame): A DataFrame containing other offers.
+        user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
+        market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
         map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
 
     Raises:
@@ -60,12 +81,12 @@ def render_data(your_offers_df, other_offers_df, map_offers_df):
 
     display_title("🔍🏠 Rent comparisons")
     bar_chart_visualizer = BarChartVisualizer(
-        aesthetics_config, your_offers_df, other_offers_df
+        aesthetics_config, user_apartments_df, market_apartments_df
     )
     bar_chart_visualizer.display()
 
     table_visualizer = TableVisualizer(aesthetics_config)
-    table_visualizer.display(your_offers_df, other_offers_df)
+    table_visualizer.display(user_apartments_df, market_apartments_df)
 
     map_visualizer = MapVisualizer(aesthetics_config)
     map_visualizer.display(
@@ -82,27 +103,6 @@ def display_title(title: str):
         f"<h1 style='text-align: center;'>{title}</h1>",
         unsafe_allow_html=True,
     )
-
-
-def check_if_file_exists(your_offers_path):
-    # Check if the environment variable was set
-    if your_offers_path is None:
-        st.error(
-            "The environment variable 'YOUR_OFFERS_PATH' is not set. Please set the variable and try again."
-        )
-        return False
-
-    # Check if the file exists
-    if not os.path.isfile(your_offers_path):
-        st.error(f"The file specified does not exist: {your_offers_path}")
-        return False
-
-    # Check if the file is a CSV
-    if not your_offers_path.lower().endswith(".csv"):
-        st.error("The file specified is not a CSV file.")
-        return False
-
-    return True
 
 
 streamlit_app()

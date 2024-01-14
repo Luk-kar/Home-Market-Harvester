@@ -1,42 +1,70 @@
+# Standard imports
+import os
+
+# Third-party imports
 import streamlit as st
 
+# Local imports
+from aesthetics import config as aesthetics_config
+from load_data import DataLoader
+from map_visualizer import MapVisualizer
+from bar_chart_visualizer import BarChartVisualizer
+from table_visualizer import TableVisualizer
 
-class Dashboard:
-    def __init__(self, data_processor, map_visualizer, bar_chart_visualizer):
-        self.data_processor = data_processor
-        self.map_visualizer = map_visualizer
-        self.bar_chart_visualizer = bar_chart_visualizer
 
-    def display_title(self, title):
-        st.markdown(
-            f"<h1 style='text-align: center;'>{title}</h1>", unsafe_allow_html=True
+class DataVisualizer:
+    def __init__(
+        self, user_apartments_df, market_apartments_df, map_offers_df, aesthetics_config
+    ):
+        """
+        Initializes the dashboard with necessary data.
+
+        Args:
+            user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
+            market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
+            map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
+            aesthetics_config: Configuration for the aesthetics of the visualizations.
+        """
+        self.user_apartments_df = user_apartments_df
+        self.market_apartments_df = market_apartments_df
+        self.map_offers_df = map_offers_df
+        self.aesthetics_config = aesthetics_config
+        st.set_page_config(layout="wide")
+
+    def render_data(self):
+        """
+        Renders the data in the application.
+        Raises:
+            Exception: If an unspecified error occurs.
+        """
+        self.display_title("🔍🏠 Rent comparisons")
+
+        bar_chart_visualizer = BarChartVisualizer(
+            self.aesthetics_config, self.user_apartments_df, self.market_apartments_df
         )
+        bar_chart_visualizer.display()
 
-    def display_bar_charts(self, your_offers_df, other_offers_df):
-        self.bar_chart_visualizer.display_bar_chart(your_offers_df, other_offers_df)
+        table_visualizer = TableVisualizer(self.aesthetics_config)
+        table_visualizer.display(self.user_apartments_df, self.market_apartments_df)
 
-    def display_table(self, your_offers_df, other_offers_df):
-        # This method should create and display tables based on the data.
-        # Implement the logic based on your requirements.
-        pass
-
-    def display_map(self, map_offers_df):
-        self.map_visualizer.show_property_map(
-            map_offers_df,
-            "Property Prices Heatmap",
+        map_visualizer = MapVisualizer(self.aesthetics_config)
+        map_visualizer.display(
+            self.map_offers_df,
+            "🗺️ Property Prices Heatmap",
             center_coords=(50.460740, 19.093210),
             center_marker_name="Mierzęcice, Będziński, Śląskie",
             zoom=9,
         )
 
-    def render_dashboard(self):
-        st.set_page_config(layout="wide")
-        self.display_title("🔍🏠 Rent Comparisons")
+    @staticmethod
+    def display_title(title: str):
+        """
+        Displays a title in the application.
 
-        your_offers_df, other_offers_df, map_offers_df = self.data_processor.load_data()
-
-        self.display_bar_charts(your_offers_df, other_offers_df)
-
-        self.display_table(your_offers_df, other_offers_df)
-
-        self.display_map(map_offers_df)
+        Args:
+            title (str): The title to display.
+        """
+        st.markdown(
+            f"<h1 style='text-align: center;'>{title}</h1>",
+            unsafe_allow_html=True,
+        )

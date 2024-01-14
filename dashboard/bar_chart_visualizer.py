@@ -6,10 +6,10 @@ import streamlit as st
 
 
 class BarChartVisualizer:
-    def __init__(self, aesthetics, your_offers_df, other_offers_df):
+    def __init__(self, aesthetics, user_apartments_df, market_apartments_df):
         self.aesthetics = aesthetics
-        self.your_offers_df = your_offers_df
-        self.other_offers_df = other_offers_df
+        self.user_apartments_df = user_apartments_df
+        self.market_apartments_df = market_apartments_df
 
     def display(self):  # TODO
         text = "⚖️ median price"
@@ -20,29 +20,29 @@ class BarChartVisualizer:
 
         offers = {
             "Yours": {
-                "furnished": self.your_offers_df[
-                    self.your_offers_df["is_furnished"] == True
+                "furnished": self.user_apartments_df[
+                    self.user_apartments_df["is_furnished"] == True
                 ],
-                "unfurnished": self.your_offers_df[
-                    self.your_offers_df["is_furnished"] == False
+                "unfurnished": self.user_apartments_df[
+                    self.user_apartments_df["is_furnished"] == False
                 ],
             },
             "Similar": {
-                "furnished": self.other_offers_df[
-                    (self.other_offers_df["equipment"]["furniture"] == True)
-                    & (self.other_offers_df["location"]["city"] == "będziński")
+                "furnished": self.market_apartments_df[
+                    (self.market_apartments_df["equipment"]["furniture"] == True)
+                    & (self.market_apartments_df["location"]["city"] == "będziński")
                 ],
-                "unfurnished": self.other_offers_df[
-                    (self.other_offers_df["equipment"]["furniture"] == False)
-                    & (self.other_offers_df["location"]["city"] == "będziński")
+                "unfurnished": self.market_apartments_df[
+                    (self.market_apartments_df["equipment"]["furniture"] == False)
+                    & (self.market_apartments_df["location"]["city"] == "będziński")
                 ],
             },
             "All in 20 km radius": {
-                "furnished": self.other_offers_df[
-                    self.other_offers_df["equipment"]["furniture"] == True
+                "furnished": self.market_apartments_df[
+                    self.market_apartments_df["equipment"]["furniture"] == True
                 ],
-                "unfurnished": self.other_offers_df[
-                    self.other_offers_df["equipment"]["furniture"] == False
+                "unfurnished": self.market_apartments_df[
+                    self.market_apartments_df["equipment"]["furniture"] == False
                 ],
             },
         }

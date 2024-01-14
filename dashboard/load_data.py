@@ -53,16 +53,18 @@ class DataLoader:
             Exception: If an unspecified error occurs.
         """
         try:
-            your_offers_df = pd.read_csv(your_offers_path)
+            user_apartments_df = pd.read_csv(your_offers_path)
 
-            self._convert_data_types(your_offers_df)
+            self._convert_data_types(user_apartments_df)
 
-            self._create_additional_data_types(your_offers_df)
+            self._create_additional_data_types(user_apartments_df)
 
-            other_offers_df = self.data_path_manager._load_cleaned_df(domain="combined")
+            market_apartments_df = self.data_path_manager._load_cleaned_df(
+                domain="combined"
+            )
             map_offers_df = self.data_path_manager.load_df("map", is_cleaned=True)
 
-            return your_offers_df, other_offers_df, map_offers_df
+            return user_apartments_df, market_apartments_df, map_offers_df
 
         except pd.errors.EmptyDataError:
             st.error(f"The file is empty: {your_offers_path}")
@@ -85,15 +87,17 @@ class DataLoader:
             else:
                 d[key] = value.replace(old_str, new_str)
 
-    def _convert_data_types(self, your_offers_df):
-        your_offers_df["flat_id"] = your_offers_df["flat_id"].astype("string")
-        your_offers_df["floor"] = your_offers_df["floor"].astype("Int64")
-        your_offers_df["area"] = your_offers_df["area"].astype("Float64")
-        your_offers_df["is_furnished"] = your_offers_df["is_furnished"].astype("bool")
-        your_offers_df["price"] = your_offers_df["price"].astype("Float64")
+    def _convert_data_types(self, user_apartments_df):
+        user_apartments_df["flat_id"] = user_apartments_df["flat_id"].astype("string")
+        user_apartments_df["floor"] = user_apartments_df["floor"].astype("Int64")
+        user_apartments_df["area"] = user_apartments_df["area"].astype("Float64")
+        user_apartments_df["is_furnished"] = user_apartments_df["is_furnished"].astype(
+            "bool"
+        )
+        user_apartments_df["price"] = user_apartments_df["price"].astype("Float64")
 
-    def _create_additional_data_types(self, your_offers_df):
-        your_offers_df["price_per_meter"] = your_offers_df.apply(
+    def _create_additional_data_types(self, user_apartments_df):
+        user_apartments_df["price_per_meter"] = user_apartments_df.apply(
             lambda row: round(row["price"] / row["area"], 2)
             if pd.notna(row["price"]) and pd.notna(row["area"])
             else np.nan,
