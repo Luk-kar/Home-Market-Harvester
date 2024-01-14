@@ -11,9 +11,12 @@ from dashboard.model_offer_predictor import ModelPredictor
 
 # TODO is furnished adjust to the offers
 class TableVisualizer:
-    def __init__(self, display_settings: Optional[dict] = None):
+    def __init__(
+        self, display_settings: Optional[dict] = None, table_title: Optional[str] = None
+    ):
         self.display_settings = display_settings
         self.selected_percentile: Optional[float] = None
+        self.table_title: Optional[str] = table_title
 
     def display(
         self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
@@ -26,9 +29,10 @@ class TableVisualizer:
             user_apartments_df, market_apartments_df
         )
 
-        self._display_header(
-            "📊 Apartments Data", "Price in PLN, medians taken from 5 km radius"
-        )
+        if self.table_title:
+            self._display_header(
+                *self.table_title,
+            )
 
         self._select_price_percentile()
 

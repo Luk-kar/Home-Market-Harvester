@@ -36,6 +36,7 @@ class DataVisualizer:
     def render_data(self):
         """
         Renders the data in the application.
+
         Raises:
             Exception: If an unspecified error occurs.
         """
@@ -44,11 +45,20 @@ class DataVisualizer:
         self.display_title(self.dashboard_title)
 
         bar_chart_visualizer = BarChartVisualizer(
-            self.display_settings, self.user_apartments_df, self.market_apartments_df
+            self.display_settings,
+            self.user_apartments_df,
+            self.market_apartments_df,
+            "⚖️ Median Price",
         )
         bar_chart_visualizer.display()
 
-        table_visualizer = TableVisualizer(self.display_settings)
+        table_visualizer = TableVisualizer(
+            self.display_settings,
+            (
+                "📊 Apartments Data",
+                "Price in PLN, medians taken from 5 km radius",
+            ),
+        )
         table_visualizer.display(self.user_apartments_df, self.market_apartments_df)
 
         map_visualizer = MapVisualizer(self.display_settings)

@@ -7,17 +7,24 @@ import streamlit as st
 
 
 class BarChartVisualizer:
-    def __init__(self, display_settings, user_apartments_df, market_apartments_df):
+    def __init__(
+        self,
+        display_settings,
+        user_apartments_df,
+        market_apartments_df,
+        bar_chart_title,
+    ):
         self.display_settings = display_settings
         self.user_apartments_df = user_apartments_df
         self.market_apartments_df = market_apartments_df
+        self.bar_chart_title = bar_chart_title
 
     def display(self):  # TODO
-        text = "⚖️ median price"
-        st.markdown(
-            f"<h3 style='text-align: center;'>{text}</h3>",
-            unsafe_allow_html=True,
-        )
+        if self.bar_chart_title:
+            st.markdown(
+                f"<h3 style='text-align: center;'>{self.bar_chart_title}</h3>",
+                unsafe_allow_html=True,
+            )
 
         offers = {
             "Yours": {
