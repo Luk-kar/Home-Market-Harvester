@@ -19,7 +19,11 @@ class BarChartVisualizer:
         self.market_apartments_df = market_apartments_df
         self.bar_chart_title = bar_chart_title
 
-    def display(self):  # TODO
+        """
+        Initializes the bar chart visualizer with necessary data.
+        """
+
+    def display(self):
         if self.bar_chart_title:
             st.markdown(
                 f"<h3 style='text-align: center;'>{self.bar_chart_title}</h3>",
@@ -30,13 +34,9 @@ class BarChartVisualizer:
 
         price_per_meter_col, price_per_offer_col = st.columns(2)
 
-        space = " " * 36
         categories = ["Yours", "Similar", "All in 20 km radius"]
 
-        max_length = max(len(category) for category in categories)
-        centered_categories = [category.center(max_length) for category in categories]
-
-        xlabel = space.join(centered_categories)
+        xlabel = self._generate_x_label(categories)
         ylabel = "Price (PLN)"
 
         with price_per_meter_col:
@@ -61,45 +61,66 @@ class BarChartVisualizer:
                 )
             )
 
+    def _generate_x_label(self, categories: list):
+        space = " " * 36
+        max_length = max(len(category) for category in categories)
+        centered_categories = [category.center(max_length) for category in categories]
+        return space.join(centered_categories)
+
     def _calculate_median_data(self, offers, column):
+        """
+        Calculates the median price per meter for each offer category.
+        """
         additional_spacing = {
             "Yours": -1,
             "Similar": None,
             "All in 20 km radius": 0,
         }
 
+        column_mappings = {
+            "price": ("price", ("pricing", "total_rent")),
+            "price_per_meter": ("price_per_meter", ("pricing", "total_rent_sqm")),
+        }
+
         data = {}
 
-        for category in offers:
-            for furniture in offers[category]:
-                price_column = None
+        for category, furnishings in offers.items():
+            for furniture, df in furnishings.items():
+                primary_col, fallback_col = column_mappings[column]
+                price_column = (
+                    primary_col if primary_col in df.columns else fallback_col
+                )
 
-                if column == "price":
-                    if "price" in offers[category][furniture].columns:
-                        price_column = "price"
-                    else:
-                        price_column = ("pricing", "total_rent")
-                elif column == "price_per_meter":
-                    if "price_per_meter" in offers[category][furniture].columns:
-                        price_column = "price_per_meter"
-                    else:
-                        price_column = ("pricing", "total_rent_sqm")
-
-                median = offers[category][furniture][price_column].median().round(2)
+                median = df[price_column].median().round(2)
 
                 position_to_add_space = additional_spacing[category]
-                if position_to_add_space is not None:
-                    column_name = self._insert_char(
-                        furniture, position_to_add_space, " "
-                    )
-                else:
-                    column_name = furniture
+                column_name = self._format_column_name_for_display(
+                    furniture, position_to_add_space
+                )
 
                 data[column_name] = median
 
         return data
 
+    def _format_column_name_for_display(self, furniture, position_to_add_space):
+        """
+        This method provides a clever workaround to create visually similar names
+        for bar chart columns by strategically inserting spaces at various positions along the edges of the names.
+        While the resulting strings are technically different, they appear identical when displayed.
+        This approach ensures that column names remain distinct and are not inadvertently overwritten.
+
+        """
+        return (
+            self._insert_char(furniture, position_to_add_space, " ")
+            if position_to_add_space is not None
+            else furniture
+        )
+
     def _insert_char(self, original_string, position, char_to_insert):
+        """
+        Inserts a character at the specified position in a string.
+        """
+
         if position < 0:
             position = len(original_string) + position + 1
         elif position >= len(original_string):
@@ -140,12 +161,19 @@ class BarChartVisualizer:
         }
 
     def _get_darker_shade(self, color, factor=0.5):
+        """
+        Darkens a color by a specified factor.
+        """
         rgb = mcolors.hex2color(color)
         darkened_rgb = [max(0, c * factor) for c in rgb]
         darkened_hex = mcolors.rgb2hex(darkened_rgb)
         return darkened_hex
 
     def _set_plot_aesthetics(self, ax, title=None, xlabel=None, ylabel=None):
+        """
+        Sets the aesthetics of the plot.
+        """
+
         display_settings = self.display_settings
 
         # Set the title and axis labels
