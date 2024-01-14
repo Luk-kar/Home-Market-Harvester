@@ -65,6 +65,42 @@ class BarChartVisualizer:
                 )
             )
 
+    def _filter_row(row: pd.Series) -> bool:
+        """
+        Filter rows based on the following criteria:
+        - City is in the list of cities
+        - Building type is in the list of building types
+        - Build year is less than or equal to 1970
+        """
+        try:
+            city = row["location"]["city"]
+            building_type = (
+                row["type_and_year"]["building_type"]
+                if pd.notna(row["type_and_year"].get("building_type"))
+                else False
+            )
+            build_year = (
+                row["type_and_year"]["build_year"]
+                if pd.notna(row["type_and_year"].get("build_year"))
+                else False
+            )
+            return (
+                city
+                in [
+                    "będziński",
+                    "Zawada",
+                    "Siewierz",
+                    "tarnogórski",
+                    "Piekary Śląskie",
+                    "zawierciański",
+                    "Siemianowice Śląskie",
+                ]
+                and building_type in ["block_of_flats", "apartment_building"]
+                and build_year <= 1970
+            )
+        except KeyError:
+            return False
+
     def _generate_x_label(self, categories: List[str]) -> str:
         space = " " * 36
         max_length = max(len(category) for category in categories)
@@ -141,6 +177,10 @@ class BarChartVisualizer:
         return original_string[:position] + char_to_insert + original_string[position:]
 
     def _create_offers_dict(self) -> Dict[str, Dict[str, pd.DataFrame]]:
+        """
+        Creates a dictionary of offers for each category.
+        """
+        # TODO add local market
         return {
             "Yours": {
                 "furnished": self.user_apartments_df[
