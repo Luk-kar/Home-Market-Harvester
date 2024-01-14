@@ -1,12 +1,8 @@
-# Standard imports
-import os
-
 # Third-party imports
 import streamlit as st
 
 # Local imports
-from dashboard._config import config as display_settings
-from load_data import DataLoader
+from _config import config as display_settings
 from map_visualizer import MapVisualizer
 from bar_chart_visualizer import BarChartVisualizer
 from table_visualizer import TableVisualizer

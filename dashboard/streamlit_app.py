@@ -6,16 +6,23 @@ import streamlit as st
 
 # Local imports
 from dashboard._config import config as display_settings
-from load_data import DataLoader
-from map_visualizer import MapVisualizer
-from bar_chart_visualizer import BarChartVisualizer
-from table_visualizer import TableVisualizer
+from dashboard.load_data import DataLoader
+from dashboard.data_visualizer import DataVisualizer
 
 
 def streamlit_app():
+    """
+    Main function for the Streamlit application.
+    """
     user_apartments_df, market_apartments_df, map_offers_df = load_data()
 
-    render_data(user_apartments_df, market_apartments_df, map_offers_df)
+    DataVisualizer(
+        user_apartments_df,
+        market_apartments_df,
+        map_offers_df,
+        display_settings,
+        "🔍🏠 Rent comparisons",
+    ).render_data()
 
 
 def load_data():
@@ -34,7 +41,7 @@ def load_data():
 
     your_offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
 
-    if not check_if_file_exists(your_offers_path):
+    if not _check_if_file_exists(your_offers_path):
         return
 
     user_apartments_df, market_apartments_df, map_offers_df = data_processor.load_data(
@@ -44,7 +51,7 @@ def load_data():
     return user_apartments_df, market_apartments_df, map_offers_df
 
 
-def check_if_file_exists(file_path: str):
+def _check_if_file_exists(file_path: str):
     # Check if the environment variable was set
     if file_path is None:
         st.error(
@@ -63,46 +70,6 @@ def check_if_file_exists(file_path: str):
         return False
 
     return True
-
-
-def render_data(user_apartments_df, market_apartments_df, map_offers_df):
-    """
-    Renders the data in the application.
-
-    Args:
-        user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
-        market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
-        map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
-
-    Raises:
-        Exception: If an unspecified error occurs.
-    """
-    st.set_page_config(layout="wide")
-
-    display_title("🔍🏠 Rent comparisons")
-    bar_chart_visualizer = BarChartVisualizer(
-        display_settings, user_apartments_df, market_apartments_df
-    )
-    bar_chart_visualizer.display()
-
-    table_visualizer = TableVisualizer(display_settings)
-    table_visualizer.display(user_apartments_df, market_apartments_df)
-
-    map_visualizer = MapVisualizer(display_settings)
-    map_visualizer.display(
-        map_offers_df,
-        "🗺️ Property Prices Heatmap",
-        center_coords=(50.460740, 19.093210),
-        center_marker_name="Mierzęcice, Będziński, Śląskie",
-        zoom=9,
-    )
-
-
-def display_title(title: str):
-    st.markdown(
-        f"<h1 style='text-align: center;'>{title}</h1>",
-        unsafe_allow_html=True,
-    )
 
 
 streamlit_app()

@@ -1,7 +1,8 @@
+# Third-party imports
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 import streamlit as st
 
 

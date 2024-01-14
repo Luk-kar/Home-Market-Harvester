@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from model_offer_predictor import ModelPredictor
+from dashboard.model_offer_predictor import ModelPredictor
 
 
 # TODO is furnished adjust to the offers
