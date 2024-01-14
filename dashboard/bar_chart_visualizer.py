@@ -26,7 +26,91 @@ class BarChartVisualizer:
                 unsafe_allow_html=True,
             )
 
-        offers = {
+        offers = self._create_offers_dict()
+
+        price_per_meter_col, price_per_offer_col = st.columns(2)
+
+        space = " " * 36
+        categories = ["Yours", "Similar", "All in 20 km radius"]
+
+        max_length = max(len(category) for category in categories)
+        centered_categories = [category.center(max_length) for category in categories]
+
+        xlabel = space.join(centered_categories)
+        ylabel = "Price (PLN)"
+
+        with price_per_meter_col:
+            per_meter_data = self._calculate_median_data(offers, "price_per_meter")
+            st.pyplot(
+                self._plot_bar_chart(
+                    per_meter_data,
+                    "Price per meter",
+                    xlabel,
+                    ylabel,
+                )
+            )
+
+        with price_per_offer_col:
+            per_offer_data = self._calculate_median_data(offers, "price")
+            st.pyplot(
+                self._plot_bar_chart(
+                    per_offer_data,
+                    "Price per offer",
+                    xlabel,
+                    ylabel,
+                )
+            )
+
+    def _calculate_median_data(self, offers, column):
+        additional_spacing = {
+            "Yours": -1,
+            "Similar": None,
+            "All in 20 km radius": 0,
+        }
+
+        data = {}
+
+        for category in offers:
+            for furniture in offers[category]:
+                price_column = None
+
+                if column == "price":
+                    if "price" in offers[category][furniture].columns:
+                        price_column = "price"
+                    else:
+                        price_column = ("pricing", "total_rent")
+                elif column == "price_per_meter":
+                    if "price_per_meter" in offers[category][furniture].columns:
+                        price_column = "price_per_meter"
+                    else:
+                        price_column = ("pricing", "total_rent_sqm")
+
+                median = offers[category][furniture][price_column].median().round(2)
+
+                position_to_add_space = additional_spacing[category]
+                if position_to_add_space is not None:
+                    column_name = self._insert_char(
+                        furniture, position_to_add_space, " "
+                    )
+                else:
+                    column_name = furniture
+
+                data[column_name] = median
+
+        return data
+
+    def _insert_char(self, original_string, position, char_to_insert):
+        if position < 0:
+            position = len(original_string) + position + 1
+        elif position >= len(original_string):
+            raise Exception("Position is out of range.")
+        elif position < 0 and abs(position) > len(original_string):
+            raise Exception("Position is out of range.")
+
+        return original_string[:position] + char_to_insert + original_string[position:]
+
+    def _create_offers_dict(self):
+        return {
             "Yours": {
                 "furnished": self.user_apartments_df[
                     self.user_apartments_df["is_furnished"] == True
@@ -54,91 +138,6 @@ class BarChartVisualizer:
                 ],
             },
         }
-
-        col_per_meter, col_per_offer = st.columns(2)
-
-        space = " " * 36
-        categories = ["Yours", "Similar", "All in 20 km radius"]
-
-        max_length = max(len(category) for category in categories)
-        centered_categories = [category.center(max_length) for category in categories]
-
-        xlabel = space.join(centered_categories)
-        ylabel = "Price (PLN)"
-
-        with col_per_meter:
-            per_meter_data = {
-                "furnished ": offers["Yours"]["furnished"]["price_per_meter"].median(),
-                "unfurnished ": offers["Yours"]["unfurnished"][
-                    "price_per_meter"
-                ].median(),
-                "furnished": round(
-                    offers["Similar"]["furnished"]["pricing"][
-                        "total_rent_sqm"
-                    ].median(),
-                    2,
-                ),
-                "unfurnished": round(
-                    offers["Similar"]["unfurnished"]["pricing"][
-                        "total_rent_sqm"
-                    ].median(),
-                    2,
-                ),
-                " furnished": round(
-                    offers["All in 20 km radius"]["furnished"]["pricing"][
-                        "total_rent_sqm"
-                    ].median(),
-                    2,
-                ),
-                " unfurnished": round(
-                    offers["All in 20 km radius"]["unfurnished"]["pricing"][
-                        "total_rent_sqm"
-                    ].median(),
-                    2,
-                ),
-            }
-            st.pyplot(
-                self._plot_bar_chart(
-                    per_meter_data,
-                    "Price per meter",
-                    xlabel,
-                    ylabel,
-                )
-            )
-
-        with col_per_offer:
-            per_offer_data = {
-                "furnished ": offers["Yours"]["furnished"]["price"].median(),
-                "unfurnished ": offers["Yours"]["unfurnished"]["price"].median(),
-                "furnished": round(
-                    offers["Similar"]["furnished"]["pricing"]["total_rent"].median(),
-                    2,
-                ),
-                "unfurnished": round(
-                    offers["Similar"]["unfurnished"]["pricing"]["total_rent"].median(),
-                    2,
-                ),
-                " furnished": round(
-                    offers["All in 20 km radius"]["furnished"]["pricing"][
-                        "total_rent"
-                    ].median(),
-                    2,
-                ),
-                " unfurnished": round(
-                    offers["All in 20 km radius"]["unfurnished"]["pricing"][
-                        "total_rent"
-                    ].median(),
-                    2,
-                ),
-            }
-            st.pyplot(
-                self._plot_bar_chart(
-                    per_offer_data,
-                    "Price per offer",
-                    xlabel,
-                    ylabel,
-                )
-            )
 
     def _get_darker_shade(self, color, factor=0.5):
         rgb = mcolors.hex2color(color)
