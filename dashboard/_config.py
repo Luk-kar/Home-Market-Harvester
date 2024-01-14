@@ -8,4 +8,5 @@ config = {
         "singleplot": (10, 6),
         "map": (8, 6),
     },
+    "layout": "wide",
 }

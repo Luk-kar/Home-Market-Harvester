@@ -5,7 +5,7 @@ import os
 import streamlit as st
 
 # Local imports
-from aesthetics import config as aesthetics_config
+from dashboard._config import config as display_settings
 from load_data import DataLoader
 from map_visualizer import MapVisualizer
 from bar_chart_visualizer import BarChartVisualizer
@@ -81,14 +81,14 @@ def render_data(user_apartments_df, market_apartments_df, map_offers_df):
 
     display_title("🔍🏠 Rent comparisons")
     bar_chart_visualizer = BarChartVisualizer(
-        aesthetics_config, user_apartments_df, market_apartments_df
+        display_settings, user_apartments_df, market_apartments_df
     )
     bar_chart_visualizer.display()
 
-    table_visualizer = TableVisualizer(aesthetics_config)
+    table_visualizer = TableVisualizer(display_settings)
     table_visualizer.display(user_apartments_df, market_apartments_df)
 
-    map_visualizer = MapVisualizer(aesthetics_config)
+    map_visualizer = MapVisualizer(display_settings)
     map_visualizer.display(
         map_offers_df,
         "🗺️ Property Prices Heatmap",
