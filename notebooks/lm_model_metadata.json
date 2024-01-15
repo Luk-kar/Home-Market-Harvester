@@ -1,0 +1,12 @@
+{
+    "columns": {
+        "square_meters": "Int64",
+        "build_year": "float64",
+        "dishwasher": "int32"
+    },
+    "column_order": [
+        "square_meters",
+        "build_year",
+        "dishwasher"
+    ]
+}
