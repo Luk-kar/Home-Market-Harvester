@@ -123,21 +123,36 @@ class ModelPredictor:
             # Create a copy of the dataframe to avoid modifying the original
             temp_df = df.copy()
 
-            # rename column area to square_meters
-            temp_df.rename(columns={"area": "square_meters"}, inplace=True)
+            # Check if 'area' column exists and rename it to 'square_meters'
+            if "area" in temp_df.columns:
+                temp_df.rename(columns={"area": "square_meters"}, inplace=True)
+            elif "square_meters" not in temp_df.columns:
+                raise ValueError("'area' column not found in the DataFrame.")
 
             # Add missing columns with default values
             for col, dtype in self.metadata["columns"].items():
                 if col not in temp_df.columns:
-                    default_value = 0 if dtype != "object" else "False"
+                    default_value = 0 if pd.api.types.is_numeric_dtype(dtype) else None
                     temp_df[col] = default_value
+
+            # Ensure all required columns are present
+            missing_required_columns = set(self.metadata["column_order"]) - set(
+                temp_df.columns
+            )
+            if missing_required_columns:
+                raise ValueError(
+                    f"Missing required columns in DataFrame: {missing_required_columns}"
+                )
+
+            # Remove extra columns that are not in the metadata's column order
+            temp_df = temp_df[self.metadata["column_order"]]
 
             # Convert columns to the appropriate dtype
             for col, dtype in self.metadata["columns"].items():
-                temp_df[col] = temp_df[col].astype(dtype)
-
-            # Reorder columns as per the model
-            temp_df = temp_df[self.metadata["column_order"]]
+                try:
+                    temp_df[col] = temp_df[col].astype(dtype)
+                except ValueError:
+                    raise ValueError(f"Column '{col}' cannot be converted to {dtype}")
 
             return temp_df
         except Exception as e:
