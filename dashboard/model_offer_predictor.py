@@ -121,8 +121,6 @@ class ModelPredictor:
             temp_df = df.copy()
             temp_df.rename(columns={"area": "square_meters"}, inplace=True)
 
-            print(temp_df)  # TODO
-
             # Add missing columns with default values
             for col, dtype in self.metadata["columns"].items():
                 if col not in temp_df.columns:

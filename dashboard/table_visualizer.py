@@ -40,8 +40,6 @@ class TableVisualizer:
             user_apartments_narrowed, market_apartments_narrowed
         )
 
-        print(user_apartments_df)
-
         apartments_comparison_df["price_by_model"] = self._calculate_price_by_model(
             user_apartments_df
         )
@@ -232,7 +230,7 @@ class TableVisualizer:
         price_by_model_df = pd.Series(price_predictions)
         price_by_model_df = price_by_model_df.apply(self._round_to_nearest_hundred)
 
-        price_by_model_diff = price_by_model_df - apartments_df["your_price"]
+        price_by_model_diff = price_by_model_df - apartments_df["price"]
 
         return price_by_model_diff
 
