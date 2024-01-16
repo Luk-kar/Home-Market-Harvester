@@ -62,6 +62,7 @@ class DataLoader:
             market_apartments_df = self.data_path_manager._load_cleaned_df(
                 domain="combined"
             )
+
             map_offers_df = self.data_path_manager.load_df("map", is_cleaned=True)
 
             return user_apartments_df, market_apartments_df, map_offers_df

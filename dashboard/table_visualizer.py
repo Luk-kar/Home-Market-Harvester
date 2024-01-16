@@ -40,6 +40,12 @@ class TableVisualizer:
             user_apartments_narrowed, market_apartments_narrowed
         )
 
+        print(user_apartments_df)
+
+        apartments_comparison_df["price_by_model"] = self._calculate_price_by_model(
+            user_apartments_df
+        )
+
         market_positioning_df = self._compute_market_positioning_stats(
             apartments_comparison_df
         )
@@ -91,8 +97,6 @@ class TableVisualizer:
         apartments_df = user_apartments_df.copy()
 
         apartments_df = apartments_df.rename(columns={"price": "your_price"})
-
-        apartments_df["price_by_model"] = self._calculate_price_by_model(apartments_df)
 
         apartments_df[
             "percentile_based_suggested_price"
@@ -220,8 +224,8 @@ class TableVisualizer:
         """
         Calculate price by model.
         """
-        model_path = "notebooks\\svm_model_file.p"
-        metadata_path = "notebooks\\svm_model_metadata.json"
+        model_path = "notebooks\\lm_model.p"
+        metadata_path = "notebooks\\lm_model_metadata.json"
 
         predictor = ModelPredictor(model_path, metadata_path)
         price_predictions = predictor.get_price_predictions(apartments_df)

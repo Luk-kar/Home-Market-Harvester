@@ -41,8 +41,8 @@ class ModelPredictor:
     Example Usage:
     --------------
 
-    model_path = "notebooks\\gbm_model_file.p"
-    metadata_path = "notebooks\\gbm_model_metadata.json"
+    model_path = "notebooks\\lm_model_file.p"
+    metadata_path = "notebooks\\lm_model_metadata.json"
     offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
     user_apartments_df = pd.read_csv(offers_path)
 
@@ -71,8 +71,8 @@ class ModelPredictor:
         Example Usage:
         --------------
 
-        model_path = "notebooks\\gbm_model_file.p"
-        metadata_path = "notebooks\\gbm_model_metadata.json"
+        model_path = "notebooks\\lm_model_metadata.p"
+        metadata_path = "notebooks\\lm_model.json"
         offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
         user_apartments_df = pd.read_csv(offers_path)
 
@@ -81,11 +81,12 @@ class ModelPredictor:
         """
 
         if self.model is not None and self.metadata is not None:
-            result_series = self._predict_prices(offers_df)
+            model_data = self._predict_prices(offers_df)
 
-            if result_series is not None:
+            if model_data is not None:
                 print("Prediction successful. Dataframe with suggested prices:")
-                return result_series
+                total_price = model_data * offers_df["area"]
+                return total_price
             else:
                 print("Prediction failed.")
         else:
@@ -118,6 +119,9 @@ class ModelPredictor:
         try:
             # Create a copy of the dataframe to avoid modifying the original
             temp_df = df.copy()
+            temp_df.rename(columns={"area": "square_meters"}, inplace=True)
+
+            print(temp_df)  # TODO
 
             # Add missing columns with default values
             for col, dtype in self.metadata["columns"].items():
@@ -131,6 +135,8 @@ class ModelPredictor:
 
             # Reorder columns as per the model
             temp_df = temp_df[self.metadata["column_order"]]
+
+            # rename column area to square_meters
 
             return temp_df
         except Exception as e:
