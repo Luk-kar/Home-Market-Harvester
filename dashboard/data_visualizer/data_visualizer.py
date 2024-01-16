@@ -5,7 +5,7 @@ import streamlit as st
 from dashboard._config import config as display_settings
 from map_visualizer import MapVisualizer
 from bar_chart_visualizer import BarChartVisualizer
-from table_visualizer import TableVisualizer
+from dashboard.data_visualizer.table_visualizer.table_visualizer import TableVisualizer
 
 
 class DataVisualizer:
