@@ -16,6 +16,7 @@ predictor.get_price_predictions(your_offers_path)
 
 # Standard imports
 import json
+import os
 
 # Third-party imports
 import pandas as pd
@@ -95,25 +96,46 @@ class ModelPredictor:
             raise Exception("Model or metadata not loaded.")
 
     def _load_model_and_metadata(self, model_path: str, metadata_path: str):
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at {model_path}")
+
+        if not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"Metadata file not found at {metadata_path}")
+
         try:
             # Load the trained model
             with open(model_path, "rb") as pickled:
-                data = pickle.load(pickled)
-                model = data["model"]
+                try:
+                    data = pickle.load(pickled)
+                except pickle.UnpicklingError as e:
+                    raise ValueError(f"Error unpickling the model file: {e}")
+
+                model = data.get("model")
+                if model is None:
+                    raise ValueError(
+                        "The loaded model data does not contain 'model' key."
+                    )
 
             # Load the metadata with size limitation for security
             max_metadata_size = 10 * 1024 * 1024  # 10 MB size limit
             with open(metadata_path, "r") as file:
-                file_content = file.read(
-                    max_metadata_size
-                )  # Read only the first 10 MB of the file
+                file_content = file.read(max_metadata_size)
                 if file.tell() >= max_metadata_size:
-                    raise ValueError("Metadata file size exceeded limit.")
-                metadata = json.loads(file_content)
+                    raise ValueError("Metadata file size exceeded limit of 10 MB.")
+
+                try:
+                    metadata = json.loads(file_content)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Error parsing metadata JSON: {e}")
 
             return model, metadata
+
+        except IOError as e:
+            raise IOError(f"IO error occurred while loading model or metadata: {e}")
         except Exception as e:
-            raise ValueError(f"Error loading model and metadata: {e}")
+            raise Exception(
+                f"Unexpected error occurred while loading model and metadata: {e}"
+            )
 
     def _prepare_dataframe(self, df: pd.DataFrame):
         if not isinstance(df, pd.DataFrame):
@@ -159,6 +181,8 @@ class ModelPredictor:
             raise ValueError(f"Error preparing dataframe: {e}")
 
     def _predict_prices(self, df: pd.DataFrame) -> pd.Series:
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("Input must be a pandas DataFrame.")
         try:
             # Prepare the data frame
             prepared_df = self._prepare_dataframe(df)
