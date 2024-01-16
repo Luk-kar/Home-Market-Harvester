@@ -3,8 +3,8 @@ import streamlit as st
 
 # Local imports
 from dashboard.data_visualizer._config import config as display_settings
-from map_visualizer import MapVisualizer
-from bar_chart_visualizer import BarChartVisualizer
+from dashboard.data_visualizer.map_visualizer import MapVisualizer
+from dashboard.data_visualizer.bar_chart_visualizer import BarChartVisualizer
 from dashboard.data_visualizer.table_visualizer.table_visualizer import TableVisualizer
 
 
