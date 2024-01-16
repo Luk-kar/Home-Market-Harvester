@@ -439,6 +439,8 @@ class TableVisualizer:
             "avg price by model",
             "avg suggested price by percentile",
             "avg price per meter by percentile",
+            "percentile based suggested price",
+            "avg percentile based suggested price",
         ]
 
         # Round float columns to 2 decimal places
