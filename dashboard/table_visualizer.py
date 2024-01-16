@@ -431,8 +431,7 @@ class TableVisualizer:
         Display a formatted table of the DataFrame.
         """
 
-        # Define the columns where the positive values should show '+' sign
-        columns_with_plus_and_minus_at_front = [
+        plus_minus_columns = [
             "price by model",
             "suggested price by percentile",
             "price per meter by percentile",
@@ -442,32 +441,54 @@ class TableVisualizer:
             "percentile based suggested price",
             "avg percentile based suggested price",
         ]
+        self._round_float_columns(df, plus_minus_columns)
+        self._apply_plus_minus_formatting(df, plus_minus_columns)
 
-        # Round float columns to 2 decimal places
-        float_columns = df.select_dtypes(include=["float"]).columns
-        for col in float_columns:
-            if col not in columns_with_plus_and_minus_at_front:
-                df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else x)
-
-        # Custom formatting function to add '+' for positive values
-        # Apply the formatting function to the specific columns
-        for col in columns_with_plus_and_minus_at_front:
-            if col in df.columns:
-                df[col] = df[col].apply(self._format_with_plus_sign)
-
-        columns_with_percent_at_end = [
+        percent_columns = [
             "price per meter by percentile",
             "avg price per meter by percentile",
         ]
-        # add percent sign at the end
-        for col in columns_with_percent_at_end:
+        self._append_percent_sign(df, percent_columns)
+
+        color_difference_columns = [
+            "price total per model",
+            "percentile based suggested price total",
+        ]
+        self._apply_color_based_on_difference(df, color_difference_columns)
+
+        styled_df = self._apply_custom_styling(df)
+
+        self._display_html(styled_df, with_index)
+
+    def _append_percent_sign(self, df: pd.DataFrame, columns: list[str]) -> None:
+        for col in columns:
             if col in df.columns:
                 df[col] = df[col].apply(lambda x: f"{x}%" if pd.notna(x) else x)
 
-        # Apply custom styling
-        styled_df = self._style_dataframe(df)
+    def _apply_plus_minus_formatting(
+        self, df: pd.DataFrame, columns: list[str]
+    ) -> None:
+        for col in columns:
+            if col in df.columns:
+                df[col] = df[col].apply(self._format_with_plus_sign)
 
-        # Convert DataFrame to HTML and use st.markdown to display it
+    def _round_float_columns(self, df: pd.DataFrame, columns: list[str]) -> None:
+        float_columns = df.select_dtypes(include=["float"]).columns
+        for col in float_columns:
+            if col not in columns:
+                df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else x)
+
+    def _apply_color_based_on_difference(
+        self, df: pd.DataFrame, columns: list[str]
+    ) -> None:
+        for col in columns:
+            if col in df.columns:
+                df[col] = df.apply(
+                    lambda row: self._color_format(row[col], row["your price total"]),
+                    axis=1,
+                )
+
+    def _display_html(self, styled_df: pd.DataFrame, with_index: bool) -> None:
         html = styled_df.to_html(escape=False, index=with_index)
         centered_html = f"""
         <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
@@ -475,6 +496,17 @@ class TableVisualizer:
         </div>
         """
         st.markdown(centered_html, unsafe_allow_html=True)
+
+    def _color_format(self, value, comparison_value):
+        if pd.isna(value) or pd.isna(comparison_value):
+            return value  # Return the original value if either is NaN
+        if value < comparison_value:
+            color = "red"
+        elif value > comparison_value:
+            color = "green"
+        else:  # value is equal to comparison_value
+            color = "grey"
+        return f"<span style='color: {color};'>{value}</span>"
 
     def _reorder_columns(self, df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
         """
@@ -495,7 +527,7 @@ class TableVisualizer:
                 print(f"Column '{column_name}' not found in DataFrame.")
         return df[columns]
 
-    def _style_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _apply_custom_styling(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Apply custom styling to a DataFrame's elements.
         """
