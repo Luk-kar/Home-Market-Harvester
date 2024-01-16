@@ -80,17 +80,19 @@ class ModelPredictor:
         predictor.get_price_predictions(user_apartments_df)
         """
 
+        if not isinstance(offers_df, pd.DataFrame):
+            raise ValueError("offers_df must be a pandas DataFrame.")
+
         if self.model is not None and self.metadata is not None:
             model_data = self._predict_prices(offers_df)
 
             if model_data is not None:
-                print("Prediction successful. Dataframe with suggested prices:")
                 total_price = model_data * offers_df["area"]
                 return total_price
             else:
-                print("Prediction failed.")
+                raise Exception("Prediction failed.")
         else:
-            print("Model or metadata loading failed.")
+            raise Exception("Model or metadata not loaded.")
 
     def _load_model_and_metadata(self, model_path: str, metadata_path: str):
         try:
@@ -106,19 +108,22 @@ class ModelPredictor:
                     max_metadata_size
                 )  # Read only the first 10 MB of the file
                 if file.tell() >= max_metadata_size:
-                    print("Metadata file size exceeds the limit of 10 MB.")
-                    return None, None
+                    raise ValueError("Metadata file size exceeded limit.")
                 metadata = json.loads(file_content)
 
             return model, metadata
         except Exception as e:
-            print(f"Error loading model or metadata: {e}")
-            return None, None
+            raise ValueError(f"Error loading model and metadata: {e}")
 
     def _prepare_dataframe(self, df: pd.DataFrame):
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("Input must be a pandas DataFrame.")
+
         try:
             # Create a copy of the dataframe to avoid modifying the original
             temp_df = df.copy()
+
+            # rename column area to square_meters
             temp_df.rename(columns={"area": "square_meters"}, inplace=True)
 
             # Add missing columns with default values
@@ -134,12 +139,9 @@ class ModelPredictor:
             # Reorder columns as per the model
             temp_df = temp_df[self.metadata["column_order"]]
 
-            # rename column area to square_meters
-
             return temp_df
         except Exception as e:
-            print(f"Error in preparing dataframe: {e}")
-            return None
+            raise ValueError(f"Error preparing dataframe: {e}")
 
     def _predict_prices(self, df: pd.DataFrame) -> pd.Series:
         try:
@@ -153,5 +155,4 @@ class ModelPredictor:
             else:
                 return None
         except Exception as e:
-            print(f"Error in model prediction: {e}")
-            return None
+            raise ValueError(f"Error predicting prices: {e}")
