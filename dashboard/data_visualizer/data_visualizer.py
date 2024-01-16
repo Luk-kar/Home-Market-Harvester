@@ -2,7 +2,7 @@
 import streamlit as st
 
 # Local imports
-from _config import config as display_settings
+from dashboard._config import config as display_settings
 from map_visualizer import MapVisualizer
 from bar_chart_visualizer import BarChartVisualizer
 from table_visualizer import TableVisualizer

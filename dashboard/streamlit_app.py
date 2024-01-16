@@ -7,7 +7,7 @@ import streamlit as st
 # Local imports
 from _config import config as display_settings
 from load_data import DataLoader
-from data_visualizer import DataVisualizer
+from dashboard.data_visualizer.data_visualizer import DataVisualizer
 
 
 def streamlit_app():
