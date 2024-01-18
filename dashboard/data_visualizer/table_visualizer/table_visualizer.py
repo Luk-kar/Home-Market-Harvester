@@ -9,6 +9,12 @@ import streamlit as st
 from dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
     ModelPredictor,
 )
+from dashboard.data_visualizer.table_visualizer.data_preparation import (
+    filter_data,
+    compile_apartments_data,
+    # compute_market_positioning_stats,
+    # aggregate_properties_data,
+)
 
 
 # TODO is furnished adjust to the offers
@@ -27,7 +33,7 @@ class TableVisualizer:
         Display the data in a table format.
         """
 
-        user_apartments_narrowed, market_apartments_narrowed = self._filter_data(
+        user_apartments_narrowed, market_apartments_narrowed = filter_data(
             user_apartments_df, market_apartments_df
         )
 
@@ -38,8 +44,10 @@ class TableVisualizer:
 
         self._select_price_percentile()
 
-        apartments_comparison_df = self._compile_apartments_data(
-            user_apartments_narrowed, market_apartments_narrowed
+        apartments_comparison_df = compile_apartments_data(
+            user_apartments_narrowed,
+            market_apartments_narrowed,
+            self.selected_percentile,
         )
 
         apartments_comparison_df["price_by_model"] = self._calculate_price_by_model(
@@ -86,37 +94,6 @@ class TableVisualizer:
                 options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                 index=4,  # Default to 0.5
             )
-
-    def _compile_apartments_data(
-        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
-    ) -> pd.DataFrame:
-        """
-        Compile data from user apartments and market apartments into a single DataFrame.
-        """
-
-        apartments_df = user_apartments_df.copy()
-
-        apartments_df = apartments_df.rename(columns={"price": "your_price"})
-
-        apartments_df[
-            "percentile_based_suggested_price"
-        ] = self._calculate_percentile_based_suggested_price(
-            apartments_df, market_apartments_df
-        )
-
-        apartments_df[
-            "price_percentile"
-        ] = self._calculate_yours_price_percentile_against_others(
-            apartments_df, market_apartments_df
-        )
-
-        apartments_df[
-            "price_per_meter_by_percentile"
-        ] = self._calculate_price_per_meter_differences(
-            apartments_df, market_apartments_df
-        )
-
-        return apartments_df
 
     def _compute_market_positioning_stats(
         self, apartments_comparison_df: pd.DataFrame

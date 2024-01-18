@@ -6,7 +6,7 @@ import streamlit as st
 
 # Local imports
 from dashboard.data_visualizer._config import config as display_settings
-from load_data import DataLoader
+from dashboard.load_data import DataLoader
 from dashboard.data_visualizer.data_visualizer import DataVisualizer
 
 
