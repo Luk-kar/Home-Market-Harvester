@@ -216,12 +216,16 @@ def calculate_price_by_model(
     predictor = ModelPredictor(model_path, metadata_path)
     price_predictions = predictor.get_price_predictions(apartments_df)
     price_by_model_df = pd.Series(price_predictions)
-    price_by_model_df = price_by_model_df.apply(round_to_nearest_hundred)
+    price_by_model_df = price_by_model_df.apply(round_to_nearest_fifty)
 
     price_by_model_diff = price_by_model_df - apartments_df["price"]
 
     return price_by_model_diff
 
 
-def round_to_nearest_hundred(number: float) -> int:
-    return round(number / 100) * 100
+def round_to_nearest_fifty(number: float) -> int:
+    """
+    Round a number to the nearest 50.
+    """
+    round_to = 50
+    return round(number / round_to) * round_to

@@ -129,7 +129,9 @@ def compile_apartments_data(
 
     apartments_df = user_apartments_df.copy()
 
-    apartments_df = apartments_df.rename(columns={"price": "your_price"})
+    apartments_df = apartments_df.rename(
+        columns={"price": "your_price", "deal_id": "rental_start"}
+    )
 
     apartments_df[
         "percentile_based_suggested_price"

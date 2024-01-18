@@ -15,10 +15,12 @@ predictor.get_price_predictions(your_offers_path)
 """
 
 # Standard imports
+from datetime import datetime
 import json
 import os
 
 # Third-party imports
+import numpy as np
 import pandas as pd
 import pickle
 
@@ -137,6 +139,23 @@ class ModelPredictor:
                 f"Unexpected error occurred while loading model and metadata: {e}"
             )
 
+    def _calculate_building_age(self, build_year_series: pd.Series) -> pd.Series:
+        """
+        Convert a series of building years to building ages.
+
+        :param build_year_series: A pandas Series containing building years.
+        :return: A pandas Series containing building ages.
+        """
+        current_year = datetime.now().year
+
+        # Calculate the age of the building by subtracting the year from the current year
+        # If the value is np.nan, it remains np.nan
+        building_age_series = build_year_series.apply(
+            lambda x: current_year - x if np.isfinite(x) else np.nan
+        )
+
+        return building_age_series
+
     def _prepare_dataframe(self, df: pd.DataFrame):
         if not isinstance(df, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame.")
@@ -150,6 +169,10 @@ class ModelPredictor:
                 temp_df.rename(columns={"area": "square_meters"}, inplace=True)
             elif "square_meters" not in temp_df.columns:
                 raise ValueError("'area' column not found in the DataFrame.")
+
+            # Assuming narrowed_df is a DataFrame with MultiIndex columns
+            new_values = self._calculate_building_age(temp_df["build_year"])
+            temp_df.loc[:, "build_year"] = new_values
 
             # Add missing columns with default values
             for col, dtype in self.metadata["columns"].items():
