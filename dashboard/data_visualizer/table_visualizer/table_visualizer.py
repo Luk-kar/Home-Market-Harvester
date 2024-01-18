@@ -6,9 +6,6 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
-    ModelPredictor,
-)
 from dashboard.data_visualizer.table_visualizer.data_preparation import (
     filter_data,
     compile_apartments_data,
@@ -28,6 +25,9 @@ from dashboard.data_visualizer.table_visualizer.styling import (
     round_float_columns,
     append_percent_sign,
     apply_color_based_on_difference,
+    format_column_titles,
+    show_data_table,
+    display_header,
 )
 
 
@@ -52,7 +52,7 @@ class TableVisualizer:
         )
 
         if self.table_title:
-            self._display_header(
+            display_header(
                 *self.table_title,
             )
 
@@ -64,9 +64,7 @@ class TableVisualizer:
             self.selected_percentile,
         )
 
-        apartments_comparison_df[
-            "price_by_model"
-        ] = calculate_price_by_model(  # TODO statistical analysis
+        apartments_comparison_df["price_by_model"] = calculate_price_by_model(
             user_apartments_df
         )
 
@@ -86,18 +84,16 @@ class TableVisualizer:
             },
         )
 
-        apartments_comparison_df = self._format_column_titles(
-            apartments_comparison_df
-        )  # TODO styling
-        market_positioning_df = self._format_column_titles(market_positioning_df)
-        property_summary_df = self._format_column_titles(property_summary_df)
+        apartments_comparison_df = format_column_titles(apartments_comparison_df)
+        market_positioning_df = format_column_titles(market_positioning_df)
+        property_summary_df = format_column_titles(property_summary_df)
 
-        self._show_data_table(apartments_comparison_df, with_index=True)
-        self._display_header(subtitle="📈 Market Positioning")
-        self._show_data_table(market_positioning_df)
-        self._display_header(subtitle="📋 Total Summary")
-        self._show_data_table(property_summary_df)
-        self._display_header(subtitle="\n\n")
+        show_data_table(apartments_comparison_df, with_index=True)
+        display_header(subtitle="📈 Market Positioning")
+        show_data_table(market_positioning_df)
+        display_header(subtitle="📋 Total Summary")
+        show_data_table(property_summary_df)
+        display_header(subtitle="\n\n")
 
     def _select_price_percentile(self) -> None:
         """
@@ -113,114 +109,31 @@ class TableVisualizer:
                 index=4,  # Default to 0.5
             )
 
-    def _format_column_titles(
-        self, apartments_df: pd.DataFrame
-    ) -> pd.DataFrame:  # TODO styling
-        """
-        Format the column titles to be more readable.
-        """
+    # def _round_to_nearest_hundred(
+    #     self, number: float
+    # ) -> int:  # TODO statistical analysis
+    #     return round(number / 100) * 100
 
-        apartments_df.columns = [col.replace("_", " ") for col in apartments_df.columns]
+    # def _format_with_plus_sign(self, value) -> str:
+    #     """
+    #     Format a value with a '+' sign if it is positive.
+    #     """
+    #     if pd.isna(value):
+    #         return value
+    #     elif isinstance(value, (float, int)) and value > 0:
+    #         return f"+{value:.2f}"
+    #     elif isinstance(value, (float, int)):
+    #         return f"{value:.2f}"
+    #     else:
+    #         return value
 
-        return apartments_df
-
-    def _display_header(
-        self, text: str = "", subtitle: str = ""
-    ) -> None:  # TODO styling
-        """
-        Display a formatted header.
-        """
-        st.markdown(
-            f"<h3 style='text-align: center;'>{text}</h3>",
-            unsafe_allow_html=True,
-        )
-
-        if subtitle:
-            st.markdown(
-                f"<p style='text-align: center;'>{subtitle}</p>",
-                unsafe_allow_html=True,
-            )
-
-    def _round_to_nearest_hundred(
-        self, number: float
-    ) -> int:  # TODO statistical analysis
-        return round(number / 100) * 100
-
-    def _format_with_plus_sign(self, value) -> str:
-        """
-        Format a value with a '+' sign if it is positive.
-        """
-        if pd.isna(value):
-            return value
-        elif isinstance(value, (float, int)) and value > 0:
-            return f"+{value:.2f}"
-        elif isinstance(value, (float, int)):
-            return f"{value:.2f}"
-        else:
-            return value
-
-    def _show_data_table(
-        self, df: pd.DataFrame, with_index: bool = False
-    ) -> None:  # TODO styling
-        """
-        Display a formatted table of the DataFrame.
-        """
-
-        plus_minus_columns = [
-            "price by model",
-            "suggested price by percentile",
-            "price per meter by percentile",
-            "avg price by model",
-            "avg suggested price by percentile",
-            "avg price per meter by percentile",
-            "percentile based suggested price",
-            "avg percentile based suggested price",
-        ]
-        round_float_columns(df, plus_minus_columns)
-        apply_plus_minus_formatting(df, plus_minus_columns)
-
-        percent_columns = [
-            "price per meter by percentile",
-            "avg price per meter by percentile",
-        ]
-        append_percent_sign(df, percent_columns)
-
-        color_difference_columns = [
-            "price total per model",
-            "percentile based suggested price total",
-        ]
-        apply_color_based_on_difference(df, color_difference_columns)
-
-        styled_df = self._apply_custom_styling(df)
-
-        self._display_html(styled_df, with_index)
-
-    def _display_html(
-        self, styled_df: pd.DataFrame, with_index: bool
-    ) -> None:  # TODO styling
-        html = styled_df.to_html(escape=False, index=with_index)
-        centered_html = f"""
-        <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
-            <div style='text-align: center;'>{html}</div>
-        </div>
-        """
-        st.markdown(centered_html, unsafe_allow_html=True)
-
-    def _apply_custom_styling(self, df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
-        """
-        Apply custom styling to a DataFrame's elements.
-        """
-
-        def apply_row_styles(row):
-            for col in row.index:
-                if isinstance(row[col], str) and row[col].startswith("+"):
-                    row[col] = f'<span style="color: green;">{row[col]}</span>'
-                elif isinstance(row[col], str) and row[col].startswith("-"):
-                    row[col] = f'<span style="color: red;">{row[col]}</span>'
-                elif row[col] is True:
-                    row[col] = f'<span style="color: green;">True</span>'
-                elif row[col] is False:
-                    row[col] = f'<span style="color: red;">False</span>'
-            return row
-
-        return df.apply(apply_row_styles, axis=1)
+    # def _display_html(
+    #     self, styled_df: pd.DataFrame, with_index: bool
+    # ) -> None:  # TODO styling
+    #     html = styled_df.to_html(escape=False, index=with_index)
+    #     centered_html = f"""
+    #     <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
+    #         <div style='text-align: center;'>{html}</div>
+    #     </div>
+    #     """
+    #     st.markdown(centered_html, unsafe_allow_html=True)

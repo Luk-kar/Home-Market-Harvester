@@ -1,5 +1,97 @@
 # Third-party imports
 import pandas as pd
+import streamlit as st
+
+
+def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
+    """
+    Apply custom styling to a DataFrame's elements.
+    """
+
+    def apply_row_styles(row):
+        for col in row.index:
+            if isinstance(row[col], str) and row[col].startswith("+"):
+                row[col] = f'<span style="color: green;">{row[col]}</span>'
+            elif isinstance(row[col], str) and row[col].startswith("-"):
+                row[col] = f'<span style="color: red;">{row[col]}</span>'
+            elif row[col] is True:
+                row[col] = f'<span style="color: green;">True</span>'
+            elif row[col] is False:
+                row[col] = f'<span style="color: red;">False</span>'
+        return row
+
+    return df.apply(apply_row_styles, axis=1)
+
+
+def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:  # TODO styling
+    html = styled_df.to_html(escape=False, index=with_index)
+    centered_html = f"""
+        <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
+            <div style='text-align: center;'>{html}</div>
+        </div>
+        """
+    st.markdown(centered_html, unsafe_allow_html=True)
+
+
+def format_column_titles(apartments_df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
+    """
+    Format the column titles to be more readable.
+    """
+
+    apartments_df.columns = [col.replace("_", " ") for col in apartments_df.columns]
+
+    return apartments_df
+
+
+def display_header(text: str = "", subtitle: str = "") -> None:  # TODO styling
+    """
+    Display a formatted header.
+    """
+    st.markdown(
+        f"<h3 style='text-align: center;'>{text}</h3>",
+        unsafe_allow_html=True,
+    )
+
+    if subtitle:
+        st.markdown(
+            f"<p style='text-align: center;'>{subtitle}</p>",
+            unsafe_allow_html=True,
+        )
+
+
+def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:  # TODO styling
+    """
+    Display a formatted table of the DataFrame.
+    """
+
+    plus_minus_columns = [
+        "price by model",
+        "suggested price by percentile",
+        "price per meter by percentile",
+        "avg price by model",
+        "avg suggested price by percentile",
+        "avg price per meter by percentile",
+        "percentile based suggested price",
+        "avg percentile based suggested price",
+    ]
+    round_float_columns(df, plus_minus_columns)
+    apply_plus_minus_formatting(df, plus_minus_columns)
+
+    percent_columns = [
+        "price per meter by percentile",
+        "avg price per meter by percentile",
+    ]
+    append_percent_sign(df, percent_columns)
+
+    color_difference_columns = [
+        "price total per model",
+        "percentile based suggested price total",
+    ]
+    apply_color_based_on_difference(df, color_difference_columns)
+
+    styled_df = apply_custom_styling(df)
+
+    display_html(styled_df, with_index)
 
 
 def apply_plus_minus_formatting(df: pd.DataFrame, columns: list[str]) -> None:
