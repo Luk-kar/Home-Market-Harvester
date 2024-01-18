@@ -162,9 +162,12 @@ class BarChartVisualizer:
     ) -> str:
         """
         This method provides a clever workaround to create visually similar names
-        for bar chart columns by strategically inserting spaces at various positions along the edges of the names.
-        While the resulting strings are technically different, they appear identical when displayed.
-        This approach ensures that column names remain distinct and are not inadvertently overwritten.
+        for bar chart columns by strategically inserting spaces
+        at various positions along the edges of the names.
+        While the resulting strings are technically different,
+        they appear identical when displayed.
+        This approach ensures that column names remain distinct
+        and are not inadvertently overwritten.
 
         """
         return (
