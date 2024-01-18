@@ -9,8 +9,6 @@ import streamlit as st
 from dashboard.data_visualizer.table_visualizer.data_preparation import (
     filter_data,
     compile_apartments_data,
-    # compute_market_positioning_stats,
-    # aggregate_properties_data,
     reorder_columns,
 )
 
@@ -21,17 +19,12 @@ from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
 )
 
 from dashboard.data_visualizer.table_visualizer.styling import (
-    apply_plus_minus_formatting,
-    round_float_columns,
-    append_percent_sign,
-    apply_color_based_on_difference,
     format_column_titles,
     show_data_table,
     display_header,
 )
 
 
-# TODO is furnished adjust to the offers
 class TableVisualizer:
     def __init__(
         self, display_settings: Optional[dict] = None, table_title: Optional[str] = None
@@ -108,32 +101,3 @@ class TableVisualizer:
                 options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                 index=4,  # Default to 0.5
             )
-
-    # def _round_to_nearest_hundred(
-    #     self, number: float
-    # ) -> int:  # TODO statistical analysis
-    #     return round(number / 100) * 100
-
-    # def _format_with_plus_sign(self, value) -> str:
-    #     """
-    #     Format a value with a '+' sign if it is positive.
-    #     """
-    #     if pd.isna(value):
-    #         return value
-    #     elif isinstance(value, (float, int)) and value > 0:
-    #         return f"+{value:.2f}"
-    #     elif isinstance(value, (float, int)):
-    #         return f"{value:.2f}"
-    #     else:
-    #         return value
-
-    # def _display_html(
-    #     self, styled_df: pd.DataFrame, with_index: bool
-    # ) -> None:  # TODO styling
-    #     html = styled_df.to_html(escape=False, index=with_index)
-    #     centered_html = f"""
-    #     <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
-    #         <div style='text-align: center;'>{html}</div>
-    #     </div>
-    #     """
-    #     st.markdown(centered_html, unsafe_allow_html=True)
