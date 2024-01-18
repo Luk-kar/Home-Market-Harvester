@@ -14,11 +14,20 @@ from dashboard.data_visualizer.table_visualizer.data_preparation import (
     compile_apartments_data,
     # compute_market_positioning_stats,
     # aggregate_properties_data,
+    reorder_columns,
 )
 
 from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
     compute_market_positioning_stats,
     aggregate_properties_data,
+    calculate_price_by_model,
+)
+
+from dashboard.data_visualizer.table_visualizer.styling import (
+    apply_plus_minus_formatting,
+    round_float_columns,
+    append_percent_sign,
+    apply_color_based_on_difference,
 )
 
 
@@ -55,7 +64,9 @@ class TableVisualizer:
             self.selected_percentile,
         )
 
-        apartments_comparison_df["price_by_model"] = self._calculate_price_by_model(
+        apartments_comparison_df[
+            "price_by_model"
+        ] = calculate_price_by_model(  # TODO statistical analysis
             user_apartments_df
         )
 
@@ -65,7 +76,7 @@ class TableVisualizer:
 
         property_summary_df = aggregate_properties_data(apartments_comparison_df)
 
-        apartments_comparison_df = self._reorder_columns(
+        apartments_comparison_df = reorder_columns(
             apartments_comparison_df,
             {
                 "price_percentile": 7,
@@ -75,7 +86,9 @@ class TableVisualizer:
             },
         )
 
-        apartments_comparison_df = self._format_column_titles(apartments_comparison_df)
+        apartments_comparison_df = self._format_column_titles(
+            apartments_comparison_df
+        )  # TODO styling
         market_positioning_df = self._format_column_titles(market_positioning_df)
         property_summary_df = self._format_column_titles(property_summary_df)
 
@@ -100,125 +113,9 @@ class TableVisualizer:
                 index=4,  # Default to 0.5
             )
 
-    def _compute_market_positioning_stats(
-        self, apartments_comparison_df: pd.DataFrame
-    ) -> pd.DataFrame:
-        """
-        Calculate and return market positioning data.
-        """
-
-        summary_stats = {
-            "flats": len(apartments_comparison_df["flat_id"].unique()),
-            "floor_max": apartments_comparison_df["floor"].max(),
-            "avg_area": apartments_comparison_df["area"].mean(),
-            "furnished_sum": apartments_comparison_df["is_furnished"].sum(),
-            "avg_your_price": apartments_comparison_df["your_price"].mean(),
-            "avg_price_percentile": apartments_comparison_df["price_percentile"].mean(),
-            "avg_price_by_model": apartments_comparison_df["price_by_model"].mean(),
-            "avg_percentile_based_suggested_price": apartments_comparison_df[
-                "percentile_based_suggested_price"
-            ].mean(),
-            "avg_your_price_per_meter": apartments_comparison_df[
-                "your_price_per_meter"
-            ].mean(),
-            "avg_price_per_meter_by_percentile": apartments_comparison_df[
-                "price_per_meter_by_percentile"
-            ].mean(),
-        }
-        market_positioning_summary_df = pd.DataFrame([summary_stats])
-
-        plus_minus_columns = [
-            "avg_price_by_model",
-            "avg_suggested_price_by_median",
-            "price_per_meter_by_percentile",
-        ]
-
-        # Custom formatting function to add '+' for positive values
-        # Apply the formatting function to the specific columns
-        for col in plus_minus_columns:
-            if col in market_positioning_summary_df.columns:
-                market_positioning_summary_df[col] = market_positioning_summary_df[
-                    col
-                ].apply(self._format_with_plus_sign)
-
-        return market_positioning_summary_df
-
-    def _aggregate_properties_data(
-        self, apartments_comparison_df: pd.DataFrame
-    ) -> pd.DataFrame:
-        actual_price_total = apartments_comparison_df["your_price"].sum()
-        """
-        Aggregate and return summary data for properties.
-        """
-
-        price_total_per_model = (
-            actual_price_total + apartments_comparison_df["price_by_model"].sum()
-        )  # price by model is additional sum
-
-        percentile_based_suggested_price_total = (
-            actual_price_total
-            + apartments_comparison_df["percentile_based_suggested_price"].sum()
-        )  # price by median is additional sum
-
-        summary_data = pd.DataFrame(
-            {
-                "your_price_total": [actual_price_total],
-                "price_total_per_model": [price_total_per_model],
-                "percentile_based_suggested_price_total": [
-                    percentile_based_suggested_price_total
-                ],
-            }
-        )
-
-        return summary_data
-
-    def _calculate_percentile_based_suggested_price(
-        self, apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
-    ) -> pd.Series:
-        """
-        Calculate the suggested price based on percentile for each apartment.
-        """
-
-        def calculate_price(row):
-            furnished_offers = market_apartments_df[
-                market_apartments_df["equipment"]["furniture"] == True
-            ]
-            non_furnished_offers = market_apartments_df[
-                market_apartments_df["equipment"]["furniture"] == False
-            ]
-
-            sq_meter_price = None
-            if row["is_furnished"]:
-                sq_meter_price = furnished_offers["pricing"]["total_rent_sqm"].quantile(
-                    self.selected_percentile
-                )
-            else:
-                sq_meter_price = non_furnished_offers["pricing"][
-                    "total_rent_sqm"
-                ].quantile(self.selected_percentile)
-
-            total_price_difference = sq_meter_price * row["area"] - row["your_price"]
-            return total_price_difference
-
-        return apartments_df.apply(calculate_price, axis=1)
-
-    def _calculate_price_by_model(self, apartments_df: pd.DataFrame) -> pd.Series:
-        """
-        Calculate price by model.
-        """
-        model_path = "notebooks\\lm_model.p"
-        metadata_path = "notebooks\\lm_model_metadata.json"
-
-        predictor = ModelPredictor(model_path, metadata_path)
-        price_predictions = predictor.get_price_predictions(apartments_df)
-        price_by_model_df = pd.Series(price_predictions)
-        price_by_model_df = price_by_model_df.apply(self._round_to_nearest_hundred)
-
-        price_by_model_diff = price_by_model_df - apartments_df["price"]
-
-        return price_by_model_diff
-
-    def _format_column_titles(self, apartments_df: pd.DataFrame) -> pd.DataFrame:
+    def _format_column_titles(
+        self, apartments_df: pd.DataFrame
+    ) -> pd.DataFrame:  # TODO styling
         """
         Format the column titles to be more readable.
         """
@@ -227,59 +124,9 @@ class TableVisualizer:
 
         return apartments_df
 
-    def _calculate_yours_price_percentile_against_others(
-        self, apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
-    ) -> pd.Series:
-        """
-        Calculate the percentile of user the price compared to the market offers.
-        """
-
-        def calculate_percentile(row, prices_series):
-            return prices_series[prices_series <= row["your_price"]].count() / len(
-                prices_series
-            )
-
-        furnished_prices = market_apartments_df[
-            market_apartments_df["equipment"]["furniture"] == True
-        ]["pricing"]["total_rent"]
-        non_furnished_prices = market_apartments_df[
-            market_apartments_df["equipment"]["furniture"] == False
-        ]["pricing"]["total_rent"]
-
-        furnished_prices_series = pd.Series(furnished_prices.values)
-        non_furnished_prices_series = pd.Series(non_furnished_prices.values)
-
-        return apartments_df.apply(
-            lambda row: calculate_percentile(
-                row,
-                furnished_prices_series
-                if row["is_furnished"]
-                else non_furnished_prices_series,
-            ),
-            axis=1,
-        )
-
-    def _calculate_percentile(
-        self,
-        row: pd.Series,
-        furnished_prices_series: pd.Series,
-        non_furnished_prices_series: pd.Series,
-    ) -> float:
-        """
-        Calculate the percentile ranking of an apartment's price relative to market prices
-        """
-        price = row["your_price"]
-        is_furnished = row["is_furnished"]
-        if is_furnished:
-            return furnished_prices_series[
-                furnished_prices_series <= price
-            ].count() / len(furnished_prices_series)
-        else:
-            return non_furnished_prices_series[
-                non_furnished_prices_series <= price
-            ].count() / len(non_furnished_prices_series)
-
-    def _display_header(self, text: str = "", subtitle: str = "") -> None:
+    def _display_header(
+        self, text: str = "", subtitle: str = ""
+    ) -> None:  # TODO styling
         """
         Display a formatted header.
         """
@@ -294,107 +141,9 @@ class TableVisualizer:
                 unsafe_allow_html=True,
             )
 
-    def _filter_data(
-        self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """
-        Filter the data to only include apartments that are relevant for the analysis.
-        """
-
-        selected_columns = [
-            "deal_id",
-            "flat_id",
-            "floor",
-            "number_of_rooms",
-            "area",
-            "is_furnished",
-            "price",
-            # "deposit",
-            "lease_time",
-            "price_per_meter",
-        ]
-        user_apartments_df = user_apartments_df[selected_columns]
-
-        def filter_row(row: pd.Series) -> bool:
-            """
-            Filter rows based on the following criteria:
-            - City is in the list of cities
-            - Building type is in the list of building types
-            - Build year is less than or equal to 1970
-            """
-            try:
-                city = row["location"]["city"]
-                building_type = (
-                    row["type_and_year"]["building_type"]
-                    if pd.notna(row["type_and_year"].get("building_type"))
-                    else False
-                )
-                build_year = (
-                    row["type_and_year"]["build_year"]
-                    if pd.notna(row["type_and_year"].get("build_year"))
-                    else False
-                )
-                return (
-                    city
-                    in [
-                        "będziński",
-                        "Zawada",
-                        "Siewierz",
-                        "tarnogórski",
-                        "Piekary Śląskie",
-                        "zawierciański",
-                        "Siemianowice Śląskie",
-                    ]
-                    and building_type in ["block_of_flats", "apartment_building"]
-                    and build_year <= 1970
-                )
-            except KeyError:
-                return False
-
-        filtered_df = market_apartments_df[
-            market_apartments_df.apply(filter_row, axis=1)
-        ].copy()
-
-        user_apartments_df = user_apartments_df.rename(
-            columns={"price_per_meter": "your_price_per_meter"}
-        )
-
-        return user_apartments_df, filtered_df
-
-    def _calculate_price_per_meter_differences(
-        self, apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
-    ) -> pd.Series:
-        """
-        Calculate the price per meter differences for each apartment.
-        """
-
-        def calculate_difference(row):
-            furnished_offers = market_apartments_df[
-                market_apartments_df["equipment"]["furniture"] == True
-            ]
-            non_furnished_offers = market_apartments_df[
-                market_apartments_df["equipment"]["furniture"] == False
-            ]
-
-            sq_meter_price_others = (
-                furnished_offers["pricing"]["total_rent_sqm"].quantile(
-                    self.selected_percentile
-                )
-                if row["is_furnished"]
-                else non_furnished_offers["pricing"]["total_rent_sqm"].quantile(
-                    self.selected_percentile
-                )
-            )
-
-            sq_meter_price_yours = row["your_price_per_meter"]
-            percent_difference = round(
-                ((sq_meter_price_others / sq_meter_price_yours) - 1) * 100, 2
-            )
-            return percent_difference
-
-        return apartments_df.apply(calculate_difference, axis=1)
-
-    def _round_to_nearest_hundred(self, number: float) -> int:
+    def _round_to_nearest_hundred(
+        self, number: float
+    ) -> int:  # TODO statistical analysis
         return round(number / 100) * 100
 
     def _format_with_plus_sign(self, value) -> str:
@@ -410,7 +159,9 @@ class TableVisualizer:
         else:
             return value
 
-    def _show_data_table(self, df: pd.DataFrame, with_index: bool = False) -> None:
+    def _show_data_table(
+        self, df: pd.DataFrame, with_index: bool = False
+    ) -> None:  # TODO styling
         """
         Display a formatted table of the DataFrame.
         """
@@ -425,54 +176,28 @@ class TableVisualizer:
             "percentile based suggested price",
             "avg percentile based suggested price",
         ]
-        self._round_float_columns(df, plus_minus_columns)
-        self._apply_plus_minus_formatting(df, plus_minus_columns)
+        round_float_columns(df, plus_minus_columns)
+        apply_plus_minus_formatting(df, plus_minus_columns)
 
         percent_columns = [
             "price per meter by percentile",
             "avg price per meter by percentile",
         ]
-        self._append_percent_sign(df, percent_columns)
+        append_percent_sign(df, percent_columns)
 
         color_difference_columns = [
             "price total per model",
             "percentile based suggested price total",
         ]
-        self._apply_color_based_on_difference(df, color_difference_columns)
+        apply_color_based_on_difference(df, color_difference_columns)
 
         styled_df = self._apply_custom_styling(df)
 
         self._display_html(styled_df, with_index)
 
-    def _append_percent_sign(self, df: pd.DataFrame, columns: list[str]) -> None:
-        for col in columns:
-            if col in df.columns:
-                df[col] = df[col].apply(lambda x: f"{x}%" if pd.notna(x) else x)
-
-    def _apply_plus_minus_formatting(
-        self, df: pd.DataFrame, columns: list[str]
-    ) -> None:
-        for col in columns:
-            if col in df.columns:
-                df[col] = df[col].apply(self._format_with_plus_sign)
-
-    def _round_float_columns(self, df: pd.DataFrame, columns: list[str]) -> None:
-        float_columns = df.select_dtypes(include=["float"]).columns
-        for col in float_columns:
-            if col not in columns:
-                df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else x)
-
-    def _apply_color_based_on_difference(
-        self, df: pd.DataFrame, columns: list[str]
-    ) -> None:
-        for col in columns:
-            if col in df.columns:
-                df[col] = df.apply(
-                    lambda row: self._color_format(row[col], row["your price total"]),
-                    axis=1,
-                )
-
-    def _display_html(self, styled_df: pd.DataFrame, with_index: bool) -> None:
+    def _display_html(
+        self, styled_df: pd.DataFrame, with_index: bool
+    ) -> None:  # TODO styling
         html = styled_df.to_html(escape=False, index=with_index)
         centered_html = f"""
         <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
@@ -481,37 +206,7 @@ class TableVisualizer:
         """
         st.markdown(centered_html, unsafe_allow_html=True)
 
-    def _color_format(self, value, comparison_value):
-        if pd.isna(value) or pd.isna(comparison_value):
-            return value  # Return the original value if either is NaN
-        if value < comparison_value:
-            color = "red"
-        elif value > comparison_value:
-            color = "green"
-        else:  # value is equal to comparison_value
-            color = "grey"
-        return f"<span style='color: {color};'>{value}</span>"
-
-    def _reorder_columns(self, df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
-        """
-        Reorder the columns of a DataFrame.
-
-        Args:
-            df (pd.DataFrame): The DataFrame to reorder.
-            column_order (dict): A dictionary mapping column names to their new positions.
-
-        Returns:
-            pd.DataFrame: The DataFrame with reordered columns.
-        """
-        columns = list(df.columns)
-        for column_name, new_position in column_order.items():
-            if column_name in columns:
-                columns.insert(new_position, columns.pop(columns.index(column_name)))
-            else:
-                print(f"Column '{column_name}' not found in DataFrame.")
-        return df[columns]
-
-    def _apply_custom_styling(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _apply_custom_styling(self, df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
         """
         Apply custom styling to a DataFrame's elements.
         """

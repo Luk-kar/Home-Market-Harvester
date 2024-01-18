@@ -9,6 +9,9 @@ import pandas as pd
 from dashboard.data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
+from dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
+    ModelPredictor,
+)
 
 
 def compute_market_positioning_stats(
@@ -199,3 +202,26 @@ def calculate_price_per_meter_differences(
         return percent_difference
 
     return apartments_df.apply(calculate_difference, axis=1)
+
+
+def calculate_price_by_model(
+    apartments_df: pd.DataFrame,
+) -> pd.Series:  # TODO statistical analysis
+    """
+    Calculate price by model.
+    """
+    model_path = "notebooks\\lm_model.p"
+    metadata_path = "notebooks\\lm_model_metadata.json"
+
+    predictor = ModelPredictor(model_path, metadata_path)
+    price_predictions = predictor.get_price_predictions(apartments_df)
+    price_by_model_df = pd.Series(price_predictions)
+    price_by_model_df = price_by_model_df.apply(round_to_nearest_hundred)
+
+    price_by_model_diff = price_by_model_df - apartments_df["price"]
+
+    return price_by_model_diff
+
+
+def round_to_nearest_hundred(number: float) -> int:  # TODO statistical analysis
+    return round(number / 100) * 100

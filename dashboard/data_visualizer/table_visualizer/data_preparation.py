@@ -91,24 +91,24 @@ def filter_data(
     return user_apartments_df, filtered_df
 
 
-# def reorder_columns(df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
-#     """
-#     Reorder the columns of a DataFrame.
+def reorder_columns(df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
+    """
+    Reorder the columns of a DataFrame.
 
-#     Args:
-#         df (pd.DataFrame): The DataFrame to reorder.
-#         column_order (dict): A dictionary mapping column names to their new positions.
+    Args:
+        df (pd.DataFrame): The DataFrame to reorder.
+        column_order (dict): A dictionary mapping column names to their new positions.
 
-#     Returns:
-#         pd.DataFrame: The DataFrame with reordered columns.
-#     """
-#     columns = list(df.columns)
-#     for column_name, new_position in column_order.items():
-#         if column_name in columns:
-#             columns.insert(new_position, columns.pop(columns.index(column_name)))
-#         else:
-#             print(f"Column '{column_name}' not found in DataFrame.")
-#     return df[columns]
+    Returns:
+        pd.DataFrame: The DataFrame with reordered columns.
+    """
+    columns = list(df.columns)
+    for column_name, new_position in column_order.items():
+        if column_name in columns:
+            columns.insert(new_position, columns.pop(columns.index(column_name)))
+        else:
+            print(f"Column '{column_name}' not found in DataFrame.")
+    return df[columns]
 
 
 def compile_apartments_data(
