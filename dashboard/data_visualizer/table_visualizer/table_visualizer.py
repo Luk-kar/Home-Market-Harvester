@@ -16,6 +16,11 @@ from dashboard.data_visualizer.table_visualizer.data_preparation import (
     # aggregate_properties_data,
 )
 
+from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
+    compute_market_positioning_stats,
+    aggregate_properties_data,
+)
+
 
 # TODO is furnished adjust to the offers
 class TableVisualizer:
@@ -54,11 +59,11 @@ class TableVisualizer:
             user_apartments_df
         )
 
-        market_positioning_df = self._compute_market_positioning_stats(
+        market_positioning_df = compute_market_positioning_stats(
             apartments_comparison_df
         )
 
-        property_summary_df = self._aggregate_properties_data(apartments_comparison_df)
+        property_summary_df = aggregate_properties_data(apartments_comparison_df)
 
         apartments_comparison_df = self._reorder_columns(
             apartments_comparison_df,
