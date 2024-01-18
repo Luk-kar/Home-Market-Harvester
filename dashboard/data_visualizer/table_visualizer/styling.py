@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 
 
-def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
+def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:
     """
     Apply custom styling to a DataFrame's elements.
     """
@@ -23,7 +23,7 @@ def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
     return df.apply(apply_row_styles, axis=1)
 
 
-def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:  # TODO styling
+def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:
     html = styled_df.to_html(escape=False, index=with_index)
     centered_html = f"""
         <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
@@ -33,7 +33,7 @@ def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:  # TODO sty
     st.markdown(centered_html, unsafe_allow_html=True)
 
 
-def format_column_titles(apartments_df: pd.DataFrame) -> pd.DataFrame:  # TODO styling
+def format_column_titles(apartments_df: pd.DataFrame) -> pd.DataFrame:
     """
     Format the column titles to be more readable.
     """
@@ -43,7 +43,7 @@ def format_column_titles(apartments_df: pd.DataFrame) -> pd.DataFrame:  # TODO s
     return apartments_df
 
 
-def display_header(text: str = "", subtitle: str = "") -> None:  # TODO styling
+def display_header(text: str = "", subtitle: str = "") -> None:
     """
     Display a formatted header.
     """
@@ -59,7 +59,7 @@ def display_header(text: str = "", subtitle: str = "") -> None:  # TODO styling
         )
 
 
-def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:  # TODO styling
+def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
     """
     Display a formatted table of the DataFrame.
     """

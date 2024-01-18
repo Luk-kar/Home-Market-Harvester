@@ -21,6 +21,9 @@ class BarChartVisualizer:
         self.display_settings = display_settings
         self.user_apartments_df = user_apartments_df
         self.market_apartments_df = market_apartments_df
+        self.similar_apartments_df = self._filter_similar_to_user_offers(
+            market_apartments_df
+        )
         self.bar_chart_title = bar_chart_title
 
         """
@@ -65,41 +68,51 @@ class BarChartVisualizer:
                 )
             )
 
-    def _filter_row(row: pd.Series) -> bool:
+    def _filter_similar_to_user_offers(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Filter rows based on the following criteria:
+        Filter DataFrame rows based on the following criteria:
         - City is in the list of cities
         - Building type is in the list of building types
         - Build year is less than or equal to 1970
+
+        Args:
+            df (pd.DataFrame): A DataFrame containing offers data.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing offers data filtered by the criteria.
         """
-        try:
-            city = row["location"]["city"]
-            building_type = (
-                row["type_and_year"]["building_type"]
-                if pd.notna(row["type_and_year"].get("building_type"))
-                else False
-            )
-            build_year = (
-                row["type_and_year"]["build_year"]
-                if pd.notna(row["type_and_year"].get("build_year"))
-                else False
-            )
-            return (
-                city
-                in [
-                    "będziński",
-                    "Zawada",
-                    "Siewierz",
-                    "tarnogórski",
-                    "Piekary Śląskie",
-                    "zawierciański",
-                    "Siemianowice Śląskie",
-                ]
-                and building_type in ["block_of_flats", "apartment_building"]
-                and build_year <= 1970
-            )
-        except KeyError:
-            return False
+
+        def _filter_row(row: pd.Series) -> bool:
+            try:
+                city = row["location"]["city"]
+                building_type = (
+                    row["type_and_year"]["building_type"]
+                    if pd.notna(row["type_and_year"].get("building_type"))
+                    else False
+                )
+                build_year = (
+                    row["type_and_year"]["build_year"]
+                    if pd.notna(row["type_and_year"].get("build_year"))
+                    else False
+                )
+                return (
+                    city
+                    in [
+                        "będziński",
+                        "Zawada",
+                        "Siewierz",
+                        "tarnogórski",
+                        "Piekary Śląskie",
+                        "zawierciański",
+                        "Siemianowice Śląskie",
+                    ]
+                    and building_type in ["block_of_flats", "apartment_building"]
+                    and build_year <= 1970
+                )
+            except KeyError:
+                return False
+
+        return df[df.apply(_filter_row, axis=1)]
 
     def _generate_x_label(self, categories: List[str]) -> str:
         space = " " * 36
@@ -180,32 +193,31 @@ class BarChartVisualizer:
         """
         Creates a dictionary of offers for each category.
         """
-        # TODO add local market
+        user_df = self.user_apartments_df
+        similar_df = self.similar_apartments_df
+        whole_market_df = self.market_apartments_df
+
         return {
             "Yours": {
-                "furnished": self.user_apartments_df[
-                    self.user_apartments_df["is_furnished"] == True
-                ],
-                "unfurnished": self.user_apartments_df[
-                    self.user_apartments_df["is_furnished"] == False
-                ],
+                "furnished": user_df[user_df["is_furnished"] == True],
+                "unfurnished": user_df[user_df["is_furnished"] == False],
             },
             "Similar": {
-                "furnished": self.market_apartments_df[
-                    (self.market_apartments_df["equipment"]["furniture"] == True)
-                    & (self.market_apartments_df["location"]["city"] == "będziński")
+                "furnished": similar_df[
+                    (similar_df["equipment"]["furniture"] == True)
+                    & (similar_df["location"]["city"] == "będziński")
                 ],
-                "unfurnished": self.market_apartments_df[
-                    (self.market_apartments_df["equipment"]["furniture"] == False)
-                    & (self.market_apartments_df["location"]["city"] == "będziński")
+                "unfurnished": similar_df[
+                    (similar_df["equipment"]["furniture"] == False)
+                    & (similar_df["location"]["city"] == "będziński")
                 ],
             },
             "All in 20 km radius": {
-                "furnished": self.market_apartments_df[
-                    self.market_apartments_df["equipment"]["furniture"] == True
+                "furnished": whole_market_df[
+                    whole_market_df["equipment"]["furniture"] == True
                 ],
-                "unfurnished": self.market_apartments_df[
-                    self.market_apartments_df["equipment"]["furniture"] == False
+                "unfurnished": whole_market_df[
+                    whole_market_df["equipment"]["furniture"] == False
                 ],
             },
         }

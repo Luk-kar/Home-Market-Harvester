@@ -206,7 +206,7 @@ def calculate_price_per_meter_differences(
 
 def calculate_price_by_model(
     apartments_df: pd.DataFrame,
-) -> pd.Series:  # TODO statistical analysis
+) -> pd.Series:
     """
     Calculate price by model.
     """
@@ -223,5 +223,5 @@ def calculate_price_by_model(
     return price_by_model_diff
 
 
-def round_to_nearest_hundred(number: float) -> int:  # TODO statistical analysis
+def round_to_nearest_hundred(number: float) -> int:
     return round(number / 100) * 100
