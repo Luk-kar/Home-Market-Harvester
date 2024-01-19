@@ -9,9 +9,10 @@ import os
 import streamlit as st
 
 # Local imports
-from dashboard.data_visualizer._config import config as display_settings
-from dashboard.load_data import DataLoader
-from dashboard.data_visualizer.data_visualizer import DataVisualizer
+# Do not do the `dashboard.` import here
+from data_visualizer._config import config as display_settings
+from load_data import DataLoader
+from data_visualizer.data_visualizer import DataVisualizer
 
 
 def streamlit_app():

@@ -21,12 +21,6 @@ import streamlit as st
 
 
 # Local imports
-from notebooks._csv_utils import (
-    data_timeplace,
-    DataPathCleaningManager,
-)  # pylint: disable=wrong-import-position
-
-
 def add_project_root_to_sys_path():
     """
     Adds the project root to the system path.
@@ -36,7 +30,14 @@ def add_project_root_to_sys_path():
     sys.path.insert(0, project_root)
 
 
+# You have to add the project root to the system path
+# before importing from it
 add_project_root_to_sys_path()
+
+from notebooks._csv_utils import (
+    data_timeplace,
+    DataPathCleaningManager,
+)  # pylint: disable=wrong-import-position
 
 
 class DataLoader:

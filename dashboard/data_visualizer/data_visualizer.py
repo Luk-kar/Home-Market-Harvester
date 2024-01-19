@@ -56,7 +56,7 @@ class DataVisualizer:
             self.display_settings,
             (
                 "📊 Apartments Data",
-                "Price in PLN, medians taken from 5 km radius",
+                "Price in PLN, medians taken from similar nearby offers",
             ),
         )
         table_visualizer.display(self.user_apartments_df, self.market_apartments_df)
