@@ -46,7 +46,7 @@ def filter_data(
     user_apartments_df = user_apartments_df[selected_columns]
 
     filtered_df = market_apartments_df[
-        market_apartments_df.apply(filter_row, axis=1)
+        market_apartments_df.apply(matches_city_building_year_criteria, axis=1)
     ].copy()
 
     user_apartments_df = user_apartments_df.rename(
@@ -56,7 +56,7 @@ def filter_data(
     return user_apartments_df, filtered_df
 
 
-def filter_row(row: pd.Series) -> bool:
+def matches_city_building_year_criteria(row: pd.Series) -> bool:
     """
     Filter rows based on the following criteria:
     - City is in the list of cities

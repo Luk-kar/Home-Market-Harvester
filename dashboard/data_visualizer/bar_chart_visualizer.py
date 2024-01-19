@@ -15,7 +15,7 @@ import seaborn as sns
 import streamlit as st
 
 # Local imports
-from data_visualizer.data_preparation import filter_row
+from data_visualizer.data_preparation import matches_city_building_year_criteria
 
 
 class BarChartVisualizer:
@@ -104,7 +104,7 @@ class BarChartVisualizer:
             pd.DataFrame: A DataFrame containing offers data filtered by the criteria.
         """
 
-        return df[df.apply(filter_row, axis=1)]
+        return df[df.apply(matches_city_building_year_criteria, axis=1)]
 
     def _generate_x_label(self, categories: List[str]) -> str:
         """
