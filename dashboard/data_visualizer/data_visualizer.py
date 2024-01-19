@@ -12,13 +12,23 @@ display a title, and initialize the dashboard with necessary data.
 import streamlit as st
 
 # Local imports
-from dashboard.data_visualizer._config import config as display_settings
 from dashboard.data_visualizer.map_visualizer import MapVisualizer
 from dashboard.data_visualizer.bar_chart_visualizer import BarChartVisualizer
 from dashboard.data_visualizer.table_visualizer.table_visualizer import TableVisualizer
 
 
 class DataVisualizer:
+    """
+    A class responsible for rendering data in the Streamlit application.
+
+    Attributes:
+        user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
+        market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
+        map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
+        display_settings: Configuration for the display settings of the visualizations.
+        dashboard_title (str): The title of the dashboard.
+    """
+
     def __init__(
         self,
         user_apartments_df,
@@ -27,16 +37,6 @@ class DataVisualizer:
         display_settings,
         dashboard_title,
     ):
-        """
-        Initializes the dashboard with necessary data.
-
-        Args:
-            user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
-            market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
-            map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
-            display_settings: Configuration for the display settings of the visualizations.
-            dashboard_title (str): The title of the dashboard.
-        """
         self.user_apartments_df = user_apartments_df
         self.market_apartments_df = market_apartments_df
         self.map_offers_df = map_offers_df

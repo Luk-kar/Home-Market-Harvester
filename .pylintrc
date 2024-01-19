@@ -1,0 +1,7 @@
+[MESSAGES CONTROL]
+disable=C0103, R0903, R1705
+# C0103: Invalid name <- False flags for the const naming convention, popular naming conventions in plotlib are not supported.
+# R0903: Too few public methods <- Complex is better than complicated.
+# R1705: Unnecessary "else" after "return" <- Explicit is better than implicit.
+# C0121: Comparison to None should be 'expr is None' <- It doesn't make sense in pandas. Error prone.
+# E0401: Unable to import (import-error) <- False flags due to changing root in the runtime.

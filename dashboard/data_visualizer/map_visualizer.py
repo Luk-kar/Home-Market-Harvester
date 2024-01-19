@@ -1,3 +1,8 @@
+"""
+This module contains the MapVisualizer class, 
+which is used to display map visualizations using Plotly and Scattermapbox.
+"""
+
 # Third-party imports
 import pandas as pd
 import plotly.graph_objects as go
@@ -5,6 +10,16 @@ import streamlit as st
 
 
 class MapVisualizer:
+    """
+    A class used to display map visualizations using Plotly and Scattermapbox.
+
+    Attributes:
+        display_settings: Configuration for the display settings of the visualizations.
+
+    Methods:
+        display: Display a map visualization using Plotly and Scattermapbox.
+    """
+
     def __init__(self, display_settings):
         self.display_settings = display_settings
 
@@ -22,7 +37,8 @@ class MapVisualizer:
         Args:
             map_df (pd.DataFrame): DataFrame containing map data.
             title (str, optional): Title for the map visualization. Defaults to "".
-            center_coords (tuple[float, float], optional): Coordinates for the center of the map. Defaults to None.
+            center_coords (tuple[float, float], optional): Coordinates for the center of the map.
+                                                           Defaults to None.
             center_marker_name (str, optional): Name for the center marker. Defaults to "Default".
             zoom (float, optional): Zoom level of the map. Defaults to 10.0.
         """
@@ -95,15 +111,25 @@ class MapVisualizer:
         max_label_length = max(len(label) for label in labels)
         font_style = "font-family:monospace;"
 
+        def _format_street_address(row, max_label_length):
+            street_label = "Street:"
+            street_address = (
+                row["complete_address"].replace((", " + row["city"]), "")
+                if row["city"]
+                else row["complete_address"]
+            )
+            return f"<span style='{font_style}'>{street_label.ljust(max_label_length)}</span> {street_address}<br>"
+
         return (
             f"<span style='{font_style}'>{'City:'.ljust(max_label_length)}</span> {row['city']}<br>"
-            f"<span style='{font_style}'>{'Street:'.ljust(max_label_length)}</span> {row['complete_address'].replace((', ' + row['city']), '') if row['city'] else row['complete_address']}<br>"
-            f"<span style='{font_style}'>{'Total Price:'.ljust(max_label_length)}</span> {row['price_total']}<br>"
+            + _format_street_address(row, max_label_length)
+            + f"<span style='{font_style}'>{'Total Price:'.ljust(max_label_length)}</span> {row['price_total']}<br>"
             f"<span style='{font_style}'>{'Price:'.ljust(max_label_length)}</span> {row['price']}<br>"
             f"<span style='{font_style}'>{'Rent:'.ljust(max_label_length)}</span> {row['rent']}<br>"
             f"<span style='{font_style}'>{'Square Meters:'.ljust(max_label_length)}</span> {row['sqm']}<br>"
             f"<span style='{font_style}'>{'Price/Sqm:'.ljust(max_label_length)}</span> {row['rent_sqm']}<br>"
-            f"<span style='{font_style}'>{'Furnished:'.ljust(max_label_length)}</span> {row['is_furnished']}<extra></extra>"
+            f"<span style='{font_style}'>{'Furnished:'.ljust(max_label_length)}</span> {row['is_furnished']}"
+            "<extra></extra>"
         )
 
     def _create_heatmap_data(self, plot_data):
@@ -124,7 +150,7 @@ class MapVisualizer:
             zmin=0,
             zmax=plot_data["offer_count"].max(),
             hovertemplate=plot_data["hovertemplate"],
-            colorbar=dict(title="Number<br>of<br>offers:"),
+            colorbar={"title": "Number<br>of<br>offers:"},
         )
 
     def _update_fig(self, fig, mapbox_zoom, mapbox_center, height=None):
@@ -132,14 +158,14 @@ class MapVisualizer:
             "mapbox_style": "carto-positron",
             "mapbox_zoom": mapbox_zoom,
             "mapbox_center": mapbox_center,
-            "margin": dict(l=0, r=0, t=40, b=0),
-            "coloraxis_colorbar": dict(
-                title="Number<br>of<br>offers:",
-                title_side="right",
-                title_font=dict(size=20),
-                y=-2,
-                yanchor="middle",
-            ),
+            "margin": {"l": 0, "r": 0, "t": 40, "b": 0},
+            "coloraxis_colorbar": {
+                "title": "Number<br>of<br>offers:",
+                "title_side": "right",
+                "title_font": {"size": 20},
+                "y": -2,
+                "yanchor": "middle",
+            },
         }
 
         if height is not None:

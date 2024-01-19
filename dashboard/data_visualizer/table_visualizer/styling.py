@@ -1,3 +1,8 @@
+"""
+This module provides functions for applying custom styling 
+to DataFrames and displaying them as formatted tables.
+"""
+
 # Third-party imports
 import pandas as pd
 import streamlit as st
@@ -6,6 +11,12 @@ import streamlit as st
 def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:
     """
     Apply custom styling to a DataFrame's elements.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing offers data.
+
+    Returns:
+        pd.DataFrame: A DataFrame with custom styling applied.
     """
 
     def apply_row_styles(row):
@@ -15,15 +26,22 @@ def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:
             elif isinstance(row[col], str) and row[col].startswith("-"):
                 row[col] = f'<span style="color: red;">{row[col]}</span>'
             elif row[col] is True:
-                row[col] = f'<span style="color: green;">True</span>'
+                row[col] = '<span style="color: green;">True</span>'
             elif row[col] is False:
-                row[col] = f'<span style="color: red;">False</span>'
+                row[col] = '<span style="color: red;">False</span>'
         return row
 
     return df.apply(apply_row_styles, axis=1)
 
 
 def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:
+    """
+    Display a DataFrame as a formatted table.
+
+    Args:
+        styled_df (pd.DataFrame): A DataFrame with custom styling applied.
+        with_index (bool): Whether to display the DataFrame index.
+    """
     html = styled_df.to_html(escape=False, index=with_index)
     centered_html = f"""
         <div style='display: flex; justify-content: center; align-items: center; height: 100%;'>
@@ -36,6 +54,12 @@ def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:
 def format_column_titles(apartments_df: pd.DataFrame) -> pd.DataFrame:
     """
     Format the column titles to be more readable.
+
+    Args:
+        apartments_df (pd.DataFrame): A DataFrame containing offers data.
+
+    Returns:
+        pd.DataFrame: A DataFrame with formatted column titles.
     """
 
     apartments_df.columns = [col.replace("_", " ") for col in apartments_df.columns]
@@ -46,6 +70,10 @@ def format_column_titles(apartments_df: pd.DataFrame) -> pd.DataFrame:
 def display_header(text: str = "", subtitle: str = "") -> None:
     """
     Display a formatted header.
+
+    Args:
+        text (str, optional): The header text. Defaults to "".
+        subtitle (str, optional): The header subtitle. Defaults to "".
     """
     st.markdown(
         f"<h3 style='text-align: center;'>{text}</h3>",
@@ -62,6 +90,10 @@ def display_header(text: str = "", subtitle: str = "") -> None:
 def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
     """
     Display a formatted table of the DataFrame.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing offers data.
+        with_index (bool, optional): Whether to display the DataFrame index. Defaults to False.
     """
 
     plus_minus_columns = [
@@ -146,7 +178,7 @@ def apply_color_based_on_difference(df: pd.DataFrame, columns: list[str]) -> Non
     for col in columns:
         if col in df.columns:
             df[col] = df.apply(
-                lambda row: color_format(row[col], row["your price total"]),
+                lambda row, c=col: color_format(row[c], row["your price total"]),
                 axis=1,
             )
 

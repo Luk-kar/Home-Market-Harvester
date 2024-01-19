@@ -1,5 +1,5 @@
 # Standard imports
-from typing import Tuple, Optional
+from typing import Optional
 
 # Third-party imports
 import pandas as pd
@@ -26,6 +26,17 @@ from dashboard.data_visualizer.table_visualizer.styling import (
 
 
 class TableVisualizer:
+    """
+    A class responsible for rendering data in the Streamlit application.
+
+    Attributes:
+        display_settings: Configuration for the display settings of the visualizations.
+        table_title (str): The title of the table.
+
+    Methods:
+        display: Display the data in a table format.
+    """
+
     def __init__(
         self, display_settings: Optional[dict] = None, table_title: Optional[str] = None
     ):
@@ -38,6 +49,10 @@ class TableVisualizer:
     ) -> None:
         """
         Display the data in a table format.
+
+        Args:
+            user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
+            market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
         """
 
         user_apartments_narrowed, market_apartments_narrowed = filter_data(

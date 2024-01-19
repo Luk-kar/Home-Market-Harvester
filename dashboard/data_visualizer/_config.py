@@ -1,3 +1,5 @@
+"""Configuration file for data_visualizer module."""
+
 config = {
     "title_size": 16,
     "y_and_x_label_size": 12,

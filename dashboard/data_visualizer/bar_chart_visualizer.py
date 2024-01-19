@@ -412,15 +412,15 @@ class BarChartVisualizer:
             plt.Figure: The bar chart plot.
         """
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])
-        fig, ax = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
+        fig, axis = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
         sns.barplot(
             x="Category",
             y="Value",
             data=df,
-            ax=ax,
+            ax=axis,
             palette=self.display_settings["palette"],
         )
 
-        self._set_plot_aesthetics(ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        self._set_plot_aesthetics(axis, title=title, xlabel=xlabel, ylabel=ylabel)
 
         return fig

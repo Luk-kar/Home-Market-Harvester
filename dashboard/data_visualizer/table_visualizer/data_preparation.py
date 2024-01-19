@@ -1,5 +1,6 @@
 """
-This module contains functions for data preparation and manipulation in the context of apartment rental analysis.
+This module contains functions for data preparation and manipulation 
+in the context of apartment rental analysis.
 """
 
 # Standard imports

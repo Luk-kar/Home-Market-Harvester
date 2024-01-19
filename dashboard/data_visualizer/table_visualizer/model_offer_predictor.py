@@ -69,7 +69,9 @@ class ModelPredictor:
             pd.Series: A Series containing the predicted prices.
 
         Raises:
-            Exception: If an unspecified error occurs.
+            ValueError: If the offers_df is not a pandas DataFrame.
+            RuntimeError: If the model or metadata is not loaded.
+            ValueError: If prediction fails.
 
         Example Usage:
         --------------
@@ -86,16 +88,15 @@ class ModelPredictor:
         if not isinstance(offers_df, pd.DataFrame):
             raise ValueError("offers_df must be a pandas DataFrame.")
 
-        if self.model is not None and self.metadata is not None:
-            model_data = self._predict_prices(offers_df)
+        if self.model is None or self.metadata is None:
+            raise RuntimeError("Model or metadata not loaded.")
 
-            if model_data is not None:
-                total_price = model_data * offers_df["area"]
-                return total_price
-            else:
-                raise Exception("Prediction failed.")
-        else:
-            raise Exception("Model or metadata not loaded.")
+        model_data = self._predict_prices(offers_df)
+        if model_data is None:
+            raise ValueError("Prediction failed.")
+
+        total_price = model_data * offers_df["area"]
+        return total_price
 
     def _load_model_and_metadata(self, model_path: str, metadata_path: str):
         if not os.path.exists(model_path):
@@ -109,8 +110,10 @@ class ModelPredictor:
             with open(model_path, "rb") as pickled:
                 try:
                     data = pickle.load(pickled)
-                except pickle.UnpicklingError as e:
-                    raise ValueError(f"Error unpickling the model file: {e}")
+                except pickle.UnpicklingError as error:
+                    raise ValueError(
+                        f"Error unpickling the model file: {error}"
+                    ) from error
 
                 model = data.get("model")
                 if model is None:
@@ -120,24 +123,28 @@ class ModelPredictor:
 
             # Load the metadata with size limitation for security
             max_metadata_size = 10 * 1024 * 1024  # 10 MB size limit
-            with open(metadata_path, "r") as file:
+            with open(metadata_path, "r", encoding="utf-8") as file:
                 file_content = file.read(max_metadata_size)
                 if file.tell() >= max_metadata_size:
                     raise ValueError("Metadata file size exceeded limit of 10 MB.")
 
                 try:
                     metadata = json.loads(file_content)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Error parsing metadata JSON: {e}")
+                except pickle.UnpicklingError as error:
+                    raise ValueError(
+                        f"Error unpickling the model file: {error}"
+                    ) from error
 
             return model, metadata
 
-        except IOError as e:
-            raise IOError(f"IO error occurred while loading model or metadata: {e}")
-        except Exception as e:
-            raise Exception(
-                f"Unexpected error occurred while loading model and metadata: {e}"
-            )
+        except IOError as error:
+            raise IOError(
+                f"IO error occurred while loading model or metadata: {error}"
+            ) from error
+        except RuntimeError as error:
+            raise RuntimeError(
+                f"Unexpected error occurred while loading model and metadata: {error}"
+            ) from error
 
     def _calculate_building_age(self, build_year_series: pd.Series) -> pd.Series:
         """
@@ -196,12 +203,14 @@ class ModelPredictor:
             for col, dtype in self.metadata["columns"].items():
                 try:
                     temp_df[col] = temp_df[col].astype(dtype)
-                except ValueError:
-                    raise ValueError(f"Column '{col}' cannot be converted to {dtype}")
+                except ValueError as error:
+                    raise ValueError(
+                        f"Column '{col}' cannot be converted to {dtype}"
+                    ) from error
 
             return temp_df
-        except Exception as e:
-            raise ValueError(f"Error preparing dataframe: {e}")
+        except Exception as error:
+            raise ValueError(f"Error preparing dataframe: {error}") from error
 
     def _predict_prices(self, df: pd.DataFrame) -> pd.Series:
         if not isinstance(df, pd.DataFrame):
@@ -216,5 +225,5 @@ class ModelPredictor:
                 return predictions
             else:
                 return None
-        except Exception as e:
-            raise ValueError(f"Error predicting prices: {e}")
+        except Exception as error:
+            raise ValueError(f"Error predicting prices: {error}") from error
