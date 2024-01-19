@@ -81,7 +81,7 @@ class DataLoader:
 
             self._create_additional_data_types(user_apartments_df)
 
-            market_apartments_df = self.data_path_manager._load_cleaned_df(
+            market_apartments_df = self.data_path_manager.load_cleaned_df(
                 domain="combined"
             )
 

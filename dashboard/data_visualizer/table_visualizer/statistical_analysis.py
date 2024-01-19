@@ -6,10 +6,10 @@ This module contains functions for statistical analysis of the data.
 import pandas as pd
 
 # Local imports
-from dashboard.data_visualizer.table_visualizer.styling import (
+from data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
-from dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
+from data_visualizer.table_visualizer.model_offer_predictor import (
     ModelPredictor,
 )
 

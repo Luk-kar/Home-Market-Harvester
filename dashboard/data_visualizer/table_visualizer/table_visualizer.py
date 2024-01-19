@@ -1,3 +1,14 @@
+"""
+This module contains the TableVisualizer class, 
+which is responsible for rendering data in the Streamlit application.
+
+The TableVisualizer class provides methods to display data in 
+a table format, perform statistical analysis, and apply styling to the tables.
+
+Example usage:
+    visualizer = TableVisualizer()
+    visualizer.display(user_apartments_df, market_apartments_df)
+"""
 # Standard imports
 from typing import Optional
 
@@ -6,19 +17,19 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from dashboard.data_visualizer.table_visualizer.data_preparation import (
+from data_visualizer.data_preparation import (
     filter_data,
     compile_apartments_data,
     reorder_columns,
 )
 
-from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
+from data_visualizer.table_visualizer.statistical_analysis import (
     compute_market_positioning_stats,
     aggregate_properties_data,
     calculate_price_by_model,
 )
 
-from dashboard.data_visualizer.table_visualizer.styling import (
+from data_visualizer.table_visualizer.styling import (
     format_column_titles,
     show_data_table,
     display_header,

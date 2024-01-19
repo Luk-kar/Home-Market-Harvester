@@ -14,6 +14,9 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
+# Local imports
+from data_visualizer.data_preparation import filter_row
+
 
 class BarChartVisualizer:
     """
@@ -101,40 +104,7 @@ class BarChartVisualizer:
             pd.DataFrame: A DataFrame containing offers data filtered by the criteria.
         """
 
-        def _filter_row(row: pd.Series) -> bool:
-            """
-            Filter DataFrame rows based on the set criteria.
-            """
-            try:
-                city = row["location"]["city"]
-                building_type = (
-                    row["type_and_year"]["building_type"]
-                    if pd.notna(row["type_and_year"].get("building_type"))
-                    else False
-                )
-                build_year = (
-                    row["type_and_year"]["build_year"]
-                    if pd.notna(row["type_and_year"].get("build_year"))
-                    else False
-                )
-                return (
-                    city
-                    in [
-                        "będziński",
-                        "Zawada",
-                        "Siewierz",
-                        "tarnogórski",
-                        "Piekary Śląskie",
-                        "zawierciański",
-                        "Siemianowice Śląskie",
-                    ]
-                    and building_type in ["block_of_flats", "apartment_building"]
-                    and build_year <= 1970
-                )
-            except KeyError:
-                return False
-
-        return df[df.apply(_filter_row, axis=1)]
+        return df[df.apply(filter_row, axis=1)]
 
     def _generate_x_label(self, categories: List[str]) -> str:
         """

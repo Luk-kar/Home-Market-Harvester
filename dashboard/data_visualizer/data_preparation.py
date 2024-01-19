@@ -10,7 +10,7 @@ from typing import Tuple
 import pandas as pd
 
 # Local imports
-from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
+from data_visualizer.table_visualizer.statistical_analysis import (
     calculate_percentile_based_suggested_price,
     calculate_yours_price_percentile_against_others,
     calculate_price_per_meter_differences,
@@ -45,42 +45,6 @@ def filter_data(
     ]
     user_apartments_df = user_apartments_df[selected_columns]
 
-    def filter_row(row: pd.Series) -> bool:
-        """
-        Filter rows based on the following criteria:
-        - City is in the list of cities
-        - Building type is in the list of building types
-        - Build year is less than or equal to 1970
-        """
-        try:
-            city = row["location"]["city"]
-            building_type = (
-                row["type_and_year"]["building_type"]
-                if pd.notna(row["type_and_year"].get("building_type"))
-                else False
-            )
-            build_year = (
-                row["type_and_year"]["build_year"]
-                if pd.notna(row["type_and_year"].get("build_year"))
-                else False
-            )
-            return (
-                city
-                in [
-                    "będziński",
-                    "Zawada",
-                    "Siewierz",
-                    "tarnogórski",
-                    "Piekary Śląskie",
-                    "zawierciański",
-                    "Siemianowice Śląskie",
-                ]
-                and building_type in ["block_of_flats", "apartment_building"]
-                and build_year <= 1970
-            )
-        except KeyError:
-            return False
-
     filtered_df = market_apartments_df[
         market_apartments_df.apply(filter_row, axis=1)
     ].copy()
@@ -90,6 +54,49 @@ def filter_data(
     )
 
     return user_apartments_df, filtered_df
+
+
+def filter_row(row: pd.Series) -> bool:
+    """
+    Filter rows based on the following criteria:
+    - City is in the list of cities
+    - Building type is in the list of building types
+    - Build year is less than or equal to 1970
+
+    Args:
+        row (pd.Series): A row of a DataFrame.
+
+    Returns:
+        bool: True if the row meets the criteria, False otherwise.
+    """
+    try:
+        city = row["location"]["city"]
+        building_type = (
+            row["type_and_year"]["building_type"]
+            if pd.notna(row["type_and_year"].get("building_type"))
+            else False
+        )
+        build_year = (
+            row["type_and_year"]["build_year"]
+            if pd.notna(row["type_and_year"].get("build_year"))
+            else False
+        )
+        return (
+            city
+            in [
+                "będziński",
+                "Zawada",
+                "Siewierz",
+                "tarnogórski",
+                "Piekary Śląskie",
+                "zawierciański",
+                "Siemianowice Śląskie",
+            ]
+            and building_type in ["block_of_flats", "apartment_building"]
+            and build_year <= 1970
+        )
+    except KeyError:
+        return False
 
 
 def reorder_columns(df: pd.DataFrame, column_order: dict) -> pd.DataFrame:

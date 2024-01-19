@@ -128,7 +128,7 @@ class DataPathCleaningManager:
 
     def load_df(self, domain: Domain, is_cleaned: bool) -> pd.DataFrame:
         if domain in ["olx", "otodom", "combined", "map"] and is_cleaned:
-            return self._load_cleaned_df(domain)
+            return self.load_cleaned_df(domain)
         elif domain in ["olx", "otodom"] and not is_cleaned:
             return self._load_raw_df(domain)
         else:
@@ -141,7 +141,7 @@ class DataPathCleaningManager:
         df = pd.read_csv(data_file)
         return df
 
-    def _load_cleaned_df(self, domain: Domain) -> pd.DataFrame:
+    def load_cleaned_df(self, domain: Domain) -> pd.DataFrame:
         data_file = self.paths[domain]["cleaned"]
         schema_file = self.paths[domain]["schema"]
 
