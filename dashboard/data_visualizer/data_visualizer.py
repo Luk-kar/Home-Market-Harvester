@@ -1,3 +1,13 @@
+"""
+This module contains the DataVisualizer class 
+which is responsible for rendering data in the Streamlit application.
+
+The DataVisualizer class takes in 
+user and market apartment data, map offers data, display settings, and a dashboard title.
+It provides methods to render the data in the application, 
+display a title, and initialize the dashboard with necessary data.
+"""
+
 # Third-party imports
 import streamlit as st
 
@@ -40,7 +50,7 @@ class DataVisualizer:
         Raises:
             Exception: If an unspecified error occurs.
         """
-        st.set_page_config(layout=display_settings["layout"])
+        st.set_page_config(layout=self.display_settings["layout"])
 
         self.display_title(self.dashboard_title)
 

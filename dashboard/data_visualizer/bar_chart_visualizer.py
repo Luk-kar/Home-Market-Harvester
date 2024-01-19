@@ -1,5 +1,10 @@
+"""
+This module contains the BarChartVisualizer class, 
+which is responsible for creating and displaying bar chart visualizations.
+"""
+
 # Standard imports
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 # Third-party imports
 import matplotlib.axes._axes as Axes
@@ -11,6 +16,17 @@ import streamlit as st
 
 
 class BarChartVisualizer:
+    """
+    BarChartVisualizer is responsible for creating and displaying bar chart visualizations.
+
+    Attributes:
+        display_settings (Dict[str, Any]): A dictionary containing display settings.
+        user_apartments_df (pd.DataFrame): A DataFrame containing user apartment offers data.
+        market_apartments_df (pd.DataFrame): A DataFrame containing market apartment offers data.
+        similar_apartments_df (pd.DataFrame): A DataFrame containing similar apartment offers data.
+        bar_chart_title (str): A title for the bar chart.
+    """
+
     def __init__(
         self,
         display_settings: Dict[str, Any],
@@ -31,6 +47,9 @@ class BarChartVisualizer:
         """
 
     def display(self) -> None:
+        """
+        Displays the bar chart.
+        """
         if self.bar_chart_title:
             st.markdown(
                 f"<h3 style='text-align: center;'>{self.bar_chart_title}</h3>",
@@ -83,6 +102,9 @@ class BarChartVisualizer:
         """
 
         def _filter_row(row: pd.Series) -> bool:
+            """
+            Filter DataFrame rows based on the set criteria.
+            """
             try:
                 city = row["location"]["city"]
                 building_type = (
@@ -115,6 +137,15 @@ class BarChartVisualizer:
         return df[df.apply(_filter_row, axis=1)]
 
     def _generate_x_label(self, categories: List[str]) -> str:
+        """
+        Generates a label for the x-axis of the bar chart.
+
+        Args:
+            categories (List[str]): A list of categories.
+
+        Returns:
+            str: A label for the x-axis of the bar chart.
+        """
         space = " " * 36
         max_length = max(len(category) for category in categories)
         centered_categories = [category.center(max_length) for category in categories]
@@ -125,36 +156,57 @@ class BarChartVisualizer:
     ) -> Dict[str, float]:
         """
         Calculates the median price per meter for each offer category.
+
+        Args:
+            offers (Dict[str, Dict[str, pd.DataFrame]]): A dictionary of offers for each category.
+            column (str): The column to calculate the median for.
+
+        Returns:
+            Dict[str, float]: A dictionary containing the median price per meter
+            for each offer category.
         """
-        additional_spacing = {
+
+        ADDITIONAL_SPACING = {
             "Yours": -1,
             "Similar": None,
             "All in 20 km radius": 0,
         }
 
-        column_mappings = {
+        COLUMN_MAPPINGS = {
             "price": ("price", ("pricing", "total_rent")),
             "price_per_meter": ("price_per_meter", ("pricing", "total_rent_sqm")),
         }
 
-        data = {}
-
-        for category, furnishings in offers.items():
+        def _calculate_furniture_and_categories_medians(
+            furnishings: Dict[str, pd.DataFrame], category: str, column: str
+        ) -> Dict[str, float]:
+            """
+            Processes the furnishings for a given category.
+            """
+            result = {}
+            primary_col, fallback_col = COLUMN_MAPPINGS.get(column, (None, None))
             for furniture, df in furnishings.items():
-                primary_col, fallback_col = column_mappings[column]
                 price_column = (
                     primary_col if primary_col in df.columns else fallback_col
                 )
+                if not price_column:
+                    continue  # Handle the case where price_column is not found
 
                 median = df[price_column].median().round(2)
-
-                position_to_add_space = additional_spacing[category]
+                position_to_add_space = ADDITIONAL_SPACING.get(category)
                 column_name = self._format_column_name_for_display(
                     furniture, position_to_add_space
                 )
+                result[column_name] = median
+            return result
 
-                data[column_name] = median
-
+        data = {}
+        for category, furnishings in offers.items():
+            data.update(
+                _calculate_furniture_and_categories_medians(
+                    furnishings, category, column
+                )
+            )
         return data
 
     def _format_column_name_for_display(
@@ -169,32 +221,56 @@ class BarChartVisualizer:
         This approach ensures that column names remain distinct
         and are not inadvertently overwritten.
 
+        Args:
+            furniture (str): The furniture type.
+            position_to_add_space (Optional[int]): The position to add a space at.
+
+        Returns:
+            str: The formatted column name.
         """
-        return (
-            self._insert_char(furniture, position_to_add_space, " ")
-            if position_to_add_space is not None
-            else furniture
-        )
+
+        if position_to_add_space is None:
+            return furniture
+        else:
+            return self._insert_char(furniture, position_to_add_space, " ")
 
     def _insert_char(
         self, original_string: str, position: int, char_to_insert: str
     ) -> str:
         """
         Inserts a character at the specified position in a string.
+
+        Args:
+            original_string (str): The original string.
+            position (int): The position to insert the character at.
+            char_to_insert (str): The character to insert.
+
+        Returns:
+            str: The updated string.
         """
 
-        if position < 0:
-            position = len(original_string) + position + 1
-        elif position >= len(original_string):
-            raise Exception("Position is out of range.")
-        elif position < 0 and abs(position) > len(original_string):
-            raise Exception("Position is out of range.")
+        is_position_beyond_string = position >= len(original_string)
+        is_negative_position_invalid = position < 0 and abs(position) >= len(
+            original_string
+        )
+
+        position_out_of_range = (
+            is_position_beyond_string or is_negative_position_invalid
+        )
+
+        if position_out_of_range:
+            raise IndexError(
+                f"Position is out of range.\nPosition: {position},\nRange: {len(original_string)}"
+            )
 
         return original_string[:position] + char_to_insert + original_string[position:]
 
     def _create_offers_dict(self) -> Dict[str, Dict[str, pd.DataFrame]]:
         """
         Creates a dictionary of offers for each category.
+
+        Returns:
+            Dict[str, Dict[str, pd.DataFrame]]: A dictionary of offers for each category.
         """
         user_df = self.user_apartments_df
         similar_df = self.similar_apartments_df
@@ -228,6 +304,13 @@ class BarChartVisualizer:
     def _get_darker_shade(self, color: str, factor: float = 0.5) -> str:
         """
         Darkens a color by a specified factor.
+
+        Args:
+            color (str): The color to darken.
+            factor (float): The factor to darken the color by.
+
+        Returns:
+            str: The darkened color.
         """
         rgb = mcolors.hex2color(color)
         darkened_rgb = [max(0, c * factor) for c in rgb]
@@ -236,48 +319,54 @@ class BarChartVisualizer:
 
     def _set_plot_aesthetics(
         self,
-        ax: Axes,
+        axes: Axes,
         title: Optional[str] = None,
         xlabel: Optional[str] = None,
         ylabel: Optional[str] = None,
     ) -> None:
         """
         Sets the aesthetics of the plot.
+
+        Args:
+            axes: The axes to set the aesthetics for.
+            title (Optional[str], optional): The title of the plot. Defaults to None.
+            xlabel (Optional[str], optional): The label for the x-axis. Defaults to None.
+            ylabel (Optional[str], optional): The label for the y-axis. Defaults to None.
         """
 
         display_settings = self.display_settings
 
         # Set the title and axis labels
         if title:
-            ax.set_title(
+            axes.set_title(
                 title,
                 color=display_settings["label_color"],
                 fontweight=display_settings["fontweight"],
             )
         if xlabel:
-            ax.set_xlabel(xlabel, fontweight=display_settings["fontweight"])
+            axes.set_xlabel(xlabel, fontweight=display_settings["fontweight"])
         if ylabel:
-            ax.set_ylabel(ylabel, fontweight=display_settings["fontweight"])
+            axes.set_ylabel(ylabel, fontweight=display_settings["fontweight"])
 
         # Set the color of the tick labels
-        ax.tick_params(colors=display_settings["label_color"], which="both")
-        ax.yaxis.label.set_color(display_settings["label_color"])
-        ax.xaxis.label.set_color(display_settings["label_color"])
+        axes.tick_params(colors=display_settings["label_color"], which="both")
+        axes.yaxis.label.set_color(display_settings["label_color"])
+        axes.xaxis.label.set_color(display_settings["label_color"])
 
         # Remove the top and right spines from plot
         sns.despine(right=True, top=True)
 
         # Set the color of the axes
-        for spine in ax.spines.values():
+        for spine in axes.spines.values():
             spine.set_edgecolor(display_settings["label_color"])
 
         # Add annotations for each bar
-        for p in ax.patches:
-            value = p.get_height()
+        for bar_patch in axes.patches:
+            value = bar_patch.get_height()
             if value > 0:
-                ax.annotate(
+                axes.annotate(
                     f"{value:.2f}",
-                    (p.get_x() + p.get_width() / 2.0, value),
+                    (bar_patch.get_x() + bar_patch.get_width() / 2.0, value),
                     ha="center",
                     va="bottom",
                     fontsize=10,
@@ -301,15 +390,27 @@ class BarChartVisualizer:
             self._get_darker_shade(tomato),
         ]
 
-        for index, p in enumerate(ax.patches):
+        for index, bar_patch in enumerate(axes.patches):
             color_index = index % len(
                 my_palette
             )  # Ensure the index loops over my_palette
-            p.set_color(my_palette[color_index])
+            bar_patch.set_color(my_palette[color_index])
 
     def _plot_bar_chart(
         self, data: Dict[str, float], title: str, xlabel: str, ylabel: str
     ) -> plt.Figure:
+        """
+        Plots a bar chart.
+
+        Args:
+            data (Dict[str, float]): A dictionary containing the data to plot.
+            title (str): The title of the plot.
+            xlabel (str): The label for the x-axis.
+            ylabel (str): The label for the y-axis.
+
+        Returns:
+            plt.Figure: The bar chart plot.
+        """
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])
         fig, ax = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
         sns.barplot(

@@ -11,8 +11,8 @@ import streamlit as st
 # Local imports
 # Do not do the `dashboard.` import here
 from data_visualizer._config import config as display_settings
-from load_data import DataLoader
 from data_visualizer.data_visualizer import DataVisualizer
+from load_data import DataLoader
 
 
 def streamlit_app():
