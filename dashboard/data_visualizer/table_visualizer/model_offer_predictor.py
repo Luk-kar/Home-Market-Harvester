@@ -16,13 +16,16 @@ predictor.get_price_predictions(your_offers_path)
 
 # Standard imports
 from datetime import datetime
-import json
-import os
 
 # Third-party imports
 import numpy as np
 import pandas as pd
-import pickle
+
+# import pickle
+
+
+# Local imports
+from model.model_io_operations import ModelManager
 
 
 class ModelPredictor:
@@ -44,19 +47,32 @@ class ModelPredictor:
     Example Usage:
     --------------
 
-    model_path = "notebooks\\lm_model_file.p"
-    metadata_path = "notebooks\\lm_model_metadata.json"
+    model_path = "data\\model.pkl"
     offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
     user_apartments_df = pd.read_csv(offers_path)
 
-    predictor = ModelPredictor(model_path, metadata_path)
+    predictor = ModelPredictor(model_path)
     predictor.get_price_predictions(user_apartments_df)
     """
 
-    def __init__(self, model_path: str, metadata_path: str):
-        self.model, self.metadata = self._load_model_and_metadata(
-            model_path, metadata_path
-        )
+    def __init__(self, model_path: str):
+        model_manager = ModelManager(model_path)
+        model, metadata = model_manager.load_model_and_metadata()
+
+        # raise error if model or metadata is not loaded
+        if model is None or metadata is None:
+            raise RuntimeError("Model or metadata not loaded.")
+
+        # raise error if model is not a sklearn model
+        if not hasattr(model, "predict"):
+            raise RuntimeError("Model does not have a predict method.")
+
+        # raise error if metadata is not a dictionary
+        if not isinstance(metadata, dict):
+            raise RuntimeError("Metadata is not a dictionary.")
+
+        self.model = model
+        self.metadata = metadata
 
     def get_price_predictions(self, offers_df: pd.DataFrame) -> pd.Series:
         """
@@ -98,53 +114,52 @@ class ModelPredictor:
         total_price = model_data * offers_df["area"]
         return total_price
 
-    def _load_model_and_metadata(self, model_path: str, metadata_path: str):
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Model file not found at {model_path}")
+    # def _load_model_and_metadata(self, model_path: str, metadata_path: str):
+    #     if not os.path.exists(model_path):
+    #         raise FileNotFoundError(f"Model file not found at {model_path}")
 
-        if not os.path.exists(metadata_path):
-            raise FileNotFoundError(f"Metadata file not found at {metadata_path}")
+    #     if not os.path.exists(metadata_path):
+    #         raise FileNotFoundError(f"Metadata file not found at {metadata_path}")
 
-        try:
-            # Load the trained model
-            with open(model_path, "rb") as pickled:
-                try:
-                    data = pickle.load(pickled)
-                except pickle.UnpicklingError as error:
-                    raise ValueError(
-                        f"Error unpickling the model file: {error}"
-                    ) from error
+    #     try:
+    #         # Load the trained model
+    #         with open(model_path, "rb") as pickled:
+    #             try:
+    #                 data = pickle.load(pickled)
+    #             except pickle.UnpicklingError as error:
+    #                 raise ValueError(
+    #                     f"Error unpickling the model file: {error}"
+    #                 ) from error
 
-                model = data.get("model")
-                if model is None:
-                    raise ValueError(
-                        "The loaded model data does not contain 'model' key."
-                    )
+    #             model = data.get("model")
+    #             if model is None:
+    #                 raise ValueError(
+    #                     "The loaded model data does not contain 'model' key."
+    #                 )
 
-            # Load the metadata with size limitation for security
-            max_metadata_size = 10 * 1024 * 1024  # 10 MB size limit
-            with open(metadata_path, "r", encoding="utf-8") as file:
-                file_content = file.read(max_metadata_size)
-                if file.tell() >= max_metadata_size:
-                    raise ValueError("Metadata file size exceeded limit of 10 MB.")
+    #         # Load the metadata with size limitation for security
+    #         max_metadata_size = 10 * 1024 * 1024  # 10 MB size limit
+    #         with open(metadata_path, "r", encoding="utf-8") as file:
+    #             if file.tell() >= max_metadata_size:
+    #                 raise ValueError("Metadata file size exceeded limit of 10 MB.")
 
-                try:
-                    metadata = json.loads(file_content)
-                except pickle.UnpicklingError as error:
-                    raise ValueError(
-                        f"Error unpickling the model file: {error}"
-                    ) from error
+    #             try:
+    #                 metadata = json.loads(file)
+    #             except pickle.UnpicklingError as error:
+    #                 raise ValueError(
+    #                     f"Error unpickling the model file: {error}"
+    #                 ) from error
 
-            return model, metadata
+    #         return model, metadata
 
-        except IOError as error:
-            raise IOError(
-                f"IO error occurred while loading model or metadata: {error}"
-            ) from error
-        except RuntimeError as error:
-            raise RuntimeError(
-                f"Unexpected error occurred while loading model and metadata: {error}"
-            ) from error
+    #     except IOError as error:
+    #         raise IOError(
+    #             f"IO error occurred while loading model or metadata: {error}"
+    #         ) from error
+    #     except RuntimeError as error:
+    #         raise RuntimeError(
+    #             f"Unexpected error occurred while loading model and metadata: {error}"
+    #         ) from error
 
     def _calculate_building_age(self, build_year_series: pd.Series) -> pd.Series:
         """

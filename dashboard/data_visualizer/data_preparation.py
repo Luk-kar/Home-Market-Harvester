@@ -10,7 +10,7 @@ from typing import Tuple
 import pandas as pd
 
 # Local imports
-from data_visualizer.table_visualizer.statistical_analysis import (
+from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
     calculate_percentile_based_suggested_price,
     calculate_yours_price_percentile_against_others,
     calculate_price_per_meter_differences,

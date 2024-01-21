@@ -6,10 +6,10 @@ This module contains functions for statistical analysis of the data.
 import pandas as pd
 
 # Local imports
-from data_visualizer.table_visualizer.styling import (
+from dashboard.data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
-from data_visualizer.table_visualizer.model_offer_predictor import (
+from dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
     ModelPredictor,
 )
 
@@ -210,10 +210,9 @@ def calculate_price_by_model(
     """
     Calculate price by model.
     """
-    model_path = "notebooks\\lm_model.p"
-    metadata_path = "notebooks\\lm_model_metadata.json"
+    model_path = "model\\model.pkl"
 
-    predictor = ModelPredictor(model_path, metadata_path)
+    predictor = ModelPredictor(model_path)
     price_predictions = predictor.get_price_predictions(apartments_df)
     price_by_model_df = pd.Series(price_predictions)
     price_by_model_df = price_by_model_df.apply(round_to_nearest_fifty)

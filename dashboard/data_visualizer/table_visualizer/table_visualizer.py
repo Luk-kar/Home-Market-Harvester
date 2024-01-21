@@ -17,19 +17,19 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from data_visualizer.data_preparation import (
+from dashboard.data_visualizer.data_preparation import (
     filter_data,
     compile_apartments_data,
     reorder_columns,
 )
 
-from data_visualizer.table_visualizer.statistical_analysis import (
+from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
     compute_market_positioning_stats,
     aggregate_properties_data,
     calculate_price_by_model,
 )
 
-from data_visualizer.table_visualizer.styling import (
+from dashboard.data_visualizer.table_visualizer.styling import (
     format_column_titles,
     show_data_table,
     display_header,

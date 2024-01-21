@@ -4,15 +4,30 @@ This module contains the Streamlit application for the Home Market Harvester das
 
 # Standard imports
 import os
+import sys
 
 # Third-party imports
 import streamlit as st
 
+
+def add_project_root_to_sys_path():
+    """
+    Adds the project root to the system path.
+    """
+    current_script_path = os.path.abspath(__file__)
+    project_root = os.path.dirname(os.path.dirname(current_script_path))
+    sys.path.insert(0, project_root)
+
+
+# You have to add the project root to the system path
+# before importing from it
+add_project_root_to_sys_path()
+
 # Local imports
 # Do not do the `dashboard.` import here
-from data_visualizer._config import config as display_settings
-from data_visualizer.data_visualizer import DataVisualizer
-from load_data import DataLoader
+from dashboard.data_visualizer._config import config as display_settings
+from dashboard.data_visualizer.data_visualizer import DataVisualizer
+from dashboard.load_data import DataLoader
 
 
 def streamlit_app():

@@ -11,8 +11,6 @@ and computation of additional metrics such as price per meter.
 It also incorporates error handling for common issues encountered during data loading and parsing.
 """
 # Standard imports
-import os
-import sys
 import pandas as pd
 import numpy as np
 
@@ -21,19 +19,6 @@ import streamlit as st
 
 
 # Local imports
-def add_project_root_to_sys_path():
-    """
-    Adds the project root to the system path.
-    """
-    current_script_path = os.path.abspath(__file__)
-    project_root = os.path.dirname(os.path.dirname(current_script_path))
-    sys.path.insert(0, project_root)
-
-
-# You have to add the project root to the system path
-# before importing from it
-add_project_root_to_sys_path()
-
 from notebooks._csv_utils import (
     data_timeplace,
     DataPathCleaningManager,

@@ -26,7 +26,7 @@ class ModelManager:
 
     Attributes:
         model_path (str): The path to the model file.
-        model (BaseEstimator): The machine learning model.
+        model (BaseEstimator, optional): The machine learning model.
         model_metadata_path (str): The path to the model metadata file.
         training_data (pd.DataFrame, optional): The training data used for the model.
     """
@@ -34,7 +34,7 @@ class ModelManager:
     def __init__(
         self,
         model_path: str,
-        model: BaseEstimator,
+        model: BaseEstimator = None,
         training_data: pd.DataFrame = None,
     ):
         # Check if the directory exists
@@ -143,10 +143,6 @@ class ModelManager:
             IOError: If there is an error in saving the model file.
             RuntimeError: If an unexpected error occurs during the model saving process.
         """
-        if model is None:
-            model = self.model
-            if model is None:
-                raise ValueError("No model provided and no model available.")
 
         model = self._get_attribute_or_raise(model, self.model, "model")
         model_path = self._get_attribute_or_raise(
@@ -274,6 +270,13 @@ class ModelManager:
 
         try:
             with open(model_metadata_file_path, "r", encoding="utf-8") as file:
+                max_metadata_size = 10 * 1024 * 1024  # 10 MB size limit
+                if file.tell() >= max_metadata_size:
+                    raise ValueError(
+                        "Metadata file size exceeded limit of 10 MB."
+                        + f"metadata_file_path:\n{model_metadata_file_path}"
+                        + f"metadata_file_size:\n{file.tell()}"
+                    )
                 return json.load(file)
         except FileNotFoundError as error:
             raise FileNotFoundError(

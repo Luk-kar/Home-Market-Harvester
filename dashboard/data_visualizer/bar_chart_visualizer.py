@@ -15,7 +15,9 @@ import seaborn as sns
 import streamlit as st
 
 # Local imports
-from data_visualizer.data_preparation import matches_city_building_year_criteria
+from dashboard.data_visualizer.data_preparation import (
+    matches_city_building_year_criteria,
+)
 
 
 class BarChartVisualizer:
