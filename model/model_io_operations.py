@@ -77,22 +77,11 @@ class ModelManager:
                         attribute is available in the instance.
         """
 
-        if df is None:
-            df = self.training_data
-            if df is None:
-                raise ValueError(
-                    "No DataFrame provided and no training data available."
-                )
-
-        if model is None:
-            model = self.model
-            if model is None:
-                raise ValueError("No model provided and no model available.")
-
-        if model_path is None:
-            model_path = self.model_path
-            if model_path is None:
-                raise ValueError("No model path provided and no model path available.")
+        df = self._get_attribute_or_raise(df, self.training_data, "DataFrame")
+        model = self._get_attribute_or_raise(model, self.model, "model")
+        model_path = self._get_attribute_or_raise(
+            model_path, self.model_path, "model path"
+        )
 
         self.save_dataframe_metadata(df)
         self.save_model(model, model_path)
@@ -133,10 +122,12 @@ class ModelManager:
             model = self.model
             if model is None:
                 raise ValueError("No model provided and no model available.")
-        if model_path is None:
-            model_path = self.model_path
-            if model_path is None:
-                raise ValueError("No model path provided and no model path available.")
+
+        model = self._get_attribute_or_raise(model, self.model, "model")
+        model_path = self._get_attribute_or_raise(
+            model_path, self.model_path, "model path"
+        )
+
         try:
             pickl = {"model": model}
             with open(model_path, "wb") as file:
@@ -171,18 +162,13 @@ class ModelManager:
         """
 
         try:
-            if df is None:
-                df = self.training_data
-                if df is None:
-                    raise ValueError(
-                        "No DataFrame provided and no training data available."
-                    )
+            df = self._get_attribute_or_raise(df, self.training_data, "DataFrame")
 
             if model_path is not None:
                 metadata_file_path = self._create_metadata_path(model_path)
-                if metadata_file_path is None:
+                if not metadata_file_path:
                     raise ValueError(
-                        "No metadata file path provided and no model path available."
+                        "Model path must be provided to create metadata file path."
                     )
             else:
                 metadata_file_path = self.model_metadata_path
@@ -281,10 +267,7 @@ class ModelManager:
 
     def check_if_loaded_properly(self, sample: np.ndarray, model: BaseEstimator = None):
         try:
-            if model is None:
-                model = self.model
-                if model is None:
-                    raise ValueError("No model provided and no model available.")
+            model = self._get_attribute_or_raise(model, self.model, "model")
 
             if model and hasattr(model, "predict"):
                 random_sample = sample[random.randint(0, sample.shape[0] - 1)]
@@ -360,3 +343,26 @@ class ModelManager:
             raise FileNotFoundError(f"{path_kind} not found at {path}")
 
         return path
+
+    def _get_attribute_or_raise(self, value, attribute, attribute_name: str):
+        """
+        Gets the value of an attribute or raises a ValueError if both the value and the attribute are None.
+
+        Parameters:
+            value: The value to check.
+            attribute: The class attribute to fall back to if the value is None.
+            attribute_name (str): The name of the attribute for the error message.
+
+        Returns:
+            The value or the class attribute.
+
+        Raises:
+            ValueError: If both the value and the attribute are None.
+        """
+        if value is None:
+            if attribute is None:
+                raise ValueError(
+                    f"No {attribute_name} provided and no {attribute_name} available in the instance."
+                )
+            return attribute
+        return value
