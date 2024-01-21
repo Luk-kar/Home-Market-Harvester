@@ -93,19 +93,23 @@ class ModelManager:
         Loads the model and its metadata from specified file paths.
 
         If the file paths are not provided, it defaults to the paths stored in the class instance.
-        The method raises a ValueError if the paths are not available either as arguments or in the instance.
+        The method raises a ValueError if the paths are not available
+        either as arguments or in the instance.
 
         Args:
             model_path (str, optional): The file path where the model is saved.
                                         If None, uses the class's model_path attribute.
             model_metadata_path (str, optional): The file path where the metadata is saved.
-                                                 If None, uses the class's model_metadata_file_path attribute.
+                                                 If None, uses the class's
+                                                 model_metadata_file_path attribute.
 
         Returns:
-            tuple: A tuple containing the loaded machine learning model and its metadata as a dictionary.
+            tuple: A tuple containing the loaded machine learning model
+            and its metadata as a dictionary.
 
         Raises:
-            ValueError: If no model path or metadata file path is provided and none are available in the instance.
+            ValueError: If no model path or metadata file path is provided
+            and none are available in the instance.
         """
 
         model_path = self._validate_path(model_path or self.model_path, "Model path")
@@ -118,6 +122,27 @@ class ModelManager:
         return model, metadata
 
     def save_model(self, model: BaseEstimator = None, model_path: str = None):
+        """
+        Saves a machine learning model to the specified file path.
+
+        This method allows saving a provided machine learning model to a given file path.
+        If either the model or the model path is not provided,
+        the method falls back to using the respective
+        attributes stored in the class instance.
+
+        Parameters:
+            model (BaseEstimator, optional): The machine learning model to be saved.
+                                            If None, the class's model attribute is used.
+            model_path (str, optional): The file path where the model will be saved.
+                                        If None, the class's model_path attribute is used.
+
+        Raises:
+            ValueError: If no model is provided and no model is available in the instance,
+                        or if no model path is provided
+                        and no model path is available in the instance.
+            IOError: If there is an error in saving the model file.
+            RuntimeError: If an unexpected error occurs during the model saving process.
+        """
         if model is None:
             model = self.model
             if model is None:
@@ -152,33 +177,28 @@ class ModelManager:
             df (pd.DataFrame, optional): The DataFrame whose metadata is to be saved.
                                          If not provided, the class's training_data is used.
             model_path (str, optional): The file path to save the metadata.
-                                           If not provided, uses the class's model_metadata_file_path attribute.
+                                        If not provided,
+                                        uses the class's model_metadata_file_path attribute.
 
         Raises:
-            ValueError: If no DataFrame is provided and no training data is available in the instance,
-                        or if no metadata file path is provided and no model path is available in the instance.
+            ValueError: If no DataFrame is provided
+                        and no training data is available in the instance,
+                        or if no metadata file path is provided
+                        and no model path is available in the instance.
             IOError: If there is an error in saving the metadata file.
             RuntimeError: If an unexpected error occurs during the metadata file saving process.
         """
 
         try:
             df = self._get_attribute_or_raise(df, self.training_data, "DataFrame")
-
-            if model_path is not None:
-                metadata_file_path = self._create_metadata_path(model_path)
-                if not metadata_file_path:
-                    raise ValueError(
-                        "Model path must be provided to create metadata file path."
-                    )
-            else:
-                metadata_file_path = self.model_metadata_path
+            metadata_file_path = self._get_metadata_file_path(model_path)
 
             metadata = {
                 "columns": {col: str(df[col].dtype) for col in df.columns},
                 "column_order": list(df.columns),
             }
 
-            with open(metadata_file_path, "w") as file:
+            with open(metadata_file_path, "w", encoding="utf-8") as file:
                 json.dump(metadata, file, indent=4)
         except IOError as error:
             raise IOError(f"Error saving DataFrame metadata: {error}") from error
@@ -192,7 +212,8 @@ class ModelManager:
         Loads a machine learning model from the specified file path.
 
         If the file path is not provided, it defaults to the path stored in the class instance.
-        The method raises a ValueError if the path is not available either as an argument or in the instance.
+        The method raises a ValueError if the path is not available
+        either as an argument or in the instance.
 
         Args:
             model_path (str, optional): The file path where the model is saved.
@@ -228,11 +249,13 @@ class ModelManager:
         Loads metadata for a DataFrame from a specified JSON file for a model feed.
 
         If the file path is not provided, it defaults to the path stored in the class instance.
-        The method raises a ValueError if the path is not available either as an argument or in the instance.
+        The method raises a ValueError if the path is not available
+        either as an argument or in the instance.
 
         Args:
             model_metadata_file_path (str, optional): The file path where the metadata is saved.
-                                                     If None, uses the class's model_metadata_file_path attribute.
+                                                      If None,
+                                                      uses the class's model_metadata_file_path attribute.
 
         Returns:
             dict: The loaded metadata, which may include column names, data types, and column order.
@@ -250,22 +273,45 @@ class ModelManager:
         )
 
         try:
-            with open(model_metadata_file_path, "r") as file:
+            with open(model_metadata_file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
         except FileNotFoundError as error:
             raise FileNotFoundError(
                 f"Metadata file not found at {self.model_metadata_path}"
             ) from error
         except json.JSONDecodeError as error:
-            raise json.JSONDecodeError(
-                f"Error parsing metadata JSON: {error}"
-            ) from error
+            error_msg = (
+                f"Error parsing metadata JSON at {model_metadata_file_path}: {error}"
+            )
+            raise json.JSONDecodeError(error_msg, error.doc, error.pos) from error
         except Exception as error:
             raise RuntimeError(
                 f"Unexpected error when loading metadata: {error}"
             ) from error
 
-    def check_if_loaded_properly(self, sample: np.ndarray, model: BaseEstimator = None):
+    def evaluate_model_on_sample(self, sample: np.ndarray, model: BaseEstimator = None):
+        """
+        Checks if the provided or stored model can make predictions on a sample.
+
+        This method tests the model's predict method on a random sample
+        from the provided array to verify if the model is loaded properly
+        and can make predictions.
+        If the model is not provided,
+        it falls back to using the model stored in the class instance.
+
+        Parameters:
+            sample (np.ndarray): An array of sample data for testing the model.
+            model (BaseEstimator, optional): The machine learning model to be tested.
+                                            If None, the class's model attribute is used.
+
+        Raises:
+            ValueError: If the model is not provided or available,
+                        or if it lacks a predict method.
+            RuntimeError: If an error occurs during the prediction check process.
+
+        Note:
+            This function prints the prediction result for the randomly selected sample.
+        """
         try:
             model = self._get_attribute_or_raise(model, self.model, "model")
 
@@ -346,7 +392,8 @@ class ModelManager:
 
     def _get_attribute_or_raise(self, value, attribute, attribute_name: str):
         """
-        Gets the value of an attribute or raises a ValueError if both the value and the attribute are None.
+        Gets the value of an attribute or raises a ValueError
+        if both the value and the attribute are None.
 
         Parameters:
             value: The value to check.
@@ -362,7 +409,34 @@ class ModelManager:
         if value is None:
             if attribute is None:
                 raise ValueError(
-                    f"No {attribute_name} provided and no {attribute_name} available in the instance."
+                    f"No {attribute_name} provided"
+                    + " and no {attribute_name} available in the instance."
                 )
             return attribute
         return value
+
+    def _get_metadata_file_path(self, model_path: str = None) -> str:
+        """
+        Determines the metadata file path based on the provided model path.
+
+        If a specific model path is provided, it creates a metadata file path accordingly.
+        Otherwise, it uses the default metadata file path set in the class.
+
+        Parameters:
+            model_path (str, optional): The custom file path for the model.
+
+        Returns:
+            str: The determined file path for the metadata.
+
+        Raises:
+            ValueError: If the model path is provided but invalid for creating a metadata file path.
+        """
+        if model_path is not None:
+            metadata_file_path = self._create_metadata_path(model_path)
+            if not metadata_file_path:
+                raise ValueError(
+                    "Model path must be provided to create metadata file path."
+                )
+            return metadata_file_path
+        else:
+            return self.model_metadata_path
