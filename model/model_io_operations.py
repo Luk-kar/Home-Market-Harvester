@@ -315,14 +315,16 @@ class ModelManager:
         try:
             model = self._get_attribute_or_raise(model, self.model, "model")
 
-            if model and hasattr(model, "predict"):
-                random_sample = sample[random.randint(0, sample.shape[0] - 1)]
-                prediction = model.predict(random_sample.reshape(1, -1))
-                print("Prediction:", prediction)
-            else:
-                raise ValueError(
-                    "Loaded data is not a model or does not have a predict method."
-                )
+            if model is None:
+                raise ValueError("No model is available for prediction.")
+
+            if not hasattr(model, "predict"):
+                raise ValueError("The provided model does not have a 'predict' method.")
+
+            random_sample = sample[random.randint(0, sample.shape[0] - 1)]
+            prediction = model.predict(random_sample.reshape(1, -1))
+            print("Prediction:", prediction)
+
         except Exception as error:
             raise RuntimeError(
                 f"Error during model prediction check: {error}"
@@ -340,7 +342,9 @@ class ModelManager:
             str: The path to the metadata file.
         """
         if not model_path:
-            raise ValueError("Model path must be provided.")
+            raise ValueError(
+                "Model path must be provided.\n" + f"model_path:\n{model_path}"
+            )
 
         # Split the model_path into the directory, base filename, and extension
         directory, filename = os.path.split(model_path)
@@ -410,7 +414,7 @@ class ModelManager:
             if attribute is None:
                 raise ValueError(
                     f"No {attribute_name} provided"
-                    + " and no {attribute_name} available in the instance."
+                    + f" and no {attribute_name} available in the instance."
                 )
             return attribute
         return value
@@ -435,7 +439,8 @@ class ModelManager:
             metadata_file_path = self._create_metadata_path(model_path)
             if not metadata_file_path:
                 raise ValueError(
-                    "Model path must be provided to create metadata file path."
+                    "Model path must be provided to create metadata file path.\n"
+                    + f"model_path:\n{model_path}"
                 )
             return metadata_file_path
         else:
