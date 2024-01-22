@@ -43,6 +43,7 @@ english = {
             },
         },
         "market_positioning": {
+            "main_title": "📈 Market Positioning",
             "column_names": {
                 "flats_number": "flats",
                 "max_floor": "floor max",
@@ -57,6 +58,7 @@ english = {
             },
         },
         "summary_total_calculations": {
+            "main_title": "📋 Total Summary",
             "column_names": {
                 "user_price_total": "avg your price",
                 "by_model_price_total": "avg price percentile",

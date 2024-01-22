@@ -426,6 +426,18 @@ class BarChartVisualizer:
             ValueError: If neither 'unfurnished' nor 'furnished' substrings are found in the 'Category'
                         column of the DataFrame.
         """
+        original_categories = df["Category"].tolist()
+
+        for category in original_categories:
+            if "unfurnished" in category:
+                break
+            elif "furnished" in category:
+                break
+            else:
+                raise ValueError(
+                    "Neither 'unfurnished' nor 'furnished' substrings were found for replacement."
+                )
+
         unfurnished_translation = Translation()["char_chart"]["column_names"][
             "with_no_furniture"
         ]
@@ -433,16 +445,9 @@ class BarChartVisualizer:
             "with_furniture"
         ]
 
-        original_categories = df["Category"].tolist()
         df["Category"] = df["Category"].str.replace(
             "unfurnished", unfurnished_translation, regex=False
         )
         df["Category"] = df["Category"].str.replace(
             "furnished", furnished_translation, regex=False
         )
-        updated_categories = df["Category"].tolist()
-
-        if original_categories == updated_categories:
-            raise ValueError(
-                "Neither 'unfurnished' nor 'furnished' substrings were found for replacement."
-            )

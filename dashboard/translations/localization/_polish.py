@@ -27,7 +27,7 @@ polish = {
         "main_title": "📊 Twoje Mieszkania",
         "subtitle": "Ceny w PLN, mediany pochadzą z podobnych, pobliskich ofert",
         "apartments": {
-            "percentile_dropdown": "Wybierz Percentyl by sklakulować sugerowaną cenę",
+            "percentile_dropdown": "Wybierz percentyl by sklakulować sugerowaną cenę",
             "column_names": {
                 "rent_start": "wynajem od",
                 "id": "numer mieszkania",
@@ -43,6 +43,7 @@ polish = {
             },
         },
         "market_positioning": {
+            "main_title": "📊 Pozycjonowanie na rynku",
             "column_names": {
                 "flats_number": "liczba mieszkań",
                 "max_floor": "maksymalne piętro",
@@ -57,6 +58,7 @@ polish = {
             },
         },
         "summary_total_calculations": {
+            "main_title": "📊 Podsumowanie",
             "column_names": {
                 "user_price_total": "suma twoich cen",
                 "by_model_price_total": "suma cen wg modelu",

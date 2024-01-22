@@ -35,6 +35,8 @@ from dashboard.data_visualizer.table_visualizer.styling import (
     display_header,
 )
 
+from dashboard.translations.translation_manager import Translation
+
 
 class TableVisualizer:
     """
@@ -108,9 +110,13 @@ class TableVisualizer:
         property_summary_df = format_column_titles(property_summary_df)
 
         show_data_table(apartments_comparison_df, with_index=True)
-        display_header(subtitle="📈 Market Positioning")
+        display_header(
+            subtitle=Translation()["table"]["market_positioning"]["main_title"]
+        )
         show_data_table(market_positioning_df)
-        display_header(subtitle="📋 Total Summary")
+        display_header(
+            subtitle=Translation()["table"]["summary_total_calculations"]["main_title"]
+        )
         show_data_table(property_summary_df)
         display_header(subtitle="\n\n")
 
@@ -121,9 +127,11 @@ class TableVisualizer:
 
         column_1, column_2, column_3 = st.columns([1, 1, 1])
 
+        title = Translation()["table"]["apartments"]["percentile_dropdown"]
+
         with column_2:
             self.selected_percentile = st.selectbox(
-                "Select Percentile for Suggested Price Calculation",
+                title,
                 options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                 index=4,  # Default to 0.5
             )
