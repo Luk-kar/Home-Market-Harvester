@@ -394,19 +394,7 @@ class BarChartVisualizer:
         """
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])
 
-        # for category in df["Category"]:
-        #     if "unfurnished" in category:
-        #         df["Category"] = df["Category"].replace(
-        #             "unfurnished",
-        #             Translation()["char_chart"]["column_names"]["with_no_furniture"],
-        #         )
-        #     elif "furnished" in category:
-        #         df["Category"] = df["Category"].replace(
-        #             "furnished",
-        #             Translation()["char_chart"]["column_names"]["with_furniture"],
-        #         )
-        #     else:
-        #         pass
+        self._translate_columns_names(df)
 
         fig, axis = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
         sns.barplot(
@@ -420,3 +408,41 @@ class BarChartVisualizer:
         self._set_plot_aesthetics(axis, title=title, xlabel=xlabel, ylabel=ylabel)
 
         return fig
+
+    def _translate_columns_names(self, df: pd.DataFrame):
+        """
+        Translates specific substrings in the 'Category' column of a DataFrame.
+
+        This method searches for the substrings 'unfurnished' and 'furnished' in the 'Category'
+        column of the provided DataFrame. If found, these substrings are replaced with their
+        respective translations as defined in the Translation dictionary. The method raises a
+        ValueError if neither of these substrings is present in any of the 'Category' entries.
+
+        Args:
+            df (pd.DataFrame): The DataFrame whose 'Category' column will be checked and potentially
+                            modified. It is expected that this DataFrame has a column named 'Category'.
+
+        Raises:
+            ValueError: If neither 'unfurnished' nor 'furnished' substrings are found in the 'Category'
+                        column of the DataFrame.
+        """
+        unfurnished_translation = Translation()["char_chart"]["column_names"][
+            "with_no_furniture"
+        ]
+        furnished_translation = Translation()["char_chart"]["column_names"][
+            "with_furniture"
+        ]
+
+        original_categories = df["Category"].tolist()
+        df["Category"] = df["Category"].str.replace(
+            "unfurnished", unfurnished_translation, regex=False
+        )
+        df["Category"] = df["Category"].str.replace(
+            "furnished", furnished_translation, regex=False
+        )
+        updated_categories = df["Category"].tolist()
+
+        if original_categories == updated_categories:
+            raise ValueError(
+                "Neither 'unfurnished' nor 'furnished' substrings were found for replacement."
+            )

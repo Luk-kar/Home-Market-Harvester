@@ -16,7 +16,7 @@ polish = {
         "y_axis_offers": {
             "yours": "Twoja oferta",
             "like_yours": "Podobne",
-            "all": "Wszystkie w promieniu 20 km",
+            "all": "W promieniu 20 km",
         },
         "column_names": {
             "with_furniture": "umeblowane",
