@@ -7,6 +7,9 @@ to DataFrames and displaying them as formatted tables.
 import pandas as pd
 import streamlit as st
 
+# Local imports
+from dashboard.translations.translation_manager import Translation
+
 
 def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -123,6 +126,12 @@ def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
 
     styled_df = apply_custom_styling(df)
 
+    # Translate
+    print(styled_df.columns)
+    boolean_column = "is_furnished".replace("_", " ")
+    styled_df[boolean_column] = _translate_boolean_values(styled_df[boolean_column])
+    styled_df = _translate_columns(styled_df)
+
     display_html(styled_df, with_index)
 
 
@@ -224,3 +233,49 @@ def color_format(value, comparison_value):
     else:
         color = "grey"
     return f"<span style='color: {color};'>{value}</span>"
+
+
+def _translate_boolean_values(series: pd.Series):
+    """
+    Translate boolean values to the selected language.
+
+    Args:
+        series (pd.Series): A Series containing boolean values.
+    """
+    # TODO everything is no
+    true = Translation()["boolean"]["True"]
+    false = Translation()["boolean"]["False"]
+    series = series.apply(lambda x: true if x is True else false)
+    return series
+
+
+def _translate_columns(styled_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Translate the column names to the selected language.
+
+    Args:
+        styled_df (pd.DataFrame): A DataFrame with custom styling applied.
+
+    Returns:
+        pd.DataFrame: A DataFrame with translated column names.
+    """
+    column_translation = Translation()["table"]["apartments"]["column_names"]
+    modified_translation = {}
+
+    for original_key, translated_key in column_translation.items():
+        modified_key = original_key.replace("_", " ")
+        modified_translation[modified_key] = translated_key
+
+    # Check if there are any keys left in modified_translation
+    # that are not mapped to columns
+    modified_translation = {
+        key: val
+        for key, val in modified_translation.items()
+        if key in styled_df.columns
+    }
+    unmapped_keys = set(modified_translation.keys()) - set(styled_df.columns)
+    if unmapped_keys:
+        raise ValueError(f"Unmapped translation keys: {unmapped_keys}")
+    styled_df = styled_df.rename(columns=modified_translation)
+
+    return styled_df

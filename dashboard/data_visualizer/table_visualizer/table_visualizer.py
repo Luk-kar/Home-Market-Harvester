@@ -105,6 +105,11 @@ class TableVisualizer:
             },
         )
 
+        # Translate column names
+        apartments_comparison_df = apartments_comparison_df.rename(
+            columns=Translation()["table"]["apartments"]["column_names"]
+        )
+
         apartments_comparison_df = format_column_titles(apartments_comparison_df)
         market_positioning_df = format_column_titles(market_positioning_df)
         property_summary_df = format_column_titles(property_summary_df)
