@@ -34,7 +34,7 @@ Note:
 """
 
 # Local imports
-from dashboard.translations.localization_content import translations, Languages
+from dashboard.translations.localization.content import translations, Languages
 
 
 class Translation:
@@ -89,9 +89,5 @@ class Translation:
         except KeyError as error:
             raise KeyError(
                 f"Missing translation key: '{key}' in language '{self._language}'"
+                + f"\n{self._texts[self._language]}"
             ) from error
-
-
-# Example usage
-Translation.set_language("Polish")
-print(Translation()["chart"]["title"])

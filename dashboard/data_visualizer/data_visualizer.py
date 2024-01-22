@@ -15,6 +15,7 @@ import streamlit as st
 from dashboard.data_visualizer.map_visualizer import MapVisualizer
 from dashboard.data_visualizer.bar_chart_visualizer import BarChartVisualizer
 from dashboard.data_visualizer.table_visualizer.table_visualizer import TableVisualizer
+from dashboard.translations.translation_manager import Translation, Languages
 
 
 class DataVisualizer:
@@ -30,18 +31,13 @@ class DataVisualizer:
     """
 
     def __init__(
-        self,
-        user_apartments_df,
-        market_apartments_df,
-        map_offers_df,
-        display_settings,
-        dashboard_title,
+        self, user_apartments_df, market_apartments_df, map_offers_df, display_settings
     ):
         self.user_apartments_df = user_apartments_df
         self.market_apartments_df = market_apartments_df
         self.map_offers_df = map_offers_df
         self.display_settings = display_settings
-        self.dashboard_title = dashboard_title
+        self.selected_language = None
 
     def render_data(self):
         """
@@ -52,21 +48,24 @@ class DataVisualizer:
         """
         st.set_page_config(layout=self.display_settings["layout"])
 
-        self.display_title(self.dashboard_title)
+        self.selected_language = self.render_language_selector()
+        Translation.set_language(self.selected_language)
+
+        self.display_title(Translation()["app_title"])
 
         bar_chart_visualizer = BarChartVisualizer(
             self.display_settings,
             self.user_apartments_df,
             self.market_apartments_df,
-            "⚖️ Median Price",
+            Translation()["char_chart"]["main_title"],
         )
         bar_chart_visualizer.display()
 
         table_visualizer = TableVisualizer(
             self.display_settings,
             (
-                "📊 Apartments Data",
-                "Price in PLN, medians taken from similar nearby offers",
+                Translation()["table"]["main_title"],
+                Translation()["table"]["subtitle"],
             ),
         )
         table_visualizer.display(self.user_apartments_df, self.market_apartments_df)
@@ -74,14 +73,23 @@ class DataVisualizer:
         map_visualizer = MapVisualizer(self.display_settings)
         map_visualizer.display(
             self.map_offers_df,
-            "🗺️ Property Prices Heatmap",
+            Translation()["map"]["main_title"],
             center_coords=(50.460740, 19.093210),
             center_marker_name="Mierzęcice, Będziński, Śląskie",
             zoom=9,
         )
 
-    @staticmethod
-    def display_title(title: str):
+    def render_language_selector(self):
+        """
+        Renders the language selection dropdown in the Streamlit UI.
+        """
+        st.sidebar.header("Language Selector")
+        selected_language = st.sidebar.selectbox(
+            "Select Language", [Languages.ENGLISH, Languages.POLISH]
+        )
+        return selected_language
+
+    def display_title(self, title: str):
         """
         Displays a title in the application.
 

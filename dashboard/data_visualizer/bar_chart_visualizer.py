@@ -18,6 +18,7 @@ import streamlit as st
 from dashboard.data_visualizer.data_preparation import (
     matches_city_building_year_criteria,
 )
+from dashboard.translations.translation_manager import Translation
 
 
 class BarChartVisualizer:
@@ -65,17 +66,17 @@ class BarChartVisualizer:
 
         price_per_meter_col, price_per_offer_col = st.columns(2)
 
-        categories = ["Yours", "Similar", "All in 20 km radius"]
+        categories = Translation()["char_chart"]["y_axis_offers"].values()
 
         xlabel = self._generate_x_label(categories)
-        ylabel = "Price (PLN)"
+        ylabel = Translation()["char_chart"]["x_axis_price"]
 
         with price_per_meter_col:
             per_meter_data = self._calculate_median_data(offers, "price_per_meter")
             st.pyplot(
                 self._plot_bar_chart(
                     per_meter_data,
-                    "Price per meter",
+                    Translation()["char_chart"]["charts_titles"]["price_per_meter"],
                     xlabel,
                     ylabel,
                 )
@@ -86,7 +87,7 @@ class BarChartVisualizer:
             st.pyplot(
                 self._plot_bar_chart(
                     per_offer_data,
-                    "Price per offer",
+                    Translation()["char_chart"]["charts_titles"]["price_per_offer"],
                     xlabel,
                     ylabel,
                 )
@@ -235,7 +236,15 @@ class BarChartVisualizer:
                 f"Position is out of range.\nPosition: {position},\nRange: {len(original_string)}"
             )
 
-        return original_string[:position] + char_to_insert + original_string[position:]
+        # Adjust the position for negative indices
+        if position < 0:
+            position = len(original_string) + position + 1
+
+        changed_string = (
+            original_string[:position] + char_to_insert + original_string[position:]
+        )
+
+        return changed_string
 
     def _create_offers_dict(self) -> Dict[str, Dict[str, pd.DataFrame]]:
         """
@@ -384,6 +393,21 @@ class BarChartVisualizer:
             plt.Figure: The bar chart plot.
         """
         df = pd.DataFrame(list(data.items()), columns=["Category", "Value"])
+
+        # for category in df["Category"]:
+        #     if "unfurnished" in category:
+        #         df["Category"] = df["Category"].replace(
+        #             "unfurnished",
+        #             Translation()["char_chart"]["column_names"]["with_no_furniture"],
+        #         )
+        #     elif "furnished" in category:
+        #         df["Category"] = df["Category"].replace(
+        #             "furnished",
+        #             Translation()["char_chart"]["column_names"]["with_furniture"],
+        #         )
+        #     else:
+        #         pass
+
         fig, axis = plt.subplots(figsize=self.display_settings["figsize"]["singleplot"])
         sns.barplot(
             x="Category",

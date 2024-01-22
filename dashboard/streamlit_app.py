@@ -24,7 +24,6 @@ def add_project_root_to_sys_path():
 add_project_root_to_sys_path()
 
 # Local imports
-# Do not do the `dashboard.` import here
 from dashboard.data_visualizer._config import config as display_settings
 from dashboard.data_visualizer.data_visualizer import DataVisualizer
 from dashboard.load_data import DataLoader
@@ -41,7 +40,6 @@ def streamlit_app():
         market_apartments_df,
         map_offers_df,
         display_settings,
-        "🔍🏠 Rent comparisons",
     ).render_data()
 
 

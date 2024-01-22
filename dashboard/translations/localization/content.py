@@ -23,6 +23,33 @@ Example:
         translations[Languages.ENGLISH]["welcome"]
 """
 
+from dashboard.translations.localization._english import english
+from dashboard.translations.localization._polish import polish
+
+_checked_translation_keys = False  # Variable to track if the check has been performed
+
+
+def check_translation_keys(translations: dict):
+    """
+    Checks if the translation dictionaries have the same keys.
+    """
+    global _checked_translation_keys
+    if not _checked_translation_keys:
+        # Get the keys from the first dictionary
+        keys_set = set(translations[0].keys())
+
+    # Check if all dictionaries have the same keys
+    for translation_dict in translations[1:]:
+        if set(translation_dict.keys()) != keys_set:
+            # Find the differences in keys
+            diff_keys = set(translation_dict.keys()) ^ keys_set
+            raise ValueError(
+                f"Translation dictionaries have different keys: {diff_keys}"
+            )
+
+
+check_translation_keys([english, polish])
+
 
 class Languages:
     """
@@ -37,29 +64,15 @@ class Languages:
     POLISH = "Polish"
 
 
-translations = {
-    """
-    Dictionary containing the translations for different languages.
+"""
+Dictionary containing the translations for different languages.
 
-    Each language code maps to a dictionary of translation strings.
-    The dictionary is structured with the top-level keys 
-    as language names ('English', 'Polish', etc.),
-    each mapping to a nested dictionary containing the relevant translation strings.
-    """
-    "English": {
-        "welcome": "Welcome",
-        "chart": {
-            "title": "Bar Chart Title",
-            # Other nested English texts...
-        },
-        # Other English texts...
-    },
-    "Polish": {
-        "welcome": "Witamy",
-        "chart": {
-            "title": "Tytuł wykresu słupkowego",
-            # Other nested Polish texts...
-        },
-        # Other Polish texts...
-    },
+Each language code maps to a dictionary of translation strings.
+The dictionary is structured with the top-level keys 
+as language names ('English', 'Polish', etc.),
+each mapping to a nested dictionary containing the relevant translation strings.
+"""
+translations = {
+    "English": english,
+    "Polish": polish,
 }
