@@ -43,29 +43,47 @@ english = {
                 "price_per_meter_by_percentile": "price per meter by percentile",
                 "lease_time": "lease time",
             },
-        },
-        "market_positioning": {
-            "main_title": "📈 Market Positioning",
-            "column_names": {
-                "flats_number": "flats",
-                "max_floor": "floor max",
-                "avg_flat_surface": "avg area",
-                "furnished_flats_sum": "furnished_sum",
-                "avg_user_price": "avg your price",
-                "avg_user_percentile_price_by_market": "avg price percentile",
-                "avg_price_by_model": "avg price by model",
-                "avg_percentile_based_suggested_price": "avg percentile based suggested price",
-                "avg_user_price_per_meter": "avg your price per meter",
-                "avg_price_per_meter_suggested_by_percentile": "avg price per meter by percentile",
+            "column_values": {
+                "boolean": {
+                    "True": "yes",
+                    "False": "no",
+                },
+                # The order of the keys in the dictionary below is important.
+                "time_intervals": {
+                    "nan": "-",
+                    "days": "days",
+                    "day": "day",
+                    "weeks": "weeks",
+                    "week": "week",
+                    "months": "months",
+                    "month": "month",
+                    "years": "years",
+                    "year": "year",
+                },
             },
         },
-        "summary_total_calculations": {
-            "main_title": "📋 Total Summary",
-            "column_names": {
-                "user_price_total": "avg your price",
-                "by_model_price_total": "avg price percentile",
-                "percentile_based_suggested_price_total": "percentile based suggested price total",
-            },
+    },
+    "market_positioning": {
+        "main_title": "📈 Market Positioning",
+        "column_names": {
+            "flats_number": "flats",
+            "max_floor": "floor max",
+            "avg_flat_surface": "avg area",
+            "furnished_flats_sum": "furnished_sum",
+            "avg_user_price": "avg your price",
+            "avg_user_percentile_price_by_market": "avg price percentile",
+            "avg_price_by_model": "avg price by model",
+            "avg_percentile_based_suggested_price": "avg percentile based suggested price",
+            "avg_user_price_per_meter": "avg your price per meter",
+            "avg_price_per_meter_suggested_by_percentile": "avg price per meter by percentile",
+        },
+    },
+    "summary_total_calculations": {
+        "main_title": "📋 Total Summary",
+        "column_names": {
+            "user_price_total": "avg your price",
+            "by_model_price_total": "avg price percentile",
+            "percentile_based_suggested_price_total": "percentile based suggested price total",
         },
     },
     "map": {
@@ -80,9 +98,5 @@ english = {
             "price_per_meter": "Price/Sqm",
             "furnished": "Furnished",
         },
-    },
-    "boolean": {
-        "True": "Yes",
-        "False": "No",
     },
 }

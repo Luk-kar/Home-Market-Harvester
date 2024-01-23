@@ -4,6 +4,7 @@ to DataFrames and displaying them as formatted tables.
 """
 
 # Third-party imports
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -124,13 +125,22 @@ def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
     ]
     apply_color_based_on_difference(df, color_difference_columns)
 
+    print(df.columns)
+
     styled_df = apply_custom_styling(df)
 
+    # TODO move it one level higher to table_visualizer.py
     # Translate
-    print(styled_df.columns)
     boolean_column = "is_furnished".replace("_", " ")
-    styled_df[boolean_column] = _translate_boolean_values(styled_df[boolean_column])
-    styled_df = _translate_columns(styled_df)
+    if boolean_column in styled_df.columns:
+        styled_df[boolean_column] = _translate_boolean_values(styled_df[boolean_column])
+    period_format_column = "lease_time".replace("_", " ")
+    if period_format_column in styled_df.columns:
+        styled_df[period_format_column] = _translate_periods_values(
+            styled_df[period_format_column]
+        )
+
+    # styled_df = _translate_columns(styled_df)
 
     display_html(styled_df, with_index)
 
@@ -235,17 +245,71 @@ def color_format(value, comparison_value):
     return f"<span style='color: {color};'>{value}</span>"
 
 
-def _translate_boolean_values(series: pd.Series):
+def _translate_boolean_values(
+    series: pd.Series,
+):  # TODO move it one level higher to table_visualizer.py
     """
     Translate boolean values to the selected language.
 
     Args:
         series (pd.Series): A Series containing boolean values.
     """
-    # TODO everything is no
-    true = Translation()["boolean"]["True"]
-    false = Translation()["boolean"]["False"]
-    series = series.apply(lambda x: true if x is True else false)
+    boolean_values: dict[str, str] = Translation()["table"]["apartments"][
+        "column_values"
+    ]["boolean"]
+    yes = boolean_values["True"]
+    no = boolean_values["False"]
+    true = str(True)
+    false = str(False)
+
+    def translate(boolean: str):
+        """Translate boolean in the HTML strings"""
+        if true in boolean:
+            return boolean.replace(true, yes)
+        elif false in boolean:
+            return boolean.replace(false, no)
+        else:
+            raise ValueError(
+                "The series must contain only boolean values:\n"
+                f"value to be replaced:|{boolean}|\n"
+                f"replacing value:     |{yes}|{no}|\n"
+            )
+
+    series = series.apply(translate)
+    return series
+
+
+def _translate_periods_values(
+    series: pd.Series,
+):  # TODO move it one level higher to table_visualizer.py
+    """
+    Translate time periods values to the selected language.
+
+    Args:
+        series (pd.Series): A Series containing time periods values.
+    """
+    time_intervals: dict[str, str] = Translation()["table"]["apartments"][
+        "column_values"
+    ]["time_intervals"]
+
+    def translate(time_period: str | np.float64):
+        """
+        The periods in db are like:
+        'NaN', '1 day', '2 days', '1 week', '2 weeks', '1 month', '2 months', '1 year', '2 years'
+        """
+        if pd.isna(time_period):
+            return time_intervals["nan"]
+        else:
+            for key in time_intervals.keys():
+                if key in time_period:
+                    return time_period.replace(key, time_intervals[key])
+            raise ValueError(
+                "The series contains an unrecognized time period value:\n"
+                f"value to be replaced: |{time_period}|\n"
+                f"replacing value:      |{time_intervals}|\n"
+            )
+
+    series = series.apply(translate)
     return series
 
 

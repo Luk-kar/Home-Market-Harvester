@@ -43,29 +43,47 @@ polish = {
                 "price_per_meter_by_percentile": "cena za metr według percentyla",
                 "lease_time": "czas wynajmu",
             },
-        },
-        "market_positioning": {
-            "main_title": "📊 Pozycjonowanie na rynku",
-            "column_names": {
-                "flats_number": "liczba mieszkań",
-                "max_floor": "maksymalne piętro",
-                "avg_flat_surface": "średnia powierzchnia",
-                "furnished_flats_sum": "ilość umeblowanych mieszkań",
-                "avg_user_price": "średnia twoja cena",
-                "avg_user_percentile_price_by_market": "średnia cena percentylowa",
-                "avg_price_by_model": "średnia cena według modelu",
-                "avg_percentile_based_suggested_price": "średnia sugerowana cena na podstawie percentyla",
-                "avg_user_price_per_meter": "średnia twoja cena za metr",
-                "avg_price_per_meter_suggested_by_percentile": "średnia cena za metr według percentyla",
+            "column_values": {
+                "boolean": {
+                    "True": "tak",
+                    "False": "nie",
+                },
+                # The order of the keys in the dictionary below is important.
+                "time_intervals": {
+                    "nan": "-",
+                    "days": "dni",
+                    "day": "dzień",
+                    "weeks": "tygodnie",
+                    "week": "tydzień",
+                    "months": "miesiące",
+                    "month": "miesiąc",
+                    "years": "lat",
+                    "year": "rok",
+                },
             },
         },
-        "summary_total_calculations": {
-            "main_title": "📊 Podsumowanie",
-            "column_names": {
-                "user_price_total": "suma twoich cen",
-                "by_model_price_total": "suma cen wg modelu",
-                "percentile_based_suggested_price_total": "suma sugerowanych cen na podstawie percentyla",
-            },
+    },
+    "market_positioning": {
+        "main_title": "📊 Pozycjonowanie na rynku",
+        "column_names": {
+            "flats_number": "liczba mieszkań",
+            "max_floor": "maksymalne piętro",
+            "avg_flat_surface": "średnia powierzchnia",
+            "furnished_flats_sum": "ilość umeblowanych mieszkań",
+            "avg_user_price": "średnia twoja cena",
+            "avg_user_percentile_price_by_market": "średnia cena percentylowa",
+            "avg_price_by_model": "średnia cena według modelu",
+            "avg_percentile_based_suggested_price": "średnia sugerowana cena na podstawie percentyla",
+            "avg_user_price_per_meter": "średnia twoja cena za metr",
+            "avg_price_per_meter_suggested_by_percentile": "średnia cena za metr według percentyla",
+        },
+    },
+    "summary_total_calculations": {
+        "main_title": "📊 Podsumowanie",
+        "column_names": {
+            "user_price_total": "suma twoich cen",
+            "by_model_price_total": "suma cen wg modelu",
+            "percentile_based_suggested_price_total": "suma sugerowanych cen na podstawie percentyla",
         },
     },
     "map": {
@@ -80,9 +98,5 @@ polish = {
             "price_per_meter": "Cena za metr",
             "furnished": "Umeblowane",
         },
-    },
-    "boolean": {
-        "True": "tak",
-        "False": "nie",
     },
 }
