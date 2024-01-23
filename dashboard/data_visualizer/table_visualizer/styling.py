@@ -41,7 +41,7 @@ def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:
     return df.apply(apply_row_styles, axis=1)
 
 
-def display_html(styled_df: pd.DataFrame, with_index: bool) -> None:
+def display_html(styled_df: pd.DataFrame, with_index: bool = False) -> None:
     """
     Display a DataFrame as a formatted table.
 
@@ -94,13 +94,15 @@ def display_header(text: str = "", subtitle: str = "") -> None:
         )
 
 
-def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
+def add_styling_to_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Display a formatted table of the DataFrame.
+    Add custom styling to a DataFrame.
 
     Args:
         df (pd.DataFrame): A DataFrame containing offers data.
-        with_index (bool, optional): Whether to display the DataFrame index. Defaults to False.
+
+    Returns:
+        pd.DataFrame: A DataFrame with custom styling applied.
     """
 
     plus_minus_columns = [
@@ -131,7 +133,7 @@ def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
 
     styled_df = apply_custom_styling(df)
 
-    display_html(styled_df, with_index)
+    return styled_df
 
 
 def apply_plus_minus_formatting(df: pd.DataFrame, columns: list[str]) -> None:

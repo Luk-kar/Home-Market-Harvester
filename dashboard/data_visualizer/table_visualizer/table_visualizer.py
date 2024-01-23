@@ -32,8 +32,9 @@ from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
 
 from dashboard.data_visualizer.table_visualizer.styling import (
     format_column_titles,
-    show_data_table,
+    add_styling_to_dataframe,
     display_header,
+    display_html,
 )
 
 from dashboard.translations.translation_manager import Translation
@@ -133,20 +134,24 @@ class TableVisualizer:
             ]
         )
 
+        apartments_comparison_df = add_styling_to_dataframe(apartments_comparison_df)
+        market_positioning_df = add_styling_to_dataframe(market_positioning_df)
+        property_summary_df = add_styling_to_dataframe(property_summary_df)
+
         apartments_comparison_df = format_column_titles(apartments_comparison_df)
         market_positioning_df = format_column_titles(market_positioning_df)
         property_summary_df = format_column_titles(property_summary_df)
 
-        show_data_table(apartments_comparison_df, with_index=True)
         display_header(
             subtitle=Translation()["table"]["market_positioning"]["main_title"]
         )
-        show_data_table(market_positioning_df)
+        display_html(apartments_comparison_df, with_index=True)
         display_header(
             subtitle=Translation()["table"]["summary_total_calculations"]["main_title"]
         )
-        show_data_table(property_summary_df)
+        display_html(market_positioning_df)
         display_header(subtitle="\n\n")
+        display_html(property_summary_df)
 
     def _translate_dataframes_values(self, apartments_comparison_df: pd.DataFrame):
         """
