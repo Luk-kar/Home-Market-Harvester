@@ -4,22 +4,31 @@ from dashboard.translations.localization._polish import polish
 _checked_translation_keys = False  # Variable to track if the check has been performed
 
 
-def check_translation_keys(translations: dict):
+def check_translation_keys(translations: list[dict]):
     """
-    Checks if the translation dictionaries have the same keys.
+    Recursively checks if all provided translation dictionaries have the same keys.
     """
-    global _checked_translation_keys
-    if not _checked_translation_keys:
-        # Get the keys from the first dictionary
-        keys_set = set(translations[0].keys())
+    first_dict = translations[0]
+    for other_dict in translations[1:]:
+        compare_dicts(first_dict, other_dict)
 
-    # Check if all dictionaries have the same keys
-    for translation_dict in translations[1:]:
-        if set(translation_dict.keys()) != keys_set:
-            # Find the differences in keys
-            diff_keys = set(translation_dict.keys()) ^ keys_set
+
+def compare_dicts(dict1: dict, dict2: dict, parent_key=""):
+    """
+    Recursively compares the keys of two dictionaries.
+    """
+    for key in dict1:
+        if key not in dict2:
             raise ValueError(
-                f"Translation dictionaries have different keys: {diff_keys}"
+                f"Key {parent_key + key} is missing in the second dictionary."
+            )
+        if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+            compare_dicts(dict1[key], dict2[key], parent_key + key + ".")
+
+    for key in dict2:
+        if key not in dict1:
+            raise ValueError(
+                f"Key {parent_key + key} is missing in the first dictionary."
             )
 
 
