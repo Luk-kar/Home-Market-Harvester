@@ -105,25 +105,32 @@ def add_styling_to_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: A DataFrame with custom styling applied.
     """
 
+    table_columns = Translation()["table"]
+
     plus_minus_columns = [
-        "price by model",
-        "suggested price by percentile",
-        "price per meter by percentile",
-        "avg price by model",
-        "avg suggested price by percentile",
-        "avg price per meter by percentile",
-        "percentile based suggested price",
-        "avg percentile based suggested price",
+        table_columns["apartments"]["column_names"]["price_by_model"],
+        table_columns["apartments"]["column_names"]["percentile_based_suggested_price"],
+        table_columns["apartments"]["column_names"]["price_per_meter_by_percentile"],
+        table_columns["apartments"]["column_names"]["percentile_based_suggested_price"],
+        table_columns["market_positioning"]["column_names"]["avg_price_by_model"],
+        table_columns["market_positioning"]["column_names"][
+            "avg_price_per_meter_by_percentile"
+        ],
+        table_columns["market_positioning"]["column_names"][
+            "avg_percentile_based_suggested_price"
+        ],
     ]
     round_float_columns(df, plus_minus_columns)
     apply_plus_minus_formatting(df, plus_minus_columns)
 
+    # TODO
     percent_columns = [
         "price per meter by percentile",
         "avg price per meter by percentile",
     ]
     append_percent_sign(df, percent_columns)
 
+    # TODO
     color_difference_columns = [
         "avg price percentile",
         "percentile based suggested price total",
