@@ -13,6 +13,7 @@ Example usage:
 from typing import Optional
 
 # Third-party imports
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -106,22 +107,30 @@ class TableVisualizer:
         )
 
         # Translate
-        boolean_column = "is_furnished"
-        if boolean_column in apartments_comparison_df.columns:
-            apartments_comparison_df[boolean_column] = self._translate_boolean_values(
-                apartments_comparison_df[boolean_column]
-            )
-        # period_format_column = "lease_time".replace("_", " ")
-        # if period_format_column in styled_df.columns:
-        #     styled_df[period_format_column] = _translate_periods_values(
-        #         styled_df[period_format_column]
-        #     )
-
-        # styled_df = _translate_columns(styled_df)
-
-        # Translate column names
-        apartments_comparison_df = apartments_comparison_df.rename(
-            columns=Translation()["table"]["apartments"]["column_names"]
+        apartments_comparison_df = self._translate_dataframes_values(
+            apartments_comparison_df
+        )
+        (
+            apartments_comparison_df,
+            market_positioning_df,
+            property_summary_df,
+        ) = self._translate_dataframes_column_names(
+            [
+                (
+                    apartments_comparison_df,
+                    Translation()["table"]["apartments"]["column_names"],
+                ),
+                (
+                    market_positioning_df,
+                    Translation()["table"]["market_positioning"]["column_names"],
+                ),
+                (
+                    property_summary_df,
+                    Translation()["table"]["summary_total_calculations"][
+                        "column_names"
+                    ],
+                ),
+            ]
         )
 
         apartments_comparison_df = format_column_titles(apartments_comparison_df)
@@ -138,6 +147,35 @@ class TableVisualizer:
         )
         show_data_table(property_summary_df)
         display_header(subtitle="\n\n")
+
+    def _translate_dataframes_values(self, apartments_comparison_df: pd.DataFrame):
+        """
+        Translate values in the DataFrame to the selected language.
+
+        Args:
+            apartments_comparison_df (pd.DataFrame): A DataFrame containing offers data.
+
+        Returns:
+            pd.DataFrame: A DataFrame with translated values.
+        """
+
+        # Translate boolean values
+        boolean_column = "is_furnished"
+        if boolean_column in apartments_comparison_df.columns:
+            apartments_comparison_df[boolean_column] = self._translate_boolean_values(
+                apartments_comparison_df[boolean_column]
+            )
+
+        # Translate time periods values
+        period_format_column = "lease_time"
+        if period_format_column in apartments_comparison_df.columns:
+            apartments_comparison_df[
+                period_format_column
+            ] = self._translate_periods_values(
+                apartments_comparison_df[period_format_column]
+            )
+
+        return apartments_comparison_df
 
     def _select_price_percentile(self) -> None:
         """
@@ -222,33 +260,55 @@ class TableVisualizer:
         series = series.apply(translate)
         return series
 
-    def _translate_columns(self, styled_df: pd.DataFrame) -> pd.DataFrame:
+    def _translate_dataframes_column_names(
+        self, list_of_dataframes_and_keys: list[tuple[pd.DataFrame, Translation]]
+    ):
         """
-        Translate the column names to the selected language.
+        Translate dataframes columns names to the selected language.
 
         Args:
-            styled_df (pd.DataFrame): A DataFrame with custom styling applied.
+            list_of_dataframes_and_keys (list[tuple[pd.DataFrame, Translation]]):
+            A list of tuples containing a DataFrame and a Translation object.
 
         Returns:
-            pd.DataFrame: A DataFrame with translated column names.
+            list[pd.DataFrame]: A list of DataFrames with translated columns names.
         """
-        column_translation = Translation()["table"]["apartments"]["column_names"]
-        modified_translation = {}
+        dfs = []
+        for df, key in list_of_dataframes_and_keys:
+            df = self._rename_with_check(df, key)
+            dfs.append(df)
 
-        for original_key, translated_key in column_translation.items():
-            modified_key = original_key.replace("_", " ")
-            modified_translation[modified_key] = translated_key
+        return dfs
 
-        # Check if there are any keys left in modified_translation
-        # that are not mapped to columns
-        modified_translation = {
-            key: val
-            for key, val in modified_translation.items()
-            if key in styled_df.columns
-        }
-        unmapped_keys = set(modified_translation.keys()) - set(styled_df.columns)
-        if unmapped_keys:
-            raise ValueError(f"Unmapped translation keys: {unmapped_keys}")
-        styled_df = styled_df.rename(columns=modified_translation)
+    def _rename_with_check(
+        self, df: pd.DataFrame, translation_dict: [str, str]
+    ) -> pd.DataFrame:
+        """
+        Checks column coverage and renames DataFrame columns.
 
-        return styled_df
+        Args:
+            df (pd.DataFrame): DataFrame to be processed.
+            translation_key (str): Key for accessing the translation dictionary.
+
+        Returns:
+            pd.DataFrame: DataFrame with renamed columns.
+        """
+        self._check_column_coverage(df, translation_dict)
+        return df.rename(columns=translation_dict)
+
+    def _check_column_coverage(self, df: pd.DataFrame, translation_dict: dict):
+        df_columns = set(df.columns)
+        translation_keys = set(translation_dict.keys())
+
+        missing_in_df = translation_keys - df_columns
+        missing_in_translation = df_columns - translation_keys
+
+        if missing_in_df or missing_in_translation:
+            error_message = ""
+            if missing_in_df:
+                error_message += f"Columns missing in DataFrame: {missing_in_df}\n"
+            if missing_in_translation:
+                error_message += (
+                    f"Columns missing in Translation: {missing_in_translation}\n"
+                )
+            raise ValueError(error_message)

@@ -62,28 +62,28 @@ english = {
                 },
             },
         },
-    },
-    "market_positioning": {
-        "main_title": "📈 Market Positioning",
-        "column_names": {
-            "flats_number": "flats",
-            "max_floor": "floor max",
-            "avg_flat_surface": "avg area",
-            "furnished_flats_sum": "furnished_sum",
-            "avg_user_price": "avg your price",
-            "avg_user_percentile_price_by_market": "avg price percentile",
-            "avg_price_by_model": "avg price by model",
-            "avg_percentile_based_suggested_price": "avg percentile based suggested price",
-            "avg_user_price_per_meter": "avg your price per meter",
-            "avg_price_per_meter_suggested_by_percentile": "avg price per meter by percentile",
+        "market_positioning": {
+            "main_title": "📈 Market Positioning",
+            "column_names": {
+                "flats": "flats",
+                "floor_max": "floor max",
+                "avg_area": "avg area",
+                "furnished_sum": "furnished_sum",
+                "avg_your_price": "avg your price",
+                "avg_price_percentile": "avg price percentile",
+                "avg_price_by_model": "avg price by model",
+                "avg_percentile_based_suggested_price": "avg percentile based suggested price",
+                "avg_your_price_per_meter": "avg your price per meter",
+                "avg_price_per_meter_by_percentile": "avg price per meter by percentile",
+            },
         },
-    },
-    "summary_total_calculations": {
-        "main_title": "📋 Total Summary",
-        "column_names": {
-            "user_price_total": "avg your price",
-            "by_model_price_total": "avg price percentile",
-            "percentile_based_suggested_price_total": "percentile based suggested price total",
+        "summary_total_calculations": {
+            "main_title": "📋 Total Summary",
+            "column_names": {
+                "your_price_total": "avg your price",
+                "price_total_per_model": "avg price percentile",
+                "percentile_based_suggested_price_total": "percentile based suggested price total",
+            },
         },
     },
     "map": {

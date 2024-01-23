@@ -49,41 +49,44 @@ polish = {
                     "False": "nie",
                 },
                 # The order of the keys in the dictionary below is important.
+                # Well Polish grammar is much more complex than that but it works in most cases.
+                # Mostly due to the fact of declination of nouns.
+                # https://rhapsodyinlingo.com/en/polish-numbers/
                 "time_intervals": {
                     "nan": "-",
                     "days": "dni",
                     "day": "dzień",
-                    "weeks": "tygodnie",
+                    "weeks": "tygodni",
                     "week": "tydzień",
-                    "months": "miesiące",
+                    "months": "miesięcy",
                     "month": "miesiąc",
                     "years": "lat",
                     "year": "rok",
                 },
             },
         },
-    },
-    "market_positioning": {
-        "main_title": "📊 Pozycjonowanie na rynku",
-        "column_names": {
-            "flats_number": "liczba mieszkań",
-            "max_floor": "maksymalne piętro",
-            "avg_flat_surface": "średnia powierzchnia",
-            "furnished_flats_sum": "ilość umeblowanych mieszkań",
-            "avg_user_price": "średnia twoja cena",
-            "avg_user_percentile_price_by_market": "średnia cena percentylowa",
-            "avg_price_by_model": "średnia cena według modelu",
-            "avg_percentile_based_suggested_price": "średnia sugerowana cena na podstawie percentyla",
-            "avg_user_price_per_meter": "średnia twoja cena za metr",
-            "avg_price_per_meter_suggested_by_percentile": "średnia cena za metr według percentyla",
+        "market_positioning": {
+            "main_title": "📊 Pozycjonowanie na rynku",
+            "column_names": {
+                "flats": "liczba mieszkań",
+                "floor_max": "maksymalne piętro",
+                "avg_area": "średnia powierzchnia",
+                "furnished_sum": "ilość umeblowanych mieszkań",
+                "avg_your_price": "średnia twoja cena",
+                "avg_price_percentile": "średnia cena percentylowa",
+                "avg_price_by_model": "średnia cena według modelu",
+                "avg_percentile_based_suggested_price": "średnia sugerowana cena na podstawie percentyla",
+                "avg_your_price_per_meter": "średnia twoja cena za metr",
+                "avg_price_per_meter_by_percentile": "średnia cena za metr według percentyla",
+            },
         },
-    },
-    "summary_total_calculations": {
-        "main_title": "📊 Podsumowanie",
-        "column_names": {
-            "user_price_total": "suma twoich cen",
-            "by_model_price_total": "suma cen wg modelu",
-            "percentile_based_suggested_price_total": "suma sugerowanych cen na podstawie percentyla",
+        "summary_total_calculations": {
+            "main_title": "📊 Podsumowanie",
+            "column_names": {
+                "your_price_total": "suma twoich cen",
+                "price_total_per_model": "suma cen wg modelu",
+                "percentile_based_suggested_price_total": "suma sugerowanych cen na podstawie percentyla",
+            },
         },
     },
     "map": {

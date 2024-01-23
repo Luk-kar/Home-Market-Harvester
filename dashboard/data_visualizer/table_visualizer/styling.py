@@ -123,12 +123,11 @@ def show_data_table(df: pd.DataFrame, with_index: bool = False) -> None:
     append_percent_sign(df, percent_columns)
 
     color_difference_columns = [
-        "price total per model",
+        "avg price percentile",
         "percentile based suggested price total",
     ]
-    apply_color_based_on_difference(df, color_difference_columns)
 
-    print(df.columns)
+    apply_color_based_on_difference(df, color_difference_columns)
 
     styled_df = apply_custom_styling(df)
 
@@ -187,7 +186,7 @@ def apply_color_based_on_difference(df: pd.DataFrame, columns: list[str]) -> Non
     for col in columns:
         if col in df.columns:
             df[col] = df.apply(
-                lambda row, c=col: color_format(row[c], row["your price total"]),
+                lambda row, c=col: color_format(row[c], row["avg your price"]),
                 axis=1,
             )
 

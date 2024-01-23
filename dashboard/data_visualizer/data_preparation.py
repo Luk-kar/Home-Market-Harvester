@@ -115,7 +115,7 @@ def reorder_columns(df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
         if column_name in columns:
             columns.insert(new_position, columns.pop(columns.index(column_name)))
         else:
-            print(f"Column '{column_name}' not found in DataFrame.")
+            raise KeyError(f"Column '{column_name}' not found in DataFrame.")
     return df[columns]
 
 
