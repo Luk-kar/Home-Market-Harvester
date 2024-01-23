@@ -105,6 +105,20 @@ class TableVisualizer:
             },
         )
 
+        # Translate
+        boolean_column = "is_furnished"
+        if boolean_column in apartments_comparison_df.columns:
+            apartments_comparison_df[boolean_column] = self._translate_boolean_values(
+                apartments_comparison_df[boolean_column]
+            )
+        # period_format_column = "lease_time".replace("_", " ")
+        # if period_format_column in styled_df.columns:
+        #     styled_df[period_format_column] = _translate_periods_values(
+        #         styled_df[period_format_column]
+        #     )
+
+        # styled_df = _translate_columns(styled_df)
+
         # Translate column names
         apartments_comparison_df = apartments_comparison_df.rename(
             columns=Translation()["table"]["apartments"]["column_names"]
@@ -140,3 +154,101 @@ class TableVisualizer:
                 options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                 index=4,  # Default to 0.5
             )
+
+    def _translate_boolean_values(
+        self,
+        series: pd.Series,
+    ):
+        """
+        Translate boolean values to the selected language.
+
+        Args:
+            series (pd.Series): A Series containing boolean values.
+        """
+        boolean_values: dict[str, str] = Translation()["table"]["apartments"][
+            "column_values"
+        ]["boolean"]
+        yes = boolean_values["True"]
+        no = boolean_values["False"]
+
+        def translate(boolean: str):
+            """Translate boolean in the HTML strings"""
+
+            if boolean is True:
+                return yes
+            elif boolean is False:
+                return no
+            else:
+                raise ValueError(
+                    "The series must contain only boolean values:\n"
+                    f"value to be replaced:|{boolean}|\n"
+                    f"replacing value:     |{yes}|{no}|\n"
+                )
+
+        series = series.apply(translate)
+        return series
+
+    def _translate_periods_values(
+        self,
+        series: pd.Series,
+    ):  # TODO move it one level higher to table_visualizer.py
+        """
+        Translate time periods values to the selected language.
+
+        Args:
+            series (pd.Series): A Series containing time periods values.
+        """
+        time_intervals: dict[str, str] = Translation()["table"]["apartments"][
+            "column_values"
+        ]["time_intervals"]
+
+        def translate(time_period: str | np.float64):
+            """
+            The periods in db are like:
+            'NaN', '1 day', '2 days', '1 week', '2 weeks', '1 month', '2 months', '1 year', '2 years'
+            """
+            if pd.isna(time_period):
+                return time_intervals["nan"]
+            else:
+                for key in time_intervals.keys():
+                    if key in time_period:
+                        return time_period.replace(key, time_intervals[key])
+                raise ValueError(
+                    "The series contains an unrecognized time period value:\n"
+                    f"value to be replaced: |{time_period}|\n"
+                    f"replacing value:      |{time_intervals}|\n"
+                )
+
+        series = series.apply(translate)
+        return series
+
+    def _translate_columns(self, styled_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Translate the column names to the selected language.
+
+        Args:
+            styled_df (pd.DataFrame): A DataFrame with custom styling applied.
+
+        Returns:
+            pd.DataFrame: A DataFrame with translated column names.
+        """
+        column_translation = Translation()["table"]["apartments"]["column_names"]
+        modified_translation = {}
+
+        for original_key, translated_key in column_translation.items():
+            modified_key = original_key.replace("_", " ")
+            modified_translation[modified_key] = translated_key
+
+        # Check if there are any keys left in modified_translation
+        # that are not mapped to columns
+        modified_translation = {
+            key: val
+            for key, val in modified_translation.items()
+            if key in styled_df.columns
+        }
+        unmapped_keys = set(modified_translation.keys()) - set(styled_df.columns)
+        if unmapped_keys:
+            raise ValueError(f"Unmapped translation keys: {unmapped_keys}")
+        styled_df = styled_df.rename(columns=modified_translation)
+
+        return styled_df
