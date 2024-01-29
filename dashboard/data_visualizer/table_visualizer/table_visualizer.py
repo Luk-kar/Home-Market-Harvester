@@ -58,6 +58,7 @@ class TableVisualizer:
         self.display_settings = display_settings
         self.selected_percentile: Optional[float] = None
         self.table_title: Optional[str] = table_title
+        self.texts = Translation()["table"]
 
     def display(
         self, user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
@@ -119,17 +120,15 @@ class TableVisualizer:
             [
                 (
                     apartments_comparison_df,
-                    Translation()["table"]["apartments"]["column_names"],
+                    self.texts["apartments"]["column_names"],
                 ),
                 (
                     market_positioning_df,
-                    Translation()["table"]["market_positioning"]["column_names"],
+                    self.texts["market_positioning"]["column_names"],
                 ),
                 (
                     property_summary_df,
-                    Translation()["table"]["summary_total_calculations"][
-                        "column_names"
-                    ],
+                    self.texts["summary_total_calculations"]["column_names"],
                 ),
             ]
         )
@@ -142,13 +141,9 @@ class TableVisualizer:
         market_positioning_df = format_column_titles(market_positioning_df)
         property_summary_df = format_column_titles(property_summary_df)
 
-        display_header(
-            subtitle=Translation()["table"]["market_positioning"]["main_title"]
-        )
+        display_header(subtitle=self.texts["market_positioning"]["main_title"])
         display_html(apartments_comparison_df, with_index=True)
-        display_header(
-            subtitle=Translation()["table"]["summary_total_calculations"]["main_title"]
-        )
+        display_header(subtitle=self.texts["summary_total_calculations"]["main_title"])
         display_html(market_positioning_df)
         display_header(subtitle="\n\n")
         display_html(property_summary_df)
@@ -189,7 +184,7 @@ class TableVisualizer:
 
         column_1, column_2, column_3 = st.columns([1, 1, 1])
 
-        title = Translation()["table"]["apartments"]["percentile_dropdown"]
+        title = self.texts["apartments"]["percentile_dropdown"]
 
         with column_2:
             self.selected_percentile = st.selectbox(
@@ -208,9 +203,9 @@ class TableVisualizer:
         Args:
             series (pd.Series): A Series containing boolean values.
         """
-        boolean_values: dict[str, str] = Translation()["table"]["apartments"][
-            "column_values"
-        ]["boolean"]
+        boolean_values: dict[str, str] = self.texts["apartments"]["column_values"][
+            "boolean"
+        ]
         yes = boolean_values["True"]
         no = boolean_values["False"]
 
@@ -241,9 +236,9 @@ class TableVisualizer:
         Args:
             series (pd.Series): A Series containing time periods values.
         """
-        time_intervals: dict[str, str] = Translation()["table"]["apartments"][
-            "column_values"
-        ]["time_intervals"]
+        time_intervals: dict[str, str] = self.texts["apartments"]["column_values"][
+            "time_intervals"
+        ]
 
         def translate(time_period: str | np.float64):
             """

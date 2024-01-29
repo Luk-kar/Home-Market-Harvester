@@ -38,6 +38,7 @@ class DataVisualizer:
         self.map_offers_df = map_offers_df
         self.display_settings = display_settings
         self.selected_language = None
+        self.texts = Translation()
 
     def render_data(self):
         """
@@ -51,21 +52,21 @@ class DataVisualizer:
         self.selected_language = self.render_language_selector()
         Translation.set_language(self.selected_language)
 
-        self.display_title(Translation()["app_title"])
+        self.display_title(self.texts["app_title"])
 
         bar_chart_visualizer = BarChartVisualizer(
             self.display_settings,
             self.user_apartments_df,
             self.market_apartments_df,
-            Translation()["bar_chart"]["main_title"],
+            self.texts["bar_chart"]["main_title"],
         )
         bar_chart_visualizer.display()
 
         table_visualizer = TableVisualizer(
             self.display_settings,
             (
-                Translation()["table"]["main_title"],
-                Translation()["table"]["subtitle"],
+                self.texts["table"]["main_title"],
+                self.texts["table"]["subtitle"],
             ),
         )
         table_visualizer.display(self.user_apartments_df, self.market_apartments_df)
@@ -73,7 +74,7 @@ class DataVisualizer:
         map_visualizer = MapVisualizer(self.display_settings)
         map_visualizer.display(
             self.map_offers_df,
-            Translation()["map"]["main_title"],
+            self.texts["map"]["main_title"],
             center_coords=(50.460740, 19.093210),
             center_marker_name="Mierzęcice, Będziński, Śląskie",
             zoom=9,
