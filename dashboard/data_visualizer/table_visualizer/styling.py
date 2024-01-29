@@ -3,8 +3,10 @@ This module provides functions for applying custom styling
 to DataFrames and displaying them as formatted tables.
 """
 
+# Standard imports
+import re
+
 # Third-party imports
-import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -22,20 +24,24 @@ def apply_custom_styling(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame with custom styling applied.
     """
-    boolean_values = Translation()["table"]["apartments"]["column_values"]["boolean"]
+    column_values = Translation()["table"]["apartments"]["column_values"]
+    boolean_values = column_values["boolean"]
     true = boolean_values["True"]
     false = boolean_values["False"]
+    nan = column_values["time_intervals"]["nan"]
 
     def apply_row_styles(row):
         for col in row.index:
-            if isinstance(row[col], str) and row[col].startswith("+"):
+            if isinstance(row[col], str) and re.match(r"\+\d", row[col]):
                 row[col] = f'<span style="color: green;">{row[col]}</span>'
-            elif isinstance(row[col], str) and row[col].startswith("-"):
+            elif isinstance(row[col], str) and re.match(r"-\d", row[col]):
                 row[col] = f'<span style="color: red;">{row[col]}</span>'
             elif row[col] == true:
                 row[col] = f'<span style="color: green;">{true}</span>'
             elif row[col] == false:
                 row[col] = f'<span style="color: red;">{false}</span>'
+            elif row[col] == nan:
+                row[col] = f'<span style="color: grey;">{nan}</span>'
         return row
 
     return df.apply(apply_row_styles, axis=1)
