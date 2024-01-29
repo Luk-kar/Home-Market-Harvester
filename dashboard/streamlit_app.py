@@ -23,6 +23,7 @@ def add_project_root_to_sys_path():
 # before importing from it
 add_project_root_to_sys_path()
 
+# For the first runtime you need a relative import else error import
 # Local imports
 from data_visualizer._config import config as display_settings
 from data_visualizer.data_visualizer import DataVisualizer

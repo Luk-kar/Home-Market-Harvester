@@ -88,15 +88,21 @@ english = {
     },
     "map": {
         "main_title": "🗺️ Property Prices Heatmap",
-        "legend_title": "Number\nof\noffers",
+        "legend_title": "Number<br>of<br>offers",
         "hover_tooltip": {
             "city": "City",
             "street": "Street",
             "price_total": "Total Price",
+            "price": "Price",
             "rent": "Rent",
             "area": "Square Meters",
             "price_per_meter": "Price/Sqm",
             "furnished": "Furnished",
+            "boolean": {
+                True: "yes",
+                False: "no",
+            },
+            "nan": "-",
         },
     },
 }

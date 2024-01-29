@@ -91,15 +91,21 @@ polish = {
     },
     "map": {
         "main_title": "🗺️ Mapa cieplna nieruchomości",
-        "legend_title": "Liczba\noffert",
+        "legend_title": "Liczba<br>offert",
         "hover_tooltip": {
             "city": "Miasto",
             "street": "Ulica",
             "price_total": "Cena całkowita",
+            "price": "Cena",
             "rent": "Zawarty czynsz",
             "area": "Metry kwadratowe",
             "price_per_meter": "Cena za metr",
             "furnished": "Umeblowane",
+            "boolean": {
+                True: "tak",
+                False: "nie",
+            },
+            "nan": "-",
         },
     },
 }

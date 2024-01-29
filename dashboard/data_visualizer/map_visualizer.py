@@ -8,6 +8,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+# Local imports
+from dashboard.translations.translation_manager import Translation
+
 
 class MapVisualizer:
     """
@@ -22,6 +25,8 @@ class MapVisualizer:
 
     def __init__(self, display_settings):
         self.display_settings = display_settings
+        self.texts = Translation()["map"]
+        self.legend_title = f"{self.texts['legend_title']}:"
 
     def display(
         self,
@@ -111,8 +116,26 @@ class MapVisualizer:
         max_label_length = max(len(label) for label in labels)
         font_style = "font-family:monospace;"
 
+        hover_tooltip = self.texts["hover_tooltip"]
+        city = hover_tooltip["city"]
+        street = hover_tooltip["street"]
+        total_price = hover_tooltip["price_total"]
+        price = hover_tooltip["price"]
+        rent = hover_tooltip["rent"]
+        sqm = hover_tooltip["area"]
+        rent_sqm = hover_tooltip["price_per_meter"]
+        furnished = hover_tooltip["furnished"]
+        boolean_values = hover_tooltip["boolean"]
+        nan = hover_tooltip["nan"]
+
+        def format_nan_value(value):
+            if pd.isna(value) or value == "":
+                return nan
+            else:
+                return value
+
         def _format_street_address(row, max_label_length):
-            street_label = "Street:"
+            street_label = f"{street}:"
             street_address = (
                 row["complete_address"].replace((", " + row["city"]), "")
                 if row["city"]
@@ -120,15 +143,17 @@ class MapVisualizer:
             )
             return f"<span style='{font_style}'>{street_label.ljust(max_label_length)}</span> {street_address}<br>"
 
+        row = {col: format_nan_value(row[col]) for col in row.index}
+
         return (
-            f"<span style='{font_style}'>{'City:'.ljust(max_label_length)}</span> {row['city']}<br>"
+            f"<span style='{font_style}'>{f'{city}:'.ljust(max_label_length)}</span> {row['city']}<br>"
             + _format_street_address(row, max_label_length)
-            + f"<span style='{font_style}'>{'Total Price:'.ljust(max_label_length)}</span> {row['price_total']}<br>"
-            f"<span style='{font_style}'>{'Price:'.ljust(max_label_length)}</span> {row['price']}<br>"
-            f"<span style='{font_style}'>{'Rent:'.ljust(max_label_length)}</span> {row['rent']}<br>"
-            f"<span style='{font_style}'>{'Square Meters:'.ljust(max_label_length)}</span> {row['sqm']}<br>"
-            f"<span style='{font_style}'>{'Price/Sqm:'.ljust(max_label_length)}</span> {row['rent_sqm']}<br>"
-            f"<span style='{font_style}'>{'Furnished:'.ljust(max_label_length)}</span> {row['is_furnished']}"
+            + f"<span style='{font_style}'>{f'{total_price}:'.ljust(max_label_length)}</span> {row['price_total']}<br>"
+            f"<span style='{font_style}'>{f'{price}:'.ljust(max_label_length)}</span> {row['price']}<br>"
+            f"<span style='{font_style}'>{f'{rent}:'.ljust(max_label_length)}</span> {row['rent']}<br>"
+            f"<span style='{font_style}'>{f'{sqm}:'.ljust(max_label_length)}</span> {row['sqm']}<br>"
+            f"<span style='{font_style}'>{f'{rent_sqm}:'.ljust(max_label_length)}</span> {row['rent_sqm']}<br>"
+            f"<span style='{font_style}'>{f'{furnished}:'.ljust(max_label_length)}</span> {boolean_values[row['is_furnished']]}"
             "<extra></extra>"
         )
 
@@ -150,7 +175,7 @@ class MapVisualizer:
             zmin=0,
             zmax=plot_data["offer_count"].max(),
             hovertemplate=plot_data["hovertemplate"],
-            colorbar={"title": "Number<br>of<br>offers:"},
+            colorbar={"title": self.legend_title},
         )
 
     def _update_fig(self, fig, mapbox_zoom, mapbox_center, height=None):
@@ -160,7 +185,7 @@ class MapVisualizer:
             "mapbox_center": mapbox_center,
             "margin": {"l": 0, "r": 0, "t": 40, "b": 0},
             "coloraxis_colorbar": {
-                "title": "Number<br>of<br>offers:",
+                "title": self.legend_title,
                 "title_side": "right",
                 "title_font": {"size": 20},
                 "y": -2,
