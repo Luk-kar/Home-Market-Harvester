@@ -111,53 +111,6 @@ class ModelPredictor:
         total_price = model_data * offers_df["area"]
         return total_price
 
-    # def _load_model_and_metadata(self, model_path: str, metadata_path: str):
-    #     if not os.path.exists(model_path):
-    #         raise FileNotFoundError(f"Model file not found at {model_path}")
-
-    #     if not os.path.exists(metadata_path):
-    #         raise FileNotFoundError(f"Metadata file not found at {metadata_path}")
-
-    #     try:
-    #         # Load the trained model
-    #         with open(model_path, "rb") as pickled:
-    #             try:
-    #                 data = pickle.load(pickled)
-    #             except pickle.UnpicklingError as error:
-    #                 raise ValueError(
-    #                     f"Error unpickling the model file: {error}"
-    #                 ) from error
-
-    #             model = data.get("model")
-    #             if model is None:
-    #                 raise ValueError(
-    #                     "The loaded model data does not contain 'model' key."
-    #                 )
-
-    #         # Load the metadata with size limitation for security
-    #         max_metadata_size = 10 * 1024 * 1024  # 10 MB size limit
-    #         with open(metadata_path, "r", encoding="utf-8") as file:
-    #             if file.tell() >= max_metadata_size:
-    #                 raise ValueError("Metadata file size exceeded limit of 10 MB.")
-
-    #             try:
-    #                 metadata = json.loads(file)
-    #             except pickle.UnpicklingError as error:
-    #                 raise ValueError(
-    #                     f"Error unpickling the model file: {error}"
-    #                 ) from error
-
-    #         return model, metadata
-
-    #     except IOError as error:
-    #         raise IOError(
-    #             f"IO error occurred while loading model or metadata: {error}"
-    #         ) from error
-    #     except RuntimeError as error:
-    #         raise RuntimeError(
-    #             f"Unexpected error occurred while loading model and metadata: {error}"
-    #         ) from error
-
     def _calculate_building_age(self, build_year_series: pd.Series) -> pd.Series:
         """
         Convert a series of building years to building ages.
