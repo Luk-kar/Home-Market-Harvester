@@ -80,8 +80,8 @@ english = {
         "summary_total_calculations": {
             "main_title": "📋 Total Summary",
             "column_names": {
-                "your_price_total": "avg your price",
-                "price_total_per_model": "avg price percentile",
+                "your_price_total": "your price total",
+                "price_total_per_model": "price total per model",
                 "percentile_based_suggested_price_total": "percentile based suggested price total",
             },
         },

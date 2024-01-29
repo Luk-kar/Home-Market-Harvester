@@ -229,7 +229,7 @@ class TableVisualizer:
     def _translate_periods_values(
         self,
         series: pd.Series,
-    ):  # TODO move it one level higher to table_visualizer.py
+    ):
         """
         Translate time periods values to the selected language.
 

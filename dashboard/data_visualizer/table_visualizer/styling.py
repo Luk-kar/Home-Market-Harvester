@@ -129,17 +129,21 @@ def add_styling_to_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     round_float_columns(df, plus_minus_columns)
     apply_plus_minus_formatting(df, plus_minus_columns)
 
-    # TODO
     percent_columns = [
-        "price per meter by percentile",
-        "avg price per meter by percentile",
+        table_columns["apartments"]["column_names"]["price_per_meter_by_percentile"],
+        table_columns["market_positioning"]["column_names"][
+            "avg_price_per_meter_by_percentile"
+        ],
     ]
     append_percent_sign(df, percent_columns)
 
-    # TODO
     color_difference_columns = [
-        "avg price percentile",
-        "percentile based suggested price total",
+        table_columns["summary_total_calculations"]["column_names"][
+            "price_total_per_model"
+        ],
+        table_columns["summary_total_calculations"]["column_names"][
+            "percentile_based_suggested_price_total"
+        ],
     ]
 
     apply_color_based_on_difference(df, color_difference_columns)
@@ -201,7 +205,14 @@ def apply_color_based_on_difference(df: pd.DataFrame, columns: list[str]) -> Non
     for col in columns:
         if col in df.columns:
             df[col] = df.apply(
-                lambda row, c=col: color_format(row[c], row["avg your price"]),
+                lambda row, c=col: color_format(
+                    row[c],
+                    row[
+                        Translation()["table"]["summary_total_calculations"][
+                            "column_names"
+                        ]["your_price_total"]
+                    ],
+                ),
                 axis=1,
             )
 
