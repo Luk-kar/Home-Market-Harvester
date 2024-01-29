@@ -47,6 +47,7 @@ class BarChartVisualizer:
             market_apartments_df
         )
         self.bar_chart_title = bar_chart_title
+        self.texts = Translation()["bar_chart"]
 
         """
         Initializes the bar chart visualizer with necessary data.
@@ -66,17 +67,17 @@ class BarChartVisualizer:
 
         price_per_meter_col, price_per_offer_col = st.columns(2)
 
-        categories = Translation()["char_chart"]["y_axis_offers"].values()
+        categories = self.texts["y_axis_offers"].values()
 
         xlabel = self._generate_x_label(categories)
-        ylabel = Translation()["char_chart"]["x_axis_price"]
+        ylabel = self.texts["x_axis_price"]
 
         with price_per_meter_col:
             per_meter_data = self._calculate_median_data(offers, "price_per_meter")
             st.pyplot(
                 self._plot_bar_chart(
                     per_meter_data,
-                    Translation()["char_chart"]["charts_titles"]["price_per_meter"],
+                    self.texts["charts_titles"]["price_per_meter"],
                     xlabel,
                     ylabel,
                 )
@@ -87,7 +88,7 @@ class BarChartVisualizer:
             st.pyplot(
                 self._plot_bar_chart(
                     per_offer_data,
-                    Translation()["char_chart"]["charts_titles"]["price_per_offer"],
+                    self.texts["charts_titles"]["price_per_offer"],
                     xlabel,
                     ylabel,
                 )
@@ -438,12 +439,8 @@ class BarChartVisualizer:
                     "Neither 'unfurnished' nor 'furnished' substrings were found for replacement."
                 )
 
-        unfurnished_translation = Translation()["char_chart"]["column_names"][
-            "with_no_furniture"
-        ]
-        furnished_translation = Translation()["char_chart"]["column_names"][
-            "with_furniture"
-        ]
+        unfurnished_translation = self.texts["column_names"]["with_no_furniture"]
+        furnished_translation = self.texts["column_names"]["with_furniture"]
 
         df["Category"] = df["Category"].str.replace(
             "unfurnished", unfurnished_translation, regex=False

@@ -6,7 +6,7 @@ titles, chart labels, column names, and tooltips.
 
 polish = {
     "app_title": "🔍🏠 Porównanie Wynajmu",
-    "char_chart": {
+    "bar_chart": {
         "main_title": "⚖️ Średnia Cena",
         "charts_titles": {
             "price_per_meter": "Cena za metr",

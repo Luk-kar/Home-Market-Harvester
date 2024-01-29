@@ -6,7 +6,7 @@ titles, chart labels, column names, and tooltips.
 
 english = {
     "app_title": "🔍🏠 Rent comparisons",
-    "char_chart": {
+    "bar_chart": {
         "main_title": "⚖️ Median Price",
         "charts_titles": {
             "price_per_meter": "Price per meter",

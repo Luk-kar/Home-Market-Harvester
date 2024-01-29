@@ -57,7 +57,7 @@ class DataVisualizer:
             self.display_settings,
             self.user_apartments_df,
             self.market_apartments_df,
-            Translation()["char_chart"]["main_title"],
+            Translation()["bar_chart"]["main_title"],
         )
         bar_chart_visualizer.display()
 
