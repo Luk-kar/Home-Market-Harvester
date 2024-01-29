@@ -62,6 +62,8 @@ class DataVisualizer:
         )
         bar_chart_visualizer.display()
 
+        st.markdown("---")
+
         table_visualizer = TableVisualizer(
             self.display_settings,
             (
@@ -70,6 +72,8 @@ class DataVisualizer:
             ),
         )
         table_visualizer.display(self.user_apartments_df, self.market_apartments_df)
+
+        st.markdown("---")
 
         map_visualizer = MapVisualizer(self.display_settings)
         map_visualizer.display(
