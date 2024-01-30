@@ -20,7 +20,6 @@ import streamlit as st
 
 # Local imports
 from notebooks._csv_utils import (
-    data_timeplace,
     DataPathCleaningManager,
 )  # pylint: disable=wrong-import-position
 
@@ -32,12 +31,16 @@ class DataLoader:
     It manages the paths for data files, loads data from CSV files, and preprocesses
     the data by converting data types and creating additional data fields.
 
+    Args:
+        data_timeplace (str): The time and place of the data. For example:
+                              '2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie'.
+
     Attributes:
         data_path_manager (DataPathCleaningManager): A manager that handles the paths to data files
                                                      and provides utilities for cleaning data paths.
     """
 
-    def __init__(self):
+    def __init__(self, data_timeplace):
         data_path_manager = DataPathCleaningManager(data_timeplace)
         self._update_paths(data_path_manager.paths, "..\\data", "data")
         self.data_path_manager = data_path_manager

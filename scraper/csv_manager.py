@@ -1,5 +1,3 @@
-# csv, _csv are built-in modules
-
 # Standard imports
 import csv
 import os

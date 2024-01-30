@@ -25,9 +25,13 @@ add_project_root_to_sys_path()
 
 # For the first runtime you need a relative import else error import
 # Local imports
+from config import DATA
 from data_visualizer._config import config as display_settings
 from data_visualizer.data_visualizer import DataVisualizer
 from load_data import DataLoader
+from notebooks._csv_utils import (
+    data_timeplace,
+)  # pylint: disable=wrong-import-position
 
 
 def streamlit_app():
@@ -70,9 +74,9 @@ def load_data():
         IOError: If an I/O error occurs while reading the file.
         Exception: For any other unspecified errors that occur during data processing.
     """
-    data_processor = DataLoader()
+    data_processor = DataLoader(data_timeplace)
 
-    your_offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
+    your_offers_path = DATA["user_data_path"]
 
     if not _check_if_file_exists(your_offers_path):
         return None, None, None
