@@ -47,40 +47,36 @@ def streamlit_app():
 
 def load_data():
     """
-    Loads data from a CSV file specified
-    by the 'YOUR_OFFERS_PATH' environment variable, converts data types,
-    and creates additional data fields.
-    If the environment variable is not set,
-    it defaults to 'data\\test\\your_offers.csv'.
+    Loads data from a CSV file specified by the `config.py`.
+    The function converts data types and
+    creates additional data fields as part of the data processing.
 
-    First, it checks if the specified file exists.
-    If it does not exist, it returns a tuple of None values.
-    If the file exists, it proceeds to load the data,
-    process it, and return the processed data in a tuple.
+    The function performs several steps:
+    1. It checks if the specified file exists. If not, it raises a FileNotFoundError.
+    2. If the file exists, it initializes a DataLoader with the market data datetime and path to the user offers.
+    3. It then loads, processes, and returns the data in three separate DataFrames:
+       one each for user offers, market offers, and map offers.
 
     Returns:
-        tuple: A tuple containing DataFrames
-               for your offers, market offers, and map offers.
+        tuple of pd.DataFrame: A tuple containing three pandas DataFrames:
+            - The user offers.
+            - The market offers.
+            - The map offers.
 
     Raises:
-        pd.errors.EmptyDataError: If the CSV file is empty.
-        pd.errors.ParserError: If there is an error parsing the CSV file.
-        FileNotFoundError: If the specified file does not exist.
-        IOError: If an I/O error occurs while reading the file.
+        FileNotFoundError: If the specified user offers file does not exist.
         Exception: For any other unspecified errors that occur during data processing.
     """
-    data_processor = DataLoader(DATA["market_data_datetime"])
+    user_offers_path = DATA["user_data_path"]
 
-    your_offers_path = DATA["user_data_path"]
-
-    if not _check_if_file_exists(your_offers_path):
+    if not _check_if_file_exists(user_offers_path):
         raise FileNotFoundError(
-            f"The specified file does not exist.\n{your_offers_path}"
+            f"The specified file does not exist.\n{user_offers_path}"
         )
 
-    user_apartments_df, market_apartments_df, map_offers_df = data_processor.load_data(
-        your_offers_path=your_offers_path
-    )
+    data_loader = DataLoader(DATA["market_data_datetime"], user_offers_path)
+
+    user_apartments_df, market_apartments_df, map_offers_df = data_loader.load_data()
 
     return user_apartments_df, market_apartments_df, map_offers_df
 

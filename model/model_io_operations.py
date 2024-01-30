@@ -24,11 +24,11 @@ class ModelManager:
     """
     A class that manages the model and its metadata.
 
-    Attributes:
+    Args:
         model_path (str): The path to the model file.
-        model (BaseEstimator, optional): The machine learning model.
-        model_metadata_path (str): The path to the model metadata file.
-        training_data (pd.DataFrame, optional): The training data used for the model.
+        model (BaseEstimator, optional): The machine learning model to be saved.
+                                            If None, the class's model attribute is used.
+        training_data (pd.DataFrame, optional): The DataFrame whose metadata is to be saved.
     """
 
     def __init__(

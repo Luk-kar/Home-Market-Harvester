@@ -16,10 +16,8 @@ class DataPathCleaningManager:
     This class is responsible for constructing paths for storing and accessing
     cleaned and raw data files, based on a specific time and place identifier.
 
-    Attributes:
-        cleaned_path (str): Path to the directory for cleaned data files.
-        raw_path (str): Path to the directory for raw data files.
-        paths (dict): Dictionary containing structured paths for data files.
+    Args:
+        data_timeplace (str): A string identifier combining time and location.
     """
 
     def __init__(self, data_timeplace: str):

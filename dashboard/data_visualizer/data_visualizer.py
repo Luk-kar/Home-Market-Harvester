@@ -22,11 +22,11 @@ class DataVisualizer:
     """
     A class responsible for rendering data in the Streamlit application.
 
-    Attributes:
-        user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
-        market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
-        map_offers_df (pd.DataFrame): A DataFrame containing offers for the map.
-        display_settings: Configuration for the display settings of the visualizations.
+    Args:
+        user_apartments_df (pd.DataFrame): The user apartment data.
+        market_apartments_df (pd.DataFrame): The market apartment data.
+        map_offers_df (pd.DataFrame): The map offers data.
+        display_settings (dict): The display settings for the dashboard.
         dashboard_title (str): The title of the dashboard.
     """
 

@@ -25,12 +25,11 @@ class BarChartVisualizer:
     """
     BarChartVisualizer is responsible for creating and displaying bar chart visualizations.
 
-    Attributes:
+    Args:
         display_settings (Dict[str, Any]): A dictionary containing display settings.
-        user_apartments_df (pd.DataFrame): A DataFrame containing user apartment offers data.
-        market_apartments_df (pd.DataFrame): A DataFrame containing market apartment offers data.
-        similar_apartments_df (pd.DataFrame): A DataFrame containing similar apartment offers data.
-        bar_chart_title (str): A title for the bar chart.
+        user_apartments_df (pd.DataFrame): A DataFrame containing user offers data.
+        market_apartments_df (pd.DataFrame): A DataFrame containing market offers data.
+        bar_chart_title (str): The title of the bar chart.
     """
 
     def __init__(

@@ -32,38 +32,38 @@ class DataLoader:
     the data by converting data types and creating additional data fields.
 
     Args:
-        data_timeplace (str): The time and place of the data. For example:
-                              '2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie'.
+        data_timeplace (str): The timestamp of the market offers data.
+        user_offers_path (str): The path to the CSV file containing your offers.
 
     Attributes:
-        data_path_manager (DataPathCleaningManager): A manager that handles the paths to data files
-                                                     and provides utilities for cleaning data paths.
+        data_path_manager (DataPathCleaningManager): The data path manager.
+        user_offers_path (str): The path to the CSV file containing your offers.
     """
 
-    def __init__(self, data_timeplace):
+    def __init__(self, data_timeplace: str, user_offers_path: str):
         data_path_manager = DataPathCleaningManager(data_timeplace)
+        self.user_offers_path = user_offers_path
         self._update_paths(data_path_manager.paths, "..\\data", "data")
         self.data_path_manager = data_path_manager
 
-    def load_data(self, your_offers_path: str):
+    def load_data(self):
         """
         Loads data from the given CSV file path, converts data types,
         and creates additional data fields.
 
-        Args:
-            your_offers_path (str): The file path to your offers CSV file.
-
         Returns:
-            tuple: A tuple containing DataFrames for your offers, other offers, and map offers,
-                or a tuple of None if an error occurs.
+            tuple of pd.DataFrame: A tuple containing three pandas DataFrames:
+                                   one each for user offers, market offers, and map offers.
 
         Raises:
-            pd.errors.EmptyDataError: If the CSV file is empty.
-            pd.errors.ParserError: If there is an error parsing the CSV file.
-            Exception: If an unspecified error occurs.
+            pd.errors.EmptyDataError: Raised if the CSV file is empty.
+            pd.errors.ParserError: Raised if there is an error parsing the CSV file.
+            FileNotFoundError: Raised if the specified user offers file does not exist.
+            IOError: Raised if an I/O error occurs while reading the file.
+            Exception: Raised for any other unspecified errors that occur during data processing.
         """
         try:
-            user_apartments_df = pd.read_csv(your_offers_path)
+            user_apartments_df = pd.read_csv(self.user_offers_path)
 
             self._convert_data_types(user_apartments_df)
 
@@ -78,20 +78,19 @@ class DataLoader:
             return user_apartments_df, market_apartments_df, map_offers_df
 
         except pd.errors.EmptyDataError:
-            st.error(f"The file is empty: {your_offers_path}")
+            st.error(f"The file is empty: {self.user_offers_path}")
         except pd.errors.ParserError:
             st.error(
-                f"There was a parsing error when trying to read the file: {your_offers_path}"
+                f"There was a parsing error when trying to read the file: {self.user_offers_path}"
             )
         except FileNotFoundError:
-            st.error(f"The file was not found: {your_offers_path}")
+            st.error(f"The file was not found: {self.user_offers_path}")
         except IOError:
             st.error(
-                f"An I/O error occurred when trying to read the file: {your_offers_path}"
+                f"An I/O error occurred when trying to read the file: {self.user_offers_path}"
             )
 
-        # Return a tuple of None values if an exception occurs
-        return None, None, None
+        raise Exception("An unspecified error occurred.")
 
     def _update_paths(self, _dict: dict, old_str: str, new_str: str) -> None:
         """

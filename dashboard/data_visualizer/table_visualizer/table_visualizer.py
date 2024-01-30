@@ -44,8 +44,8 @@ class TableVisualizer:
     """
     A class responsible for rendering data in the Streamlit application.
 
-    Attributes:
-        display_settings: Configuration for the display settings of the visualizations.
+    Args:
+        display_settings (dict): The display settings for the dashboard.
         table_title (str): The title of the table.
 
     Methods:

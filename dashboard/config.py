@@ -1,3 +1,8 @@
+"""
+module is designed to configure and manage data and model paths for a data processing application. 
+It utilizes environment variables to dynamically set paths for user data, market data, and model files, 
+providing flexibility and customizability for different runtime environments.
+"""
 # Standard imports
 from os import getenv
 from pathlib import Path

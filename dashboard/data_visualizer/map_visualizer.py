@@ -16,8 +16,8 @@ class MapVisualizer:
     """
     A class used to display map visualizations using Plotly and Scattermapbox.
 
-    Attributes:
-        display_settings: Configuration for the display settings of the visualizations.
+    Args:
+        display_settings (dict): The display settings for the dashboard.
 
     Methods:
         display: Display a map visualization using Plotly and Scattermapbox.
