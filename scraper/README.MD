@@ -28,6 +28,7 @@ python scraper
 ```
 
 The output is saved in the `data\raw\{timestamp}_{place}\{site_1}.csv, {site_2}.csv, ...`
+For example: `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie\olx.pl.csv`
 
 ## 🪓 Configuration
 

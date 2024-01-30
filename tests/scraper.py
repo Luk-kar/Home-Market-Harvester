@@ -13,8 +13,9 @@ import datetime
 from typing import Set
 
 # Third-party imports
-import enlighten
+from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
+import enlighten
 
 # Local imports
 from scraper._utils.selenium_utils import humans_delay
@@ -73,6 +74,7 @@ class TestScraper(unittest.TestCase):
 
             scrape_offers(self.driver, search_criteria)
         except Exception as error:
+            self._dump_html("end_to_end_failure.html")
             self.fail(f"Scrape offers failed with {error}")
 
         self._verify_scraping_results()
@@ -83,6 +85,7 @@ class TestScraper(unittest.TestCase):
         try:
             self._setup_and_scrape_offers("high_volume", "olx")
         except Exception as error:
+            self._dump_html("olx_scrape_failure.html")
             self.fail(f"Scrape offers failed with {error}")
 
         self._verify_scraping_results()
@@ -93,6 +96,7 @@ class TestScraper(unittest.TestCase):
         try:
             self._setup_and_scrape_offers("high_volume", "otodom")
         except Exception as erorr:
+            self._dump_html("otodom_scrape_failure.html")
             self.fail(f"Scrape offers failed with {erorr}")
 
         self._verify_scraping_results()
@@ -181,6 +185,13 @@ class TestScraper(unittest.TestCase):
             expected_rows,
             f"Expected {expected_rows} data rows in {new_file}, found {counted_rows}.",
         )
+
+    def _dump_html(self, filename: str) -> None:
+        """Dumps the current HTML of the page to a file."""
+        html_content = self.driver.page_source
+        pretty_html = BeautifulSoup(html_content, "html.parser").prettify()
+        with open(filename, "w", encoding="utf-8") as file:
+            file.write(pretty_html)
 
 
 if __name__ == "__main__":
