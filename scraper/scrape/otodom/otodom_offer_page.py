@@ -1,3 +1,17 @@
+"""
+This module contains functions for managing 
+and processing real estate offers from the Otodom website 
+in a web scraping context. 
+It includes functionality to open individual offer pages in new browser windows, 
+extract relevant data using the Selenium WebDriver, 
+save the extracted data to CSV files, 
+and handle any exceptions that occur during the process. 
+The module integrates counter tracking to monitor scraping progress 
+and manages the switching between browser windows 
+to ensure seamless data collection from multiple offers.
+"""
+
+
 # Standard imports
 import logging
 

@@ -1,3 +1,8 @@
+"""
+This module orchestrates the scraping process for real estate offers,
+ managing web driver setup, data scraping, and file storage.
+"""
+
 # Standard imports
 import datetime
 import os

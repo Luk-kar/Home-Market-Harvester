@@ -1,3 +1,15 @@
+"""
+This module provides functionality for processing real estate offers 
+from OLX and Otodom websites. 
+It includes functions to handle individual offer processing for each site, 
+utilizing Selenium WebDriver for web interactions. 
+The module is responsible for extracting offer data, saving it in CSV format, 
+and managing the progress of the scraping task. 
+It employs robust error handling and logging mechanisms 
+to deal with and report any issues 
+encountered during the offer processing stage.
+"""
+
 # Standard imports
 import logging
 

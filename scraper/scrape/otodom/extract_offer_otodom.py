@@ -1,3 +1,14 @@
+"""
+This module is responsible for extracting detailed information from real estate offer pages. 
+It utilizes Selenium WebDriver for webpage navigation 
+and BeautifulSoup for HTML content parsing. 
+The module defines functions to process an offer page, 
+extract key information using specific field selectors, 
+and compile this information into a structured dictionary. 
+It also includes robust error handling and logging and 
+data extraction from offer pages.
+"""
+
 # Standard imports
 from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -14,11 +25,13 @@ def scrape_offer_page(driver: WebDriver) -> dict[str, str]:
     Process an offer page and extract relevant information using the provided WebDriver.
 
     Args:
-        driver (WebDriver): The WebDriver instance used to navigate and interact with the offer page.
+        driver (WebDriver): The WebDriver instance used to navigate
+            and interact with the offer page.
 
     Returns:
         dict[str, str]: A dictionary containing the extracted information from the offer page.
-            The keys represent the information categories, and the values represent the page selectors.
+            The keys represent the information categories,
+            and the values represent the page selectors.
     """
 
     field_selectors = {

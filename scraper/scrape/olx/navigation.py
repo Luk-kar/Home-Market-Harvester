@@ -60,6 +60,6 @@ def click_next_page(driver: WebDriver, selector: str):
 
         next_page_button.click()
 
-    except Exception as e:
+    except Exception:
         javascript_click = "arguments[0].click();"
         driver.execute_script(javascript_click, next_page_button)

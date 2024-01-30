@@ -2,9 +2,9 @@
 disable=
     ; C0103,
     R0903,
-    R1705,
+    ; R1705,
     C0121,
-    ; E0401,
+    E0401,
     R0913,
     ; C0301
 # C0103: Invalid name <- False flags for the const naming convention, short popular naming conventions in plotlib are not supported.

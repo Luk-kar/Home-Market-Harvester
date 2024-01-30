@@ -1,3 +1,9 @@
+"""
+This module provides utility functions for path and URL formatting in the context of web scraping. 
+It includes a function to sanitize file system paths by normalizing them to a standard format, 
+and another function to transform location strings into a URL-friendly format.
+"""
+
 # Standard imports
 import os
 import urllib.parse
@@ -14,9 +20,6 @@ def sanitize_path(path: str) -> str:
         str: The sanitized path.
     """
     return os.path.normpath(path)
-
-
-import urllib.parse
 
 
 def transform_location_to_url_format(location: str) -> str:

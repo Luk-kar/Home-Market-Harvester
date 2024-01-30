@@ -1,3 +1,14 @@
+"""
+This module provides functions for scraping and extracting 
+detailed information from real estate offer pages. 
+It utilizes Selenium WebDriver for webpage navigation 
+and BeautifulSoup for parsing HTML content. 
+The main functionality includes processing individual offer pages 
+to extract key details such as descriptions, prices, and listing specifics. 
+Additionally, the module implements error handling and logging to manage 
+exceptions that may occur during the scraping process.
+"""
+
 # Standard imports
 from typing import Optional
 import logging

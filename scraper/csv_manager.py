@@ -1,5 +1,6 @@
 """
-This module provides utilities for sanitizing strings for file paths and saving data records to CSV files. 
+This module provides utilities for sanitizing strings 
+for file paths and saving data records to CSV files. 
 """
 
 # Standard imports

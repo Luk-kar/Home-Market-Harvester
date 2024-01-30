@@ -1,3 +1,16 @@
+"""
+This module provides functionality for orchestrating the scraping process of real estate offers 
+from a single page on the Otodom website. 
+It includes routines for processing each offer on the page, 
+navigating through pagination, setting the maximum number of offers per page, 
+and handling offer details. 
+The module utilizes Selenium WebDriver for web page interactions 
+and BeautifulSoup for parsing HTML content. 
+Functions are included to manage page elements, 
+such as checking for the existence of offers, 
+clicking through pages, and ensuring the page's content has loaded.
+"""
+
 # Standard imports
 from typing import Any
 
@@ -44,7 +57,6 @@ def page_offers_orchestrator(
         "offers_per_page_dropdown": "react-select-entriesPerPage-input",
         "offers_per_page_list": "react-select-entriesPerPage-listbox",
         "highest_per_page_option": ".react-select__menu-list > .react-select__option:last-child",
-        "next_page": '[data-cy="pagination.next-page"]',
     }
 
     offers_cap: int = search_criteria["scraped_offers_cap"]

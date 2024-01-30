@@ -1,3 +1,18 @@
+"""
+This module is dedicated to the processing of real estate offers from the OLX domain. 
+It includes functions for 
+navigating OLX's website, extracting offer URLs, normalizing these URLs, 
+and handling offer processing. 
+The module utilizes Selenium WebDriver for browser interactions 
+and BeautifulSoup for parsing HTML content. 
+Key functionalities include accepting cookies, 
+navigating through listings and pagination, 
+and saving offer details to CSV files.
+Additionally, the module integrates counter tracking for scraping progress 
+and implements measures to mimic human-like browsing behavior.
+"""
+
+
 # Third-party imports
 from bs4 import BeautifulSoup
 from enlighten import Counter

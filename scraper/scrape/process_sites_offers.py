@@ -1,3 +1,14 @@
+"""
+This module contains the core functionality 
+for scraping real estate offers from multiple domains 
+using Selenium WebDriver. 
+It supports dynamic search criteria and manages the scraping process 
+across different websites (such as OLX and Otodom), 
+handling URL navigation, data extraction, and error handling. 
+The module uses Enlighten for progress tracking and handles exceptions 
+to ensure robust scraping even in case of connection issues 
+or other unexpected errors.
+"""
 # Standard imports
 import logging
 import datetime
@@ -23,7 +34,8 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
 
     Args:
         driver (WebDriver): The web driver used to navigate the websites.
-        search_criteria (dict): The search criteria containing location query and scraped offers cap.
+        search_criteria (dict): The search criteria containing location query and
+        scraped offers cap.
 
     Raises:
         RequestException: If an unrecognized URL is encountered.
@@ -57,12 +69,12 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
             humans_delay()
             try:
                 driver.get(url)
-            except WebDriverException as e:
+            except WebDriverException as error:
                 # Attempt to refresh the page or handle the error as needed
                 if LOGGING["debug"]:
-                    raise e
+                    raise error
 
-                logging.error("Connection issue encountered: %s", e)
+                logging.error("Connection issue encountered: %s", error)
                 driver.refresh()
 
             if DOMAINS["olx"]["domain"] in url:
@@ -73,12 +85,11 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
                 process_domain_offers_otodom(
                     driver, search_criteria, timestamp, progress, scraped_urls
                 )
-                pass
             else:
                 raise RequestException(f"Unrecognized URL: {url}")
 
-    except Exception as e:
+    except Exception as error:
         if LOGGING["debug"]:
-            raise e
+            raise error
 
-        logging.error("Error occurred: %s", e)
+        logging.error("Error occurred: %s", error)

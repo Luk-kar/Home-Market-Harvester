@@ -1,3 +1,13 @@
+"""
+This module provides utility functions to assist 
+in the scraping of real estate offers from web pages. 
+It includes functions to check 
+the existence of offers, extract offer URLs, normalize these URLs, 
+and determine the presence of pagination on a web page.
+The module leverages the Selenium WebDriver 
+for webpage interaction and navigation.
+"""
+
 # Standard imports
 import logging
 

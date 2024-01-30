@@ -1,3 +1,15 @@
+"""
+This module manages the scraping of real estate offers from the Otodom website. 
+It includes functionality to filter offers based on user-defined search criteria, 
+handle cookie acceptance, and navigate the Otodom interface. 
+The module uses Selenium WebDriver for webpage interaction, 
+automating tasks like selecting transaction types, 
+setting search radius, entering location queries, 
+and advancing through offer listings. 
+Functions are designed to streamline the process of setting up a scraping session and 
+ensure that relevant offers are captured and processed.
+"""
+
 # Standard imports
 import re
 
@@ -6,8 +18,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
 from scraper._utils.selenium_utils import await_element, humans_delay
@@ -194,7 +204,7 @@ def select_distance_radius(driver: WebDriver, field_selectors: dict[str, str], k
     div_elements = distance_radius_options_element.find_elements(By.TAG_NAME, "div")
 
     # Regular expression pattern to match the IDs
-    pattern = re.compile("react-select-distanceRadius-option-\d+")
+    pattern = re.compile(r"react-select-distanceRadius-option-\d+")
 
     # Filter elements based on the pattern
     matching_elements = [

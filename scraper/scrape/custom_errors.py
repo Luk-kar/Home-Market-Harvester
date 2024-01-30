@@ -1,3 +1,6 @@
+"""Custom errors for the scraper program."""
+
+
 class OfferProcessingError(Exception):
     """Exception raised for errors in processing offer URLs."""
 
