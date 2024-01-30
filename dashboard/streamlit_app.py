@@ -61,8 +61,6 @@ def load_data():
     Returns:
         tuple: A tuple containing DataFrames
                for your offers, market offers, and map offers.
-               If the specified file does not exist or an error occurs,
-               returns a tuple of None values.
 
     Raises:
         pd.errors.EmptyDataError: If the CSV file is empty.
@@ -76,7 +74,9 @@ def load_data():
     your_offers_path = DATA["user_data_path"]
 
     if not _check_if_file_exists(your_offers_path):
-        return None, None, None
+        raise FileNotFoundError(
+            f"The specified file does not exist.\n{your_offers_path}"
+        )
 
     user_apartments_df, market_apartments_df, map_offers_df = data_processor.load_data(
         your_offers_path=your_offers_path

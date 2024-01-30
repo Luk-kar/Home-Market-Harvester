@@ -6,6 +6,7 @@ This module contains functions for statistical analysis of the data.
 import pandas as pd
 
 # Local imports
+from dashboard.config import MODEL
 from dashboard.data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
@@ -210,7 +211,7 @@ def calculate_price_by_model(
     """
     Calculate price by model.
     """
-    model_path = "model\\model.pkl"
+    model_path = MODEL["model_path"]
 
     predictor = ModelPredictor(model_path)
     price_predictions = predictor.get_price_predictions(apartments_df)
