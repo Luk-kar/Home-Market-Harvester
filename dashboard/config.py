@@ -25,7 +25,7 @@ _USER_DATA_PATH_DEFAULT = str(Path("data", "test", "your_offers.csv"))
 _MODEL_PATH_DEFAULT = str(Path("model", "model.pkl"))
 
 DATA = {
-    "user_data_path": getenv("YOUR_OFFERS_PATH", _USER_DATA_PATH_DEFAULT),
+    "user_data_path": getenv("USER_OFFERS_PATH", _USER_DATA_PATH_DEFAULT),
     "market_data_datetime": getenv("MARKET_OFFERS_TIMEPLACE", data_timeplace),
 }
 
@@ -35,7 +35,7 @@ MODEL = {
 
 # Warning messages
 if DATA["user_data_path"] == _USER_DATA_PATH_DEFAULT:
-    _warn_default_usage("YOUR_OFFERS_PATH")
+    _warn_default_usage("USER_OFFERS_PATH")
 
 if DATA["market_data_datetime"] == data_timeplace:
     _warn_default_usage("MARKET_OFFERS_TIMEPLACE")

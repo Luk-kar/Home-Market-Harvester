@@ -1,11 +1,6 @@
-flat_id,floor,area,is_furnished,price
-1,0,61.4,True,1600
-2,0,50.5,True,1800
-3,0,60.5,True,1700
-4,1,40.8,True,1600
-5,1,50.4,True,1000
-6,1,43.9,False,1300
-7,2,70.8,False,1500
-8,2,60.4,True,1700
-9,3,40.9,False,1600
-10,3,50.8,True,1400
+deal_id,flat_id,floor,number_of_rooms,area,is_furnished,price,deposit,lease_time,oven,dishwasher,washing_machine,build_year,city,building_type_block_of_flats,city_będziński,elevator,parking_space,heating_district,monitoring_or_security,windows_aluminum,air_conditioning,utility_room
+4/2021,1,0,3,60.80,True,1800,3000,NULL,False,False,True,1980,True,True,True,False,True,False,False,False,False,True
+1/2020,2,0,2,50.40,True,2000,3000,12 months,True,True,False,1960,True,True,True,True,False,False,True,False,True,False
+7/2023,3,3,3,60.80,False,3000,3000,NULL,False,False,True,1980,True,True,True,False,True,True,False,True,False,True
+5/2020,4,1,`,50.40,True,500,2400,NULL,True,True,False,1970,True,True,True,True,True,False,True,False,False,False
+1/202`,5,2,3,50.80,False,4000,3000,12 months,False,True,True,1960,True,True,True,False,True,False,True,True,True,False

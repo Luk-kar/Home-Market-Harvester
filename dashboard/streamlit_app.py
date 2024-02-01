@@ -94,7 +94,7 @@ def _check_if_file_exists(file_path: str):
     # Check if the environment variable was set
     if file_path is None:
         st.error(
-            "The environment variable 'YOUR_OFFERS_PATH' is not set. "
+            "The environment variable 'USER_OFFERS_PATH' is not set. "
             + "Please set the variable and try again."
         )
         return False

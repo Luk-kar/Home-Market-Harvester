@@ -7,10 +7,10 @@ Example Usage:
 
 model_path = "notebooks\\gbm_model_file.p"
 metadata_path = "notebooks\\gbm_model_metadata.json"
-your_offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
+user_offers_path = os.getenv("USER_OFFERS_PATH", "data\\test\\your_offers.csv")
 
 predictor = ModelPredictor(model_path, metadata_path)
-predictor.get_price_predictions(your_offers_path)
+predictor.get_price_predictions(user_offers_path)
 
 """
 
@@ -45,7 +45,7 @@ class ModelPredictor:
     --------------
 
     model_path = "data\\model.pkl"
-    offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
+    offers_path = os.getenv("USER_OFFERS_PATH", "data\\test\\your_offers.csv")
     user_apartments_df = pd.read_csv(offers_path)
 
     predictor = ModelPredictor(model_path)
@@ -91,7 +91,7 @@ class ModelPredictor:
 
         model_path = "notebooks\\lm_model_metadata.p"
         metadata_path = "notebooks\\lm_model.json"
-        offers_path = os.getenv("YOUR_OFFERS_PATH", "data\\test\\your_offers.csv")
+        offers_path = os.getenv("USER_OFFERS_PATH", "data\\test\\your_offers.csv")
         user_apartments_df = pd.read_csv(offers_path)
 
         predictor = ModelPredictor(model_path, metadata_path)

@@ -4,7 +4,7 @@ The Rent Comparison Dashboard is a Streamlit-based web application designed for 
 It provides users with insights into the real estate market,
 allowing them to evaluate and compare their own rental offers with the current market trends.
 Ultimately, the dashboard accepts arguments from environment variables:
-`YOUR_OFFERS_PATH`, `MARKET_OFFERS_TIMEPLACE`, `MODEL_PATH`
+`USER_OFFERS_PATH`, `MARKET_OFFERS_TIMEPLACE`, `MODEL_PATH`
 
 ## 🔨 Usage
 
@@ -47,7 +47,7 @@ Currently, there are no automated tests for the application.
 ## Troubleshoots
 
 - When the module `config.py` is loaded, the warnings are invoked each time, instead of just once in the runtime.
-- Ensure the `YOUR_OFFERS_PATH` environment variable is set correctly to avoid FileNotFoundError during data loading.
+- Ensure the `USER_OFFERS_PATH` environment variable is set correctly to avoid FileNotFoundError during data loading.
 
 ## 📜 License
 
