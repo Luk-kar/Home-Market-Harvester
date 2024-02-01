@@ -16,7 +16,55 @@ from scraper.logging_setup import log_setup
 from scraper.scrape.process_sites_offers import scrape_offers
 from scraper.webdriver_setup import get_driver
 
-area_radius_valid_values = [0, 5, 10, 15, 25, 50, 75]
+VALID_AREA_RADIUS = {0, 5, 10, 15, 25, 50, 75}
+
+
+def parse_arguments():
+    """Parses command line arguments for scraper settings."""
+    parser = argparse.ArgumentParser(
+        description="Run the web scraper for real estate offers."
+    )
+    parser.add_argument(
+        "location_query",
+        type=str,
+        nargs="?",
+        help="Location query for scraping. E.g. 'Warszawa'",
+    )
+    parser.add_argument(
+        "area_radius",
+        type=int,
+        choices=VALID_AREA_RADIUS,
+        nargs="?",
+        help="Radius of the area for scraping in kilometers.",
+    )
+    parser.add_argument(
+        "scraped_offers_cap",
+        type=int,
+        nargs="?",
+        help="Maximum number of offers to scrape. E.g., 1, 10, 100, 500...",
+    )
+    return parser.parse_args()
+
+
+def validate_arguments(location_query: str, area_radius: int, scraped_offers_cap: int):
+    """Validates the provided command line arguments."""
+    errors = []
+
+    if not isinstance(location_query, str):
+        errors.append("Location query must be a string.")
+
+    if area_radius not in VALID_AREA_RADIUS:
+        errors.append(f"Area radius must be one of {sorted(VALID_AREA_RADIUS)}.")
+
+    if not isinstance(scraped_offers_cap, int):
+        errors.append("Scraped offers cap must be a positive integer.")
+    elif scraped_offers_cap <= 0:
+        errors.append("Scraped offers cap must be a positive integer.")
+
+    if errors:
+        for error in errors:
+            print(f"Error: {error}")
+        sys.exit(1)
 
 
 def main(
@@ -33,48 +81,16 @@ def main(
         scraped_offers_cap (int, optional): The maximum number of offers to scrape. Defaults to None.
     """
 
+    validate_arguments(location_query, area_radius, scraped_offers_cap)
     log_setup()
     driver = get_driver()
 
-    if any(
-        arg is not None for arg in [location_query, area_radius, scraped_offers_cap]
-    ):
-        if not all(
-            arg is not None for arg in [location_query, area_radius, scraped_offers_cap]
-        ):
-            print(
-                "Error: If one argument is provided, all must be provided."
-                "Needed arguments: location_query, area_radius, scraped_offers_cap"
-                + "Provided arguments: "
-                + f"{location_query}, {area_radius}, {scraped_offers_cap}"
-            )
-            sys.exit(1)
+    search_criteria = {
+        "location_query": location_query,
+        "area_radius": area_radius,
+        "scraped_offers_cap": scraped_offers_cap,
+    }
 
-        if (
-            not isinstance(area_radius, (int))
-            or area_radius not in area_radius_valid_values
-        ):
-            print(
-                "Error: Area radius must be a natural number like:"
-                + f"\n{area_radius_valid_values}"
-            )
-            sys.exit(1)
-
-        if not isinstance(scraped_offers_cap, int) or scraped_offers_cap <= 0:
-            print("Error: Scraped offers cap must be a positive integer.")
-            sys.exit(1)
-
-        search_criteria = {
-            "location_query": location_query,
-            "area_radius": area_radius,
-            "scraped_offers_cap": scraped_offers_cap,
-        }
-    else:
-        search_criteria = {
-            "location_query": SCRAPER["location_query"],
-            "area_radius": SCRAPER["area_radius"],
-            "scraped_offers_cap": SCRAPER["scraped_offers_cap"],
-        }
     print(f"Start scraping at: {print_current_time()}\n")
 
     existing_folders = set(os.listdir(DATA["folder_scraped_data"]))
@@ -120,27 +136,5 @@ def print_current_time():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run the web scraper for real estate offers."
-    )
-    parser.add_argument(
-        "location_query",
-        type=str,
-        nargs="?",
-        help="Location query for scraping. E.g. 'Warszawa'",
-    )
-    parser.add_argument(
-        "area_radius",
-        nargs="?",
-        type=int,
-        help=f"Radius of the area for scraping in kilometers like:\n{area_radius_valid_values}",
-    )
-    parser.add_argument(
-        "scraped_offers_cap",
-        nargs="?",
-        type=int,
-        help="Maximum number of offers to scrape like: 1, 10, 100, 500...",
-    )
-
-    args = parser.parse_args()
+    args = parse_arguments()
     main(args.location_query, args.area_radius, args.scraped_offers_cap)
