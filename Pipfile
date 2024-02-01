@@ -17,6 +17,9 @@ matplotlib = "*"
 geopy = "*"
 haversine = "*"
 streamlit = "*"
+numpy = "*"
+plotly = "*"
+scikit-learn = "*"
 
 [dev-packages]
 pylint = "*"
