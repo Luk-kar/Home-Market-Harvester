@@ -54,6 +54,7 @@ For example: `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie\o
 
 ## 🪓 Configuration
 
+When arguments in the CLI are not provided the missing values are replaced by the config values.
 Simply modify the config file: `scraper\config.py`.
 More important arguments are:
 
