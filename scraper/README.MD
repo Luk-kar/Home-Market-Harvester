@@ -11,7 +11,7 @@ for scraping a small volume of data for personal use or small to mid-organizatio
 
 It is advised to use a VPN during running the script.
 
-The script was tested on the Chrome 119
+The script was tested on the Chrome 119 Windows 10
 
 - [download links](https://stackoverflow.com/a/77614979/12490791)
 
