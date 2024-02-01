@@ -103,7 +103,8 @@ def calculate_percentile_based_suggested_price(
     apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame, percentile: int
 ) -> pd.Series:
     """
-    Calculate the suggested price based on percentile for each apartment.
+    Calculate suggested prices for apartments based on a specified percentile of market prices.
+    It returns the rounded price differences for each apartment in the input DataFrame.
 
     Args:
         apartments_df (pd.DataFrame): A DataFrame containing offers data.
@@ -133,7 +134,9 @@ def calculate_percentile_based_suggested_price(
             )
 
         total_price_difference = sq_meter_price * row["area"] - row["your_price"]
-        return total_price_difference
+
+        rounded_price = round_to_nearest_fifty(total_price_difference)
+        return rounded_price
 
     return apartments_df.apply(calculate_price, axis=1)
 
