@@ -5,12 +5,14 @@ of the scraper in a live web environment.
 """
 
 # Standard imports
+from typing import Set
+from unittest.mock import patch
 import csv
+import datetime
 import os
 import shutil
+import sys
 import unittest
-import datetime
-from typing import Set
 
 # Third-party imports
 from bs4 import BeautifulSoup
@@ -67,12 +69,16 @@ class TestScraper(unittest.TestCase):
         self.driver.quit()
 
     def test_end_to_end(self) -> None:
-        """Tests the end-to-end scraping functionality."""
-        try:
-            search_criteria = self.search_criteria.copy()
-            search_criteria["location_query"] = self.location_query["low_volume"]
+        """Tests the end-to-end scraping functionality"""
+        location_query = self.location_query["low_volume"]
+        area_radius = 25
+        scraped_offers_cap = 4
 
-            scrape_offers(self.driver, search_criteria)
+        try:
+            # Directly calling the main function with arguments
+            from scraper.__main__ import main
+
+            main(location_query, area_radius, scraped_offers_cap)
         except Exception as error:
             self._dump_html("end_to_end_failure.html")
             self.fail(f"Scrape offers failed with {error}")
