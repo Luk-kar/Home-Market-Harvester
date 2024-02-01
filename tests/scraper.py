@@ -190,7 +190,11 @@ class TestScraper(unittest.TestCase):
         """Dumps the current HTML of the page to a file."""
         html_content = self.driver.page_source
         pretty_html = BeautifulSoup(html_content, "html.parser").prettify()
-        with open(filename, "w", encoding="utf-8") as file:
+        log_folder = "logs"
+        if not os.path.exists(log_folder):
+            os.mkdir(log_folder)
+        filepath = os.path.join(log_folder, filename)
+        with open(filepath, "w", encoding="utf-8") as file:
             file.write(pretty_html)
 
 

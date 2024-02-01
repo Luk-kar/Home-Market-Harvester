@@ -11,7 +11,7 @@ import os
 import sys
 
 # Local imports
-from scraper.config import DATA, SCRAPER
+from scraper.config import DATA
 from scraper.logging_setup import log_setup
 from scraper.scrape.process_sites_offers import scrape_offers
 from scraper.webdriver_setup import get_driver

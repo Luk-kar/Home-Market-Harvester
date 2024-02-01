@@ -59,6 +59,7 @@ def get_driver():
         # https://stackoverflow.com/questions/76932496/webdrivermanager-setup-failing-to-download-chromedriver-116
         service = ChromeService(ChromeDriverManager().install())
     elif WEBDRIVER["path"]:
+        # https://stackoverflow.com/questions/77614587/where-can-i-find-chromedriver-119
         # The drivers: https://stackoverflow.com/a/76939681/12490791
         service = ChromeService(WEBDRIVER["path"])
     else:

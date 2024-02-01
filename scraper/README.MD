@@ -11,6 +11,10 @@ for scraping a small volume of data for personal use or small to mid-organizatio
 
 It is advised to use a VPN during running the script.
 
+The script was tested on the Chrome 119
+
+- [download links](https://stackoverflow.com/a/77614979/12490791)
+
 ## 🔨 Usage
 
 Run and install virtual environment:
@@ -21,11 +25,29 @@ pipenv install
 pipenv shell
 ```
 
-Run the scraper
+Run the scraper to test out
 
 ```
 python scraper
 ```
+
+Run the scraper using the command line interface:
+
+```
+python -m scraper [location_query] [area_radius] [scraped_offers_cap]
+```
+
+- location_query: Location query for scraping. E.g., `'Warszawa'`.
+- area_radius: Radius of the area for scraping in kilometers. Valid options are `0, 5, 10, 15, 25, 50, 75`.
+- scraped_offers_cap: Maximum number of offers to scrape. E.g., `1, 10, 100, 500...`
+
+Example
+
+```
+python -m scraper "Warszawa" 25 10
+```
+
+This command will scrape up to `10 offers` from a `25 km radius` around `Warsaw`.
 
 The output is saved in the `data\raw\{timestamp}_{place}\{site_1}.csv, {site_2}.csv, ...`
 For example: `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie\olx.pl.csv`
