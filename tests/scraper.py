@@ -20,13 +20,19 @@ from selenium.webdriver.remote.webdriver import WebDriver
 import enlighten
 
 # Local imports
-from scraper._utils.selenium_utils import humans_delay
-from scraper._utils.string_transformations import transform_location_to_url_format
-from scraper.config import DATA, SCRAPER, DOMAINS
-from scraper.scrape.olx.process_olx_site_offers import process_domain_offers_olx
-from scraper.scrape.otodom.otodom_main_page import process_domain_offers_otodom
-from scraper.webdriver_setup import get_driver
-from scraper.scrape.process_sites_offers import scrape_offers
+from pipeline.src.scraper._utils.selenium_utils import humans_delay
+from pipeline.src.scraper._utils.string_transformations import (
+    transform_location_to_url_format,
+)
+from pipeline.src.scraper.config import DATA, SCRAPER, DOMAINS
+from pipeline.src.scraper.scrape.olx.process_olx_site_offers import (
+    process_domain_offers_olx,
+)
+from pipeline.src.scraper.scrape.otodom.otodom_main_page import (
+    process_domain_offers_otodom,
+)
+from pipeline.src.scraper.webdriver_setup import get_driver
+from pipeline.src.scraper.__main__ import main
 
 
 class TestScraper(unittest.TestCase):
@@ -75,9 +81,6 @@ class TestScraper(unittest.TestCase):
         scraped_offers_cap = 4
 
         try:
-            # Directly calling the main function with arguments
-            from scraper.__main__ import main
-
             main(location_query, area_radius, scraped_offers_cap)
         except Exception as error:
             self._dump_html("end_to_end_failure.html")
