@@ -34,7 +34,7 @@ python scraper
 Run the scraper using the command line interface:
 
 ```
-python -m scraper [location_query] [area_radius] [scraped_offers_cap]
+python -m pipeline/src/scraper [location_query] [area_radius] [scraped_offers_cap]
 ```
 
 - location_query: Location query for scraping. E.g., `'Warszawa'`.
