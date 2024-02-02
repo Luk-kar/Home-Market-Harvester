@@ -19,7 +19,7 @@ import streamlit as st
 
 
 # Local imports
-from notebooks._csv_utils import (
+from _csv_utils import (
     DataPathCleaningManager,
 )  # pylint: disable=wrong-import-position
 

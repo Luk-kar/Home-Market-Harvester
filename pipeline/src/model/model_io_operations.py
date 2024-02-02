@@ -40,9 +40,7 @@ class ModelManager:
         # Check if the directory exists
         model_dir_exists = self._model_dir_exists(model_path)
         if not model_dir_exists:
-            raise FileNotFoundError(
-                f"The directory {os.path.isdir(model_path)} does not exist."
-            )
+            raise FileNotFoundError(f"The directory {model_path} does not exist.")
 
         self.model_path = model_path
         self.model = model

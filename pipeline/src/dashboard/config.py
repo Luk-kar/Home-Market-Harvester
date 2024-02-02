@@ -8,7 +8,7 @@ from os import getenv
 from pathlib import Path
 
 # Local imports
-from notebooks._csv_utils import (
+from _csv_utils import (
     data_timeplace,
 )
 
@@ -22,7 +22,7 @@ def _warn_default_usage(env_var_name):
 
 # Constants
 _USER_DATA_PATH_DEFAULT = str(Path("data", "test", "your_offers.csv"))
-_MODEL_PATH_DEFAULT = str(Path("model", "model.pkl"))
+_MODEL_PATH_DEFAULT = str(Path("pipeline", "src", "dashboard", "model", "model.pkl"))
 
 DATA = {
     "user_data_path": getenv("USER_OFFERS_PATH", _USER_DATA_PATH_DEFAULT),
