@@ -44,7 +44,7 @@ WEBDRIVER: dict[str, str | bool] = {
     "maximize_window": True,
 }
 LOGGING: dict[str, str] = {
-    "debug": True,  # also sets the headless option to True
+    "debug": False,  # also sets the headless option to True
     "level": logging.INFO,
     "file": sanitize_path("./logs/scraper.log"),
 }

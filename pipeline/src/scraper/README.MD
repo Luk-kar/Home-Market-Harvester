@@ -78,6 +78,8 @@ LOGGING:
 python -m unittest tests.scraper
 ```
 
+It is advices to set `LOGGING: "debug": True`
+
 ## 📦 The data collected
 
 All the data are scraped from the offer, with the corresponding URL,
