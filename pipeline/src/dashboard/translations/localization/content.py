@@ -23,8 +23,8 @@ Example:
         translations[Languages.ENGLISH]["welcome"]
 """
 
-from dashboard.translations.localization._english import english
-from dashboard.translations.localization._polish import polish
+from pipeline.src.dashboard.translations.localization._english import english
+from pipeline.src.dashboard.translations.localization._polish import polish
 
 
 class Languages:

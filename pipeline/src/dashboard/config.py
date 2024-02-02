@@ -8,7 +8,7 @@ from os import getenv
 from pathlib import Path
 
 # Local imports
-from _csv_utils import (
+from pipeline.src._csv_utils import (
     data_timeplace,
 )
 

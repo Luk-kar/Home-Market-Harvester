@@ -1,5 +1,5 @@
-from dashboard.translations.localization._english import english
-from dashboard.translations.localization._polish import polish
+from pipeline.src.dashboard.translations.localization._english import english
+from pipeline.src.dashboard.translations.localization._polish import polish
 
 _checked_translation_keys = False  # Variable to track if the check has been performed
 

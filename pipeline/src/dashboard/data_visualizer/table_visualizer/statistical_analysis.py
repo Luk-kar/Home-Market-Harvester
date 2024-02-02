@@ -6,11 +6,11 @@ This module contains functions for statistical analysis of the data.
 import pandas as pd
 
 # Local imports
-from dashboard.config import MODEL
-from dashboard.data_visualizer.table_visualizer.styling import (
+from pipeline.src.dashboard.config import MODEL
+from pipeline.src.dashboard.data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
-from dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
+from pipeline.src.dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
     ModelPredictor,
 )
 

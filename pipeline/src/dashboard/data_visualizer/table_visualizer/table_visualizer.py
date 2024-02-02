@@ -18,26 +18,26 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from dashboard.data_visualizer.data_preparation import (
+from pipeline.src.dashboard.data_visualizer.data_preparation import (
     filter_data,
     compile_apartments_data,
     reorder_columns,
 )
 
-from dashboard.data_visualizer.table_visualizer.statistical_analysis import (
+from pipeline.src.dashboard.data_visualizer.table_visualizer.statistical_analysis import (
     compute_market_positioning_stats,
     aggregate_properties_data,
     calculate_price_by_model,
 )
 
-from dashboard.data_visualizer.table_visualizer.styling import (
+from pipeline.src.dashboard.data_visualizer.table_visualizer.styling import (
     format_column_titles,
     add_styling_to_dataframe,
     display_header,
     display_html,
 )
 
-from dashboard.translations.translation_manager import Translation
+from pipeline.src.dashboard.translations.translation_manager import Translation
 
 
 class TableVisualizer:

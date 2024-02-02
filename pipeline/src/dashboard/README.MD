@@ -19,7 +19,7 @@ pipenv shell
 **Run the Dashboard**:
 
 ```
-streamlit run dashboard//streamlit_app.py
+streamlit run pipeline//src//dashboard//streamlit_app.py
 ```
 
 The output renders in the OS's default web browser.

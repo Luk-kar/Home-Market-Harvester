@@ -34,7 +34,10 @@ Note:
 """
 
 # Local imports
-from dashboard.translations.localization.content import translations, Languages
+from pipeline.src.dashboard.translations.localization.content import (
+    translations,
+    Languages,
+)
 
 
 class Translation:

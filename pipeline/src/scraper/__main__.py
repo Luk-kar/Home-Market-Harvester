@@ -9,20 +9,17 @@ import argparse
 import datetime
 import os
 import sys
+from pathlib import Path
 
 
-def add_project_root_to_sys_path():
-    """
-    Adds the project root to the system path.
-    """
-    current_script_path = os.path.abspath(__file__)
-    project_root = os.path.dirname(os.path.dirname(current_script_path))
-    sys.path.insert(0, project_root)
+def set_sys_path_to_project_root(__file__):
+    root_dir = Path(__file__).resolve().parents[3]
+    print("root_dir: ", root_dir)
+    sys.path.append(str(root_dir))
 
 
-# You have to add the project root to the system path
-# before importing from it
-add_project_root_to_sys_path()
+set_sys_path_to_project_root(__file__)
+
 
 # Local imports
 from scraper.config import DATA
