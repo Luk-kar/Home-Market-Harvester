@@ -22,9 +22,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from scraper._utils.selenium_utils import await_element, humans_delay
-from scraper.config import SCRAPER, DOMAINS
-from scraper.scrape.otodom.otodom_offer_page import open_process_and_close_window
+from pipeline.src.scraper._utils.selenium_utils import await_element, humans_delay
+from pipeline.src.scraper.config import SCRAPER, DOMAINS
+from pipeline.src.scraper.scrape.otodom.otodom_offer_page import (
+    open_process_and_close_window,
+)
 
 
 def page_offers_orchestrator(

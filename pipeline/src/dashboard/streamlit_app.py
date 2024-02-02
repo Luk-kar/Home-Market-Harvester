@@ -13,7 +13,6 @@ import streamlit as st
 
 def set_sys_path_to_project_root(__file__):
     root_dir = Path(__file__).resolve().parents[3]
-    print("root_dir: ", root_dir)
     sys.path.append(str(root_dir))
 
 

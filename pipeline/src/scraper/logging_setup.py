@@ -7,7 +7,7 @@ import logging
 import os
 
 # Local imports
-from scraper.config import LOGGING
+from pipeline.src.scraper.config import LOGGING
 
 
 def log_setup():

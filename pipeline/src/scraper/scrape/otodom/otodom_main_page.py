@@ -20,9 +20,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from scraper._utils.selenium_utils import await_element, humans_delay
-from scraper.config import SCRAPER
-from scraper.scrape.otodom.otodom_listings_page import page_offers_orchestrator
+from pipeline.src.scraper._utils.selenium_utils import await_element, humans_delay
+from pipeline.src.scraper.config import SCRAPER
+from pipeline.src.scraper.scrape.otodom.otodom_listings_page import (
+    page_offers_orchestrator,
+)
 
 
 def process_domain_offers_otodom(

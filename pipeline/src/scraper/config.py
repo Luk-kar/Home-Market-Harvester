@@ -19,19 +19,19 @@ customizing the scraper's performance and interactions with web elements.
 import logging
 
 # Local imports
-from scraper._utils.string_transformations import sanitize_path
+from pipeline.src.scraper._utils.string_transformations import sanitize_path
 
 SCRAPER: dict[str, str | int | float] = {
     # Any you choose, but remember to use the same format as on the website
-    "location_query": "Mierzęcice, Będziński, Śląskie",
-    "area_radius": 25,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km
+    "location_query": "Mierzęcice, Będziński, Śląskie",  # Default when no arguments are passed
+    "area_radius": 25,  # 0km, 5km, 10km, 15km, 25km, 50km, 75km # Default when no arguments are passed
     "max_retries": 5,
     "wait_timeout": 10,
     "multi_wait_timeout": 5,
     "min_delay": 0.90,
     "max_delay": 1.30,
     "anti_anti_bot": True,  # Make the scraper more human-like and but also slower
-    "scraped_offers_cap": 3,
+    "scraped_offers_cap": 3,  # Default when no arguments are passed
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,

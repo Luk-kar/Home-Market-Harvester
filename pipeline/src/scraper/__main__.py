@@ -14,7 +14,6 @@ from pathlib import Path
 
 def set_sys_path_to_project_root(__file__):
     root_dir = Path(__file__).resolve().parents[3]
-    print("root_dir: ", root_dir)
     sys.path.append(str(root_dir))
 
 
@@ -22,10 +21,10 @@ set_sys_path_to_project_root(__file__)
 
 
 # Local imports
-from scraper.config import DATA
-from scraper.logging_setup import log_setup
-from scraper.scrape.process_sites_offers import scrape_offers
-from scraper.webdriver_setup import get_driver
+from pipeline.src.scraper.config import DATA, SCRAPER
+from pipeline.src.scraper.logging_setup import log_setup
+from pipeline.src.scraper.scrape.process_sites_offers import scrape_offers
+from pipeline.src.scraper.webdriver_setup import get_driver
 
 VALID_AREA_RADIUS = {0, 5, 10, 15, 25, 50, 75}
 
@@ -85,12 +84,19 @@ def main(
 ):
     """
     The main execution function of the scraper script.
+    it sets up the logging, web driver, and search criteria for scraping.
+    If no arguments are provided, the function uses the default settings.
 
     Args:
         location_query (str, optional): The location query for scraping. Defaults to None.
         area_radius (float, optional): The radius of the area for scraping in kilometers. Defaults to None.
         scraped_offers_cap (int, optional): The maximum number of offers to scrape. Defaults to None.
     """
+
+    if location_query is None and area_radius is None and scraped_offers_cap is None:
+        location_query = SCRAPER["location_query"]
+        area_radius = SCRAPER["area_radius"]
+        scraped_offers_cap = SCRAPER["scraped_offers_cap"]
 
     validate_arguments(location_query, area_radius, scraped_offers_cap)
     log_setup()

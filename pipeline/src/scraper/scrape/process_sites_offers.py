@@ -21,11 +21,17 @@ import enlighten
 
 
 # Local imports
-from scraper._utils.selenium_utils import humans_delay
-from scraper._utils.string_transformations import transform_location_to_url_format
-from scraper.config import DOMAINS, LOGGING
-from scraper.scrape.olx.process_olx_site_offers import process_domain_offers_olx
-from scraper.scrape.otodom.otodom_main_page import process_domain_offers_otodom
+from pipeline.src.scraper._utils.selenium_utils import humans_delay
+from pipeline.src.scraper._utils.string_transformations import (
+    transform_location_to_url_format,
+)
+from pipeline.src.scraper.config import DOMAINS, LOGGING
+from pipeline.src.scraper.scrape.olx.process_olx_site_offers import (
+    process_domain_offers_olx,
+)
+from pipeline.src.scraper.scrape.otodom.otodom_main_page import (
+    process_domain_offers_otodom,
+)
 
 
 def scrape_offers(driver: WebDriver, search_criteria: dict):

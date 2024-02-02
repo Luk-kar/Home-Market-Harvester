@@ -19,13 +19,15 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 
 # Local imports
-from scraper.csv_manager import save_to_csv
-from scraper.config import LOGGING
-from scraper.scrape.olx.extract_offer_olx import scrape_offer as process_offer_olx
-from scraper.scrape.otodom.extract_offer_otodom import (
+from pipeline.src.scraper.csv_manager import save_to_csv
+from pipeline.src.scraper.config import LOGGING
+from pipeline.src.scraper.scrape.olx.extract_offer_olx import (
+    scrape_offer as process_offer_olx,
+)
+from pipeline.src.scraper.scrape.otodom.extract_offer_otodom import (
     scrape_offer_page as process_offer_otodom,
 )
-from scraper.scrape.custom_errors import OfferProcessingError
+from pipeline.src.scraper.scrape.custom_errors import OfferProcessingError
 
 
 def process_olx_offer(

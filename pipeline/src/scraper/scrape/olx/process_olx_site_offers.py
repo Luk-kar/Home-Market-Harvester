@@ -22,20 +22,20 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 
 # Local imports
-from scraper._utils.selenium_utils import await_element, humans_delay
-from scraper.config import DOMAINS, SCRAPER
-from scraper.scrape.olx.offer_utils import (
+from pipeline.src.scraper._utils.selenium_utils import await_element, humans_delay
+from pipeline.src.scraper.config import DOMAINS, SCRAPER
+from pipeline.src.scraper.scrape.olx.offer_utils import (
     extract_offer_urls,
     has_offer,
     normalize_offer_url,
     has_next_page,
 )
-from scraper.scrape.olx.navigation import (
+from pipeline.src.scraper.scrape.olx.navigation import (
     click_next_page,
     open_new_offer,
     return_to_listing_page,
 )
-from scraper.scrape.olx.domain_offer_processor import (
+from pipeline.src.scraper.scrape.olx.domain_offer_processor import (
     process_olx_offer,
     process_otodom_offer,
 )
