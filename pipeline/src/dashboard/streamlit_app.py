@@ -23,12 +23,10 @@ def add_project_root_to_sys_path():
 # before importing from it
 add_project_root_to_sys_path()
 
-# For the first runtime you need a relative import else error import
-# Local imports
-from config import DATA
-from data_visualizer._config import config as display_settings
-from data_visualizer.data_visualizer import DataVisualizer
-from load_data import DataLoader
+from dashboard.config import DATA
+from dashboard.data_visualizer._config import config as display_settings
+from dashboard.data_visualizer.data_visualizer import DataVisualizer
+from dashboard.load_data import DataLoader
 
 
 def streamlit_app():

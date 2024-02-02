@@ -21,7 +21,6 @@ import logging
 # Local imports
 from scraper._utils.string_transformations import sanitize_path
 
-
 SCRAPER: dict[str, str | int | float] = {
     # Any you choose, but remember to use the same format as on the website
     "location_query": "Mierzęcice, Będziński, Śląskie",
@@ -36,14 +35,16 @@ SCRAPER: dict[str, str | int | float] = {
 }
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
-    "path": sanitize_path("scraper\\chromedriver.exe"),  # Path to the webdriver
+    "path": sanitize_path(
+        "pipeline\\src\\scraper\\chromedriver.exe"
+    ),  # Path to the webdriver
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
     "ignore_certificate_errors": True,  # Errors could break the scraper
     "maximize_window": True,
 }
 LOGGING: dict[str, str] = {
-    "debug": False,  # also sets the headless option to True
+    "debug": True,  # also sets the headless option to True
     "level": logging.INFO,
     "file": sanitize_path("./logs/scraper.log"),
 }

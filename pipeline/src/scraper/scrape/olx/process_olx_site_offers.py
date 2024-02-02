@@ -78,9 +78,14 @@ def process_domain_offers_olx(
     humans_delay(0.2, 0.4)
 
     while True:
+        humans_delay(1.4, 1.6)
+
         await_element(driver, field_selectors["offers_listings"])
 
-        if not has_offer(driver, field_selectors["flat_offer_icon"]):
+        if (
+            not has_offer(driver, field_selectors["flat_offer_icon"])
+            or progress.count >= offers_cap
+        ):
             break
 
         soup = BeautifulSoup(driver.page_source, "html.parser")
