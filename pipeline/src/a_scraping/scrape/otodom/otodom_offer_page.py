@@ -11,7 +11,6 @@ and manages the switching between browser windows
 to ensure seamless data collection from multiple offers.
 """
 
-
 # Standard imports
 import logging
 
@@ -20,11 +19,11 @@ from enlighten import Counter
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from pipeline.src.scraper._utils.selenium_utils import humans_delay
-from pipeline.src.scraper.config import DOMAINS, SCRAPER, LOGGING
-from pipeline.src.scraper.csv_manager import save_to_csv
-from pipeline.src.scraper.scrape.custom_errors import OfferProcessingError
-from pipeline.src.scraper.scrape.otodom.extract_offer_otodom import scrape_offer_page
+from pipeline.src.a_scraping._utils.selenium_utils import humans_delay
+from pipeline.src.a_scraping.config import DOMAINS, SCRAPER, LOGGING
+from pipeline.src.a_scraping.csv_manager import save_to_csv
+from pipeline.src.a_scraping.scrape.custom_errors import OfferProcessingError
+from pipeline.src.a_scraping.scrape.otodom.extract_offer_otodom import scrape_offer_page
 
 
 def open_process_and_close_window(

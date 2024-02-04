@@ -9,6 +9,7 @@ The module uses Enlighten for progress tracking and handles exceptions
 to ensure robust scraping even in case of connection issues 
 or other unexpected errors.
 """
+
 # Standard imports
 import logging
 import datetime
@@ -21,15 +22,15 @@ import enlighten
 
 
 # Local imports
-from pipeline.src.scraper._utils.selenium_utils import humans_delay
-from pipeline.src.scraper._utils.string_transformations import (
+from pipeline.src.a_scraping._utils.selenium_utils import humans_delay
+from pipeline.src.a_scraping._utils.string_transformations import (
     transform_location_to_url_format,
 )
-from pipeline.src.scraper.config import DOMAINS, LOGGING
-from pipeline.src.scraper.scrape.olx.process_olx_site_offers import (
+from pipeline.src.a_scraping.config import DOMAINS, LOGGING
+from pipeline.src.a_scraping.scrape.olx.process_olx_site_offers import (
     process_domain_offers_olx,
 )
-from pipeline.src.scraper.scrape.otodom.otodom_main_page import (
+from pipeline.src.a_scraping.scrape.otodom.otodom_main_page import (
     process_domain_offers_otodom,
 )
 

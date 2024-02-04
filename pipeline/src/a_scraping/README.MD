@@ -55,7 +55,7 @@ For example: `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie\o
 ## 🪓 Configuration
 
 When arguments in the CLI are not provided the missing values are replaced by the config values.
-Simply modify the config file: `scraper\config.py`.
+Simply modify the config file: `pipeline\\src\\a_scraping\\a_scraping\\config.py`.
 More important arguments are:
 
 ```
@@ -65,7 +65,7 @@ SCRAPER:
     "scraped_offers_cap": 3,
 
 WEBDRIVER:
-    "path": sanitize_path("scraper\\chromedriver.exe"),  # Path to the webdriver
+    "path": sanitize_path("pipeline\\src\\a_scraping\\chromedriver.exe"),  # Path to the webdriver
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
 
 LOGGING:

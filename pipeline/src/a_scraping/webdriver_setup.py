@@ -12,7 +12,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Local imports
-from pipeline.src.scraper.config import LOGGING, WEBDRIVER
+from pipeline.src.a_scraping.config import LOGGING, WEBDRIVER, WEBBROWSER
 
 
 class WebDriverSetupError(Exception):
@@ -53,6 +53,9 @@ def get_driver():
 
     if WEBDRIVER["ignore_certificate_errors"]:
         options.add_argument("--ignore-certificate-errors")
+
+    if WEBBROWSER["binary_location_path"]:
+        options.binary_location = WEBBROWSER["binary_location_path"]
 
     if WEBDRIVER["auto_install"]:
         # There could some issues:

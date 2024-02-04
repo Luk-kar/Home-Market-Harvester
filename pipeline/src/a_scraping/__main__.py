@@ -21,10 +21,10 @@ set_sys_path_to_project_root(__file__)
 
 
 # Local imports
-from pipeline.src.scraper.config import DATA, SCRAPER
-from pipeline.src.scraper.logging_setup import log_setup
-from pipeline.src.scraper.scrape.process_sites_offers import scrape_offers
-from pipeline.src.scraper.webdriver_setup import get_driver
+from pipeline.src.a_scraping.config import DATA, SCRAPER
+from pipeline.src.a_scraping.logging_setup import log_setup
+from pipeline.src.a_scraping.scrape.process_sites_offers import scrape_offers
+from pipeline.src.a_scraping.webdriver_setup import get_driver
 
 VALID_AREA_RADIUS = {0, 5, 10, 15, 25, 50, 75}
 

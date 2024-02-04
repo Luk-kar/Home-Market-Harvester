@@ -18,13 +18,13 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from pipeline.src.scraper._utils.selenium_utils import (
+from pipeline.src.a_scraping._utils.selenium_utils import (
     safe_get_text,
     wait_for_conditions,
     extract_data,
 )
-from pipeline.src.scraper.config import LOGGING
-from pipeline.src.scraper.scrape.custom_errors import OfferProcessingError
+from pipeline.src.a_scraping.config import LOGGING
+from pipeline.src.a_scraping.scrape.custom_errors import OfferProcessingError
 
 
 def scrape_offer(driver: WebDriver) -> Optional[dict[str, str]]:

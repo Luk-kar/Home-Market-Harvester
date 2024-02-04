@@ -20,9 +20,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from pipeline.src.scraper._utils.selenium_utils import await_element, humans_delay
-from pipeline.src.scraper.config import SCRAPER
-from pipeline.src.scraper.scrape.otodom.otodom_listings_page import (
+from pipeline.src.a_scraping._utils.selenium_utils import await_element, humans_delay
+from pipeline.src.a_scraping.config import SCRAPER
+from pipeline.src.a_scraping.scrape.otodom.otodom_listings_page import (
     page_offers_orchestrator,
 )
 

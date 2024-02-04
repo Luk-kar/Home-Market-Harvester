@@ -22,9 +22,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from pipeline.src.scraper._utils.selenium_utils import await_element, humans_delay
-from pipeline.src.scraper.config import SCRAPER, DOMAINS
-from pipeline.src.scraper.scrape.otodom.otodom_offer_page import (
+from pipeline.src.a_scraping._utils.selenium_utils import await_element, humans_delay
+from pipeline.src.a_scraping.config import SCRAPER, DOMAINS
+from pipeline.src.a_scraping.scrape.otodom.otodom_offer_page import (
     open_process_and_close_window,
 )
 

@@ -17,9 +17,10 @@ customizing the scraper's performance and interactions with web elements.
 
 # Standard imports
 import logging
+import os
 
 # Local imports
-from pipeline.src.scraper._utils.string_transformations import sanitize_path
+from pipeline.src.a_scraping._utils.string_transformations import sanitize_path
 
 SCRAPER: dict[str, str | int | float] = {
     # Any you choose, but remember to use the same format as on the website
@@ -36,17 +37,25 @@ SCRAPER: dict[str, str | int | float] = {
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
     "path": sanitize_path(
-        "pipeline\\src\\scraper\\chromedriver.exe"
-    ),  # Path to the webdriver
+        os.getenv("CHROME_DRIVER_PATH", "pipeline\\src\\a_scraping\\chromedriver.exe")
+    ),
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
     "ignore_certificate_errors": True,  # Errors could break the scraper
     "maximize_window": True,
 }
+WEBBROWSER: dict[str, str] = {
+    "binary_location_path": sanitize_path(
+        os.getenv(
+            "CHROME_BROWSER_PATH",
+            "pipeline\\src\\a_scraping\\chrome\\119.0.6045.105\\chrome.exe",
+        )
+    ),
+}
 LOGGING: dict[str, str] = {
     "debug": False,  # also sets the headless option to True
     "level": logging.INFO,
-    "file": sanitize_path("./logs/scraper.log"),
+    "file": sanitize_path("./logs/a_scraping.log"),
 }
 DOMAINS: dict[str, str] = {
     "olx": {

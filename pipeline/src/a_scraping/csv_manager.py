@@ -10,8 +10,8 @@ import re
 from typing import Any
 
 # Local imports
-from pipeline.src.scraper._utils.string_transformations import sanitize_path
-from pipeline.src.scraper.config import DATA
+from pipeline.src.a_scraping._utils.string_transformations import sanitize_path
+from pipeline.src.a_scraping.config import DATA
 
 
 def sanitize_for_filepath(string: str):
