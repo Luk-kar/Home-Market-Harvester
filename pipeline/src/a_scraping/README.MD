@@ -68,6 +68,9 @@ WEBDRIVER:
     "path": sanitize_path("pipeline\\src\\a_scraping\\chromedriver.exe"),  # Path to the webdriver
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
 
+WEBBROWSER:
+    "binary_location_path":"pipeline\\src\\a_scraping\\chrome\\119.0.6045.105\\chrome.exe"
+
 LOGGING:
     "debug": False,  # also sets the headless option to True
 ```

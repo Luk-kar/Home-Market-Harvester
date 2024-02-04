@@ -68,3 +68,29 @@ DATA: dict[str, str] = {
     "folder_scraped_data": sanitize_path("./data/raw/"),
     "encoding": "utf-8",
 }
+
+
+class ConfigurationError(Exception):
+    """Exception raised for errors in the configuration settings."""
+
+
+def check_path_exists(path: str, config_name: str):
+    """
+    Checks if the given path exists. Raises an exception if the path does not exist.
+
+    Parameters:
+        path (str): The path to check.
+        config_name (str): The name of the configuration setting being checked.
+
+    Raises:
+        ConfigurationError: If the path does not exist.
+    """
+    if not os.path.exists(path):
+        raise ConfigurationError(f"The path specified for {config_name}")
+
+
+check_path_exists(WEBDRIVER["path"], "WEBDRIVER['path']")
+check_path_exists(
+    WEBBROWSER["binary_location_path"], "WEBBROWSER['binary_location_path']"
+)
+check_path_exists(DATA["folder_scraped_data"], "DATA['folder_scraped_data']")
