@@ -77,7 +77,6 @@ def process_domain_offers_olx(
     humans_delay(0.2, 0.4)
 
     while True:
-        humans_delay(1.4, 1.6)
 
         await_element(driver, field_selectors["offers_listings"])
 
