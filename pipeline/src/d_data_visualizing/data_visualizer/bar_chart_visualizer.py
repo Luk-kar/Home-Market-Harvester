@@ -15,10 +15,10 @@ import seaborn as sns
 import streamlit as st
 
 # Local imports
-from pipeline.src.dashboard.data_visualizer.data_preparation import (
+from pipeline.src.d_data_visualizing.data_visualizer.data_preparation import (
     matches_city_building_year_criteria,
 )
-from pipeline.src.dashboard.translations.translation_manager import Translation
+from pipeline.src.d_data_visualizing.translations.translation_manager import Translation
 
 
 class BarChartVisualizer:

@@ -3,6 +3,7 @@ module is designed to configure and manage data and model paths for a data proce
 It utilizes environment variables to dynamically set paths for user data, market data, and model files, 
 providing flexibility and customizability for different runtime environments.
 """
+
 # Standard imports
 from os import getenv
 from pathlib import Path
@@ -22,7 +23,9 @@ def _warn_default_usage(env_var_name):
 
 # Constants
 _USER_DATA_PATH_DEFAULT = str(Path("data", "test", "your_offers.csv"))
-_MODEL_PATH_DEFAULT = str(Path("pipeline", "src", "dashboard", "model", "model.pkl"))
+_MODEL_PATH_DEFAULT = str(
+    Path("pipeline", "src", "c_model_developing", "model", "model.pkl")
+)
 
 DATA = {
     "user_data_path": getenv("USER_OFFERS_PATH", _USER_DATA_PATH_DEFAULT),

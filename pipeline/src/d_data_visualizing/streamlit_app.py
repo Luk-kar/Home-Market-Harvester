@@ -1,5 +1,5 @@
 """pipeline\.src\.
-This module contains the Streamlit application for the Home Market Harvester dashboard.
+This module contains the Streamlit application for the Home Market Harvester d_data_visualizing.
 """
 
 # Standard imports
@@ -19,10 +19,14 @@ def set_sys_path_to_project_root(__file__):
 set_sys_path_to_project_root(__file__)
 
 # Local imports
-from pipeline.src.dashboard.config import DATA
-from pipeline.src.dashboard.data_visualizer._config import config as display_settings
-from pipeline.src.dashboard.data_visualizer.data_visualizer import DataVisualizer
-from pipeline.src.dashboard.load_data import DataLoader
+from pipeline.src.d_data_visualizing.config import DATA
+from pipeline.src.d_data_visualizing.data_visualizer._config import (
+    config as display_settings,
+)
+from pipeline.src.d_data_visualizing.data_visualizer.data_visualizer import (
+    DataVisualizer,
+)
+from pipeline.src.d_data_visualizing.load_data import DataLoader
 
 
 def streamlit_app():

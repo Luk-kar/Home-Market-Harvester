@@ -9,6 +9,7 @@ Example usage:
     visualizer = TableVisualizer()
     visualizer.display(user_apartments_df, market_apartments_df)
 """
+
 # Standard imports
 from typing import Optional
 
@@ -18,26 +19,26 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from pipeline.src.dashboard.data_visualizer.data_preparation import (
+from pipeline.src.d_data_visualizing.data_visualizer.data_preparation import (
     filter_data,
     compile_apartments_data,
     reorder_columns,
 )
 
-from pipeline.src.dashboard.data_visualizer.table_visualizer.statistical_analysis import (
+from pipeline.src.d_data_visualizing.data_visualizer.table_visualizer.statistical_analysis import (
     compute_market_positioning_stats,
     aggregate_properties_data,
     calculate_price_by_model,
 )
 
-from pipeline.src.dashboard.data_visualizer.table_visualizer.styling import (
+from pipeline.src.d_data_visualizing.data_visualizer.table_visualizer.styling import (
     format_column_titles,
     add_styling_to_dataframe,
     display_header,
     display_html,
 )
 
-from pipeline.src.dashboard.translations.translation_manager import Translation
+from pipeline.src.d_data_visualizing.translations.translation_manager import Translation
 
 
 class TableVisualizer:
@@ -45,7 +46,7 @@ class TableVisualizer:
     A class responsible for rendering data in the Streamlit application.
 
     Args:
-        display_settings (dict): The display settings for the dashboard.
+        display_settings (dict): The display settings for the table.
         table_title (str): The title of the table.
 
     Methods:
@@ -169,10 +170,10 @@ class TableVisualizer:
         # Translate time periods values
         period_format_column = "lease_time"
         if period_format_column in apartments_comparison_df.columns:
-            apartments_comparison_df[
-                period_format_column
-            ] = self._translate_periods_values(
-                apartments_comparison_df[period_format_column]
+            apartments_comparison_df[period_format_column] = (
+                self._translate_periods_values(
+                    apartments_comparison_df[period_format_column]
+                )
             )
 
         return apartments_comparison_df

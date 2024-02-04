@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 # Local imports
-from pipeline.src.dashboard.translations.translation_manager import Translation
+from pipeline.src.d_data_visualizing.translations.translation_manager import Translation
 
 
 class MapVisualizer:

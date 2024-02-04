@@ -6,11 +6,11 @@ This module contains functions for statistical analysis of the data.
 import pandas as pd
 
 # Local imports
-from pipeline.src.dashboard.config import MODEL
-from pipeline.src.dashboard.data_visualizer.table_visualizer.styling import (
+from pipeline.src.d_data_visualizing.config import MODEL
+from pipeline.src.d_data_visualizing.data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
-from pipeline.src.dashboard.data_visualizer.table_visualizer.model_offer_predictor import (
+from pipeline.src.d_data_visualizing.data_visualizer.table_visualizer.model_offer_predictor import (
     ModelPredictor,
 )
 
@@ -166,9 +166,11 @@ def calculate_yours_price_percentile_against_others(
     return apartments_df.apply(
         lambda row: calculate_percentile(
             row,
-            furnished_prices_series
-            if row["is_furnished"]
-            else non_furnished_prices_series,
+            (
+                furnished_prices_series
+                if row["is_furnished"]
+                else non_furnished_prices_series
+            ),
         ),
         axis=1,
     )

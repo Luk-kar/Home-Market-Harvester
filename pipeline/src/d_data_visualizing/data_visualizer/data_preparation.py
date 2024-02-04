@@ -10,7 +10,7 @@ from typing import Tuple
 import pandas as pd
 
 # Local imports
-from pipeline.src.dashboard.data_visualizer.table_visualizer.statistical_analysis import (
+from pipeline.src.d_data_visualizing.data_visualizer.table_visualizer.statistical_analysis import (
     calculate_percentile_based_suggested_price,
     calculate_yours_price_percentile_against_others,
     calculate_price_per_meter_differences,
@@ -141,20 +141,20 @@ def compile_apartments_data(
         columns={"price": "your_price", "deal_id": "rental_start"}
     )
 
-    apartments_df[
-        "percentile_based_suggested_price"
-    ] = calculate_percentile_based_suggested_price(
-        apartments_df, market_apartments_df, percentile
+    apartments_df["percentile_based_suggested_price"] = (
+        calculate_percentile_based_suggested_price(
+            apartments_df, market_apartments_df, percentile
+        )
     )
 
     apartments_df["price_percentile"] = calculate_yours_price_percentile_against_others(
         apartments_df, market_apartments_df
     )
 
-    apartments_df[
-        "price_per_meter_by_percentile"
-    ] = calculate_price_per_meter_differences(
-        apartments_df, market_apartments_df, percentile
+    apartments_df["price_per_meter_by_percentile"] = (
+        calculate_price_per_meter_differences(
+            apartments_df, market_apartments_df, percentile
+        )
     )
 
     return apartments_df

@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 # Local imports
-from pipeline.src.model.model_io_operations import ModelManager
+from pipeline.src.c_model_developing.model_io_operations import ModelManager
 
 
 class ModelPredictor:

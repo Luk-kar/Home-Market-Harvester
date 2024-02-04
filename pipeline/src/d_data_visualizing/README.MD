@@ -19,7 +19,7 @@ pipenv shell
 **Run the Dashboard**:
 
 ```
-streamlit run pipeline//src//dashboard//streamlit_app.py
+streamlit run pipeline//src//d_data_visualizing//streamlit_app.py
 ```
 
 The output renders in the OS's default web browser.
@@ -27,7 +27,7 @@ You can share the outcome via the local or network URL.
 
 ## 🪓 Configuration
 
-Simply modify the config file: `dashboard\config.py`.
+Simply modify the config file: `d_data_visualizing\config.py`.
 Important arguments include:
 
 ```

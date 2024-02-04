@@ -30,11 +30,11 @@ Raises:
 
 Note:
     This module depends on `localization_content.py` 
-    from the `dashboard.translations` package for translation data.
+    from the `d_data_visualizing.translations` package for translation data.
 """
 
 # Local imports
-from pipeline.src.dashboard.translations.localization.content import (
+from pipeline.src.d_data_visualizing.translations.localization.content import (
     translations,
     Languages,
 )

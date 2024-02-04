@@ -12,14 +12,14 @@ display a title, and initialize the dashboard with necessary data.
 import streamlit as st
 
 # Local imports
-from pipeline.src.dashboard.data_visualizer.map_visualizer import MapVisualizer
-from pipeline.src.dashboard.data_visualizer.bar_chart_visualizer import (
+from pipeline.src.d_data_visualizing.data_visualizer.map_visualizer import MapVisualizer
+from pipeline.src.d_data_visualizing.data_visualizer.bar_chart_visualizer import (
     BarChartVisualizer,
 )
-from pipeline.src.dashboard.data_visualizer.table_visualizer.table_visualizer import (
+from pipeline.src.d_data_visualizing.data_visualizer.table_visualizer.table_visualizer import (
     TableVisualizer,
 )
-from pipeline.src.dashboard.translations.translation_manager import (
+from pipeline.src.d_data_visualizing.translations.translation_manager import (
     Translation,
     Languages,
 )
