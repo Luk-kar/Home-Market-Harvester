@@ -298,7 +298,72 @@ def log_and_print(message: str, logging_level: int = logging.INFO):
     print(f"{current_time}: {message}")
 
 
+def get_existing_folders(directory: Path) -> set:
+    """
+    Returns a set of existing folder names in the given directory.
+
+    Args:
+        directory (Path): The directory to scan for folders.
+
+    Returns:
+        set: A set of folder names (as strings).
+    """
+    return {item.name for item in directory.iterdir() if item.is_dir()}
+
+
+def update_environment_variable(
+    env_path: Path, key: str, value: str, encoding: str = "utf-8"
+):
+    """
+    Updates or adds an environment variable in the .env file.
+
+    Args:
+        env_path (Path): The path to the .env file.
+        key (str): The environment variable key to update.
+        value (str): The new value for the environment variable.
+        encoding (str, optional): The encoding used to read and write the .env file.
+    """
+    env_content = env_path.read_text(encoding=encoding)
+    new_line = f"{key}={value}\n"
+    pattern = rf"{key}=.*\n"
+
+    # If key exists, replace its line
+    if re.search(pattern, env_content):
+        env_content = re.sub(pattern, new_line, env_content)
+    else:
+        # If key doesn't exist, append it
+        env_content += new_line
+
+    env_path.write_text(env_content, encoding=encoding)
+
+
+def detect_and_set_new_folder_env(
+    env_path: Path, initial_folders: set, data_raw_dir: Path
+):
+    """
+    Finds any new folder created in the data/raw directory, updates the .env file,
+    and reloads the environment variables.
+
+    Args:
+        env_path (Path): The path to the .env file.
+        initial_folders (set): The set of folders initially in data/raw.
+        data_raw_dir (Path): The path to the data/raw directory.
+    """
+    current_folders = get_existing_folders(data_raw_dir)
+    new_folders = current_folders - initial_folders
+    if new_folders:
+        new_folder = new_folders.pop()  # Assuming only one new folder is created
+        update_environment_variable(env_path, "MARKET_OFFERS_TIMEPLACE", new_folder)
+        # Reload the environment variables
+        load_dotenv(dotenv_path=env_path)
+
+
+# Capture the initial state before starting the pipeline
+
 if __name__ == "__main__":
+    data_raw_dir = Path("data/raw")
+    initial_folders = get_existing_folders(data_raw_dir)
+
     env_path = Path(".env")
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
 
@@ -329,5 +394,8 @@ if __name__ == "__main__":
         log_and_print(f"Running {stage}...")
         run_stage(stage)
         log_and_print(f"{stage} completed successfully.")
+
+        if "scraping" in stages:
+            detect_and_set_new_folder_env(Path(".env"), initial_folders, data_raw_dir)
 
     log_and_print("Pipeline execution completed.")

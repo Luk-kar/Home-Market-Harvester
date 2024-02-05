@@ -125,6 +125,19 @@ class DataPathCleaningManager:
             json.dump(schema_info, file)
 
     def load_df(self, domain: Domain, is_cleaned: bool) -> pd.DataFrame:
+        """
+        Loads the DataFrame from the specified domain.
+
+        Args:
+            domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
+            is_cleaned (bool): A boolean indicating whether to load the cleaned or raw DataFrame.
+
+        Returns:
+            pd.DataFrame: The DataFrame loaded from the specified CSV file.
+
+        Raises:
+            KeyError: If an invalid domain is specified.
+        """
         if domain in ["olx", "otodom", "combined", "map"] and is_cleaned:
             return self.load_cleaned_df(domain)
         elif domain in ["olx", "otodom"] and not is_cleaned:
@@ -140,6 +153,18 @@ class DataPathCleaningManager:
         return df
 
     def load_cleaned_df(self, domain: Domain) -> pd.DataFrame:
+        """
+        Loads the cleaned DataFrame from the specified domain.
+
+        Args:
+            domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
+
+        Returns:
+            pd.DataFrame: The cleaned DataFrame loaded from the specified CSV file.
+
+        Raises:
+            KeyError: If an invalid domain is specified.
+        """
         data_file = self.paths[domain]["cleaned"]
         schema_file = self.paths[domain]["schema"]
 
