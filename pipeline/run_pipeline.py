@@ -246,7 +246,7 @@ def run_stage(_stage: str):
         raise PipelineError(f"Stage not found: {_stage}")
 
     # https://regex101.com/r/JFd40X/1
-    pattern = r"^(?!.*\/[^\/]*\.[^\/]*$).*\/([^\/]+)$"
+    pattern = r"^(?!.*[/\\][^/\\]*\.[^/\\]*$).*[/\\]([^/\\]+)$"
     match_dir_path_only = re.match(pattern, _stage)
 
     exit_code = None
