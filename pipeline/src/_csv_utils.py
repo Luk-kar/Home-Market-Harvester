@@ -1,7 +1,9 @@
+# Standard imports
 from typing import Any, Literal
 import pandas as pd
 import os
 import json
+from pathlib import Path
 
 Data_Paths = dict[str, Any]
 Domain = Literal["olx", "otodom", "combined"], "map"
@@ -27,9 +29,11 @@ class DataPathCleaningManager:
         Args:
             data_timeplace (str): A string identifier combining time and location.
         """
-        base_dir = "..\\data"
-        self.cleaned_path = f"{base_dir}\\cleaned\\{data_timeplace}"
-        self.raw_path = f"{base_dir}\\raw\\{data_timeplace}"
+        data_dir = "..\\data"
+        self.cleaned_path = f"{data_dir}\\cleaned\\{data_timeplace}"
+        self.raw_path = f"{data_dir}\\raw\\{data_timeplace}"
+
+        self.cleaning_stage_path = Path("pipeline") / "src" / "b_cleaning"
 
         self.paths = {
             "target_folder": self.cleaned_path,
@@ -44,7 +48,14 @@ class DataPathCleaningManager:
                 "raw": f"{self.raw_path}\\otodom.pl.csv",
             },
             "combined": {
-                "schema": f"{self.cleaned_path}\\combined.json",
+                # The schema is preset during the cleaning process to prevent issues
+                # in cases where the otodom dataframe might be missing,
+                # eliminating the possibility of lacking a reference schema to build upon
+                # To develop the combined schema create it in the:
+                # notebooks\002_data_cleaning.ipynb.
+                # Use the query with the locations with a lot of offers
+                # for the best results
+                "schema": str(self.cleaning_stage_path / "combined_df_schema.json"),
                 "cleaned": f"{self.cleaned_path}\\combined.csv",
             },
             "map": {
@@ -53,7 +64,7 @@ class DataPathCleaningManager:
             },
         }
 
-    def save_df(self, df: pd.DataFrame, domain: Domain):
+    def save_df(self, df: pd.DataFrame, domain: Domain, save_schema: bool = True):
         """
         Saves a DataFrame to a CSV file in the target folder.
 
@@ -64,12 +75,14 @@ class DataPathCleaningManager:
         Args:
             df (pd.DataFrame): The DataFrame to be saved.
             domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
+            save_schema (bool): Flag indicating whether to save the schema
+                                if it does not exist. Defaults to True.
         """
 
         target_schema = self.paths[domain]["schema"]
         target_CSV = self.paths[domain]["cleaned"]
 
-        if not os.path.exists(target_schema):
+        if not os.path.exists(target_schema) and save_schema:
             self._save_dtype_and_index_schema(df, domain)
 
         if not os.path.exists(target_CSV):
@@ -166,7 +179,6 @@ class DataPathCleaningManager:
             KeyError: If an invalid domain is specified.
         """
         data_file = self.paths[domain]["cleaned"]
-        schema_file = self.paths[domain]["schema"]
 
         # Load the DataFrame from the data file
         if domain in ["olx", "map"]:
@@ -176,11 +188,10 @@ class DataPathCleaningManager:
         else:
             raise KeyError(f"Invalid domain '{domain}' specified.")
 
-            # Load the schema information
-        with open(schema_file, "r") as file:
-            schema_info = json.load(file)
+        # Load the schema information
+        schema_info = self.load_schema(domain)
 
-            # Check if the DataFrame columns are a MultiIndex
+        # Check if the DataFrame columns are a MultiIndex
         if domain in ["olx", "map"]:
             # Apply dtypes for regular index columns
             for col, dtype in schema_info["dtypes"].items():
@@ -194,3 +205,19 @@ class DataPathCleaningManager:
         else:
             raise KeyError(f"Invalid domain '{domain}' specified.")
         return df
+
+    def load_schema(self, domain: Domain) -> dict:
+        """
+        Loads the schema information for the specified domain.
+
+        Args:
+            domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
+
+        Returns:
+            dict: The schema information for the specified domain.
+        """
+        schema_file = self.paths[domain]["schema"]
+
+        with open(schema_file, "r") as file:
+            schema_info = json.load(file)
+        return schema_info

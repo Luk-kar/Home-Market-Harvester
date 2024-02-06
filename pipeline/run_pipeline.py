@@ -312,18 +312,18 @@ def get_existing_folders(directory: Path) -> set:
 
 
 def update_environment_variable(
-    env_path: Path, key: str, value: str, encoding: str = "utf-8"
+    _env_path: Path, key: str, value: str, encoding: str = "utf-8"
 ):
     """
     Updates or adds an environment variable in the .env file.
 
     Args:
-        env_path (Path): The path to the .env file.
+        _env_path (Path): The path to the .env file.
         key (str): The environment variable key to update.
         value (str): The new value for the environment variable.
         encoding (str, optional): The encoding used to read and write the .env file.
     """
-    env_content = env_path.read_text(encoding=encoding)
+    env_content = _env_path.read_text(encoding=encoding)
     new_line = f"{key}={value}\n"
     pattern = rf"{key}=.*\n"
 
@@ -334,31 +334,47 @@ def update_environment_variable(
         # If key doesn't exist, append it
         env_content += new_line
 
-    env_path.write_text(env_content, encoding=encoding)
+    _env_path.write_text(env_content, encoding=encoding)
 
 
 def detect_and_set_new_folder_env(
-    env_path: Path, initial_folders: set, data_raw_dir: Path
+    environment_path: Path, _initial_folders: set, _data_raw_dir: Path
 ):
     """
     Finds any new folder created in the data/raw directory, updates the .env file,
     and reloads the environment variables.
 
     Args:
-        env_path (Path): The path to the .env file.
-        initial_folders (set): The set of folders initially in data/raw.
-        data_raw_dir (Path): The path to the data/raw directory.
+        enviroment_path (Path): The path to the .env file.
+        _initial_folders (set): The set of folders initially in data/raw.
+        _data_raw_dir (Path): The path to the data/raw directory.
     """
-    current_folders = get_existing_folders(data_raw_dir)
-    new_folders = current_folders - initial_folders
+    current_folders = get_existing_folders(_data_raw_dir)
+    new_folders = current_folders - _initial_folders
     if new_folders:
         new_folder = new_folders.pop()  # Assuming only one new folder is created
-        update_environment_variable(env_path, "MARKET_OFFERS_TIMEPLACE", new_folder)
+        update_environment_variable(
+            environment_path, "MARKET_OFFERS_TIMEPLACE", new_folder
+        )
         # Reload the environment variables
-        load_dotenv(dotenv_path=env_path)
+        load_dotenv(dotenv_path=environment_path)
 
 
 # Capture the initial state before starting the pipeline
+
+
+def get_pipeline_error_message(_stage: str):
+    """
+    Returns an error message for missing CSV files in the data/raw directory.
+    """
+    return (
+        "Required CSV files not found in the data/raw directory.\n"
+        "Stage:\n"
+        f"{_stage}"
+        "Be sure that location query is correct: "
+        f"{os.getenv('LOCATION_QUERY')}\n"
+    )
+
 
 if __name__ == "__main__":
     data_raw_dir = Path("data/raw")
@@ -367,35 +383,54 @@ if __name__ == "__main__":
     env_path = Path(".env")
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
 
-    scraping = [str(Path("pipeline") / "src" / "a_scraping")]
-    CLEANING_STAGE = str(Path("pipeline") / "src" / "b_cleaning")
-    cleaning_sub_stages = [
-        str(Path(CLEANING_STAGE) / "a_cleaning_OLX.ipynb"),
-        str(Path(CLEANING_STAGE) / "b_cleaning_OtoDom.ipynb"),
-        str(Path(CLEANING_STAGE) / "c_combining_data.ipynb"),
-        str(Path(CLEANING_STAGE) / "d_creating_map_data.ipynb"),
-    ]
-    model_developing = [
-        str(Path("pipeline") / "src" / "c_model_developing" / "model_training.ipynb")
-    ]
-    data_visualizing = [
+    stages = [
+        str(Path("pipeline") / "src" / "a_scraping"),
+        str(Path("pipeline") / "src" / "b_cleaning" / "a_cleaning_OLX.ipynb"),
+        str(Path("pipeline") / "src" / "b_cleaning" / "b_cleaning_OtoDom.ipynb"),
+        str(Path("pipeline") / "src" / "b_cleaning" / "c_combining_data.ipynb"),
+        str(Path("pipeline") / "src" / "b_cleaning" / "d_creating_map_data.ipynb"),
+        str(Path("pipeline") / "src" / "c_model_developing" / "model_training.ipynb"),
         str(
             Path("pipeline")
             / "src"
             / "d_data_visualizing"
             / "dashboard"
             / "streamlit_app.py"
-        )
+        ),
     ]
 
-    stages = scraping + cleaning_sub_stages + model_developing + data_visualizing
-
     for stage in stages:
-        log_and_print(f"Running {stage}...")
-        run_stage(stage)
-        log_and_print(f"{stage} completed successfully.")
+        # Specific checks for cleaning stages
+        if "b_cleaning" in stage:
+            olx_exists = list(data_raw_dir.glob("olx.pl.csv"))
+            otodom_exists = list(data_raw_dir.glob("otodom.pl.csv"))
 
-        if "scraping" in stages:
+            if not (olx_exists and otodom_exists):
+                raise PipelineError(get_pipeline_error_message(stage))
+
+            # Skip stages based on file existence
+            if "a_cleaning_OLX" in stage and not olx_exists:
+                log_and_print("Skipping OLX cleaning due to missing olx.pl.csv file.")
+                continue
+            if "b_cleaning_OtoDom" in stage and not otodom_exists:
+                log_and_print(
+                    "Skipping Otodom cleaning due to missing otodom.pl.csv file."
+                )
+                continue
+
+        log_and_print(f"Running {stage}...")
+        try:
+            run_stage(stage)
+            log_and_print(f"{stage} completed successfully.")
+        except PipelineError as e:
+            log_and_print(f"Error running {stage}: {e}", logging.ERROR)
+            break  # Stop the pipeline if an error occurs
+
+        # Check for new CSV files only after the scraping stage
+        if "a_scraping" in stage:
+            csv_files = list(data_raw_dir.glob("*.csv"))
+            if not csv_files:
+                raise PipelineError(get_pipeline_error_message(stage))
             detect_and_set_new_folder_env(Path(".env"), initial_folders, data_raw_dir)
 
     log_and_print("Pipeline execution completed.")

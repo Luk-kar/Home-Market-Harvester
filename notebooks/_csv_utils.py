@@ -44,7 +44,7 @@ class DataPathCleaningManager:
                 "raw": f"{self.raw_path}\\otodom.pl.csv",
             },
             "combined": {
-                "schema": f"{self.cleaned_path}\\combined.json",
+                "schema": f"{self.cleaned_path}\\combined_df_schema.json",
                 "cleaned": f"{self.cleaned_path}\\combined.csv",
             },
             "map": {
