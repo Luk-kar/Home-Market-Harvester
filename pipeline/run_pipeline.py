@@ -193,22 +193,30 @@ def run_command(
     if env_vars:
         env.update(env_vars)
 
-    result = run(
-        command, env=env, check=False
-    )  # Use check=False to manually handle exit codes
-    if result.returncode != 0 and not ignore_exit_code:
-        raise CalledProcessError(result.returncode, command)
+    try:
+        result = run(
+            command, env=env, check=True
+        )  # Use check=False to manually handle exit codes
+    except CalledProcessError as error:
+        raise PipelineError(
+            (
+                f"Error running command:\n{error}\n"
+                f"Command:\n{command}\n"
+                f"Returncode: {result.returncode}\n"
+                f"Command:\n{command}\n"
+            )
+        )
     return result.returncode
 
 
-def run_python(script: list[str], env_vars: Optional[dict] = None):
+def run_python(script: list[str], env_vars: dict):
     """
     Run a Python script as a subprocess.
     """
     run_command(["python", script], env_vars)
 
 
-def run_ipynb(script: list[str], env_vars: Optional[dict] = None):
+def run_ipynb(script: list[str], env_vars: dict):
     """
     Run a Jupyter notebook as a subprocess by converting it to a script first.
     """
@@ -217,7 +225,7 @@ def run_ipynb(script: list[str], env_vars: Optional[dict] = None):
     )
 
 
-def run_streamlit(script: list[str], env_vars: Optional[dict] = None):
+def run_streamlit(script: list[str], env_vars: dict):
     """
     Run a Streamlit app as a subprocess.
     """
@@ -232,7 +240,7 @@ class PipelineError(Exception):
         super().__init__(self.message)
 
 
-def run_stage(_stage: str):
+def run_stage(_stage: str, env_vars: dict):
     """
     Run a stage of the pipeline.
 
@@ -245,18 +253,18 @@ def run_stage(_stage: str):
     if not Path(_stage).exists():
         raise PipelineError(f"Stage not found: {_stage}")
 
-    # https://regex101.com/r/JFd40X/1
+    # https://regex101.com/r/nY3BlO/1/r/JFd40X/1
     pattern = r"^(?!.*[/\\][^/\\]*\.[^/\\]*$).*[/\\]([^/\\]+)$"
     match_dir_path_only = re.match(pattern, _stage)
 
     exit_code = None
     try:
         if _stage.endswith(".py") or match_dir_path_only:
-            run_python(_stage)
+            run_python(_stage, env_vars)
         elif _stage.endswith(".ipynb"):
-            run_ipynb(_stage)
+            run_ipynb(_stage, env_vars)
         elif _stage.endswith(".py"):
-            run_streamlit(_stage)
+            run_streamlit(_stage, env_vars)
         else:
             raise ValueError(f"Unsupported file type: {_stage}")
 
@@ -298,19 +306,6 @@ def log_and_print(message: str, logging_level: int = logging.INFO):
     print(f"{current_time}: {message}")
 
 
-def get_existing_folders(directory: Path) -> set:
-    """
-    Returns a set of existing folder names in the given directory.
-
-    Args:
-        directory (Path): The directory to scan for folders.
-
-    Returns:
-        set: A set of folder names (as strings).
-    """
-    return {item.name for item in directory.iterdir() if item.is_dir()}
-
-
 def update_environment_variable(
     _env_path: Path, key: str, value: str, encoding: str = "utf-8"
 ):
@@ -337,41 +332,32 @@ def update_environment_variable(
     _env_path.write_text(env_content, encoding=encoding)
 
 
-def detect_and_set_new_folder_env(
-    environment_path: Path, _initial_folders: set, _data_raw_dir: Path
-):
-    """
-    Finds any new folder created in the data/raw directory, updates the .env file,
-    and reloads the environment variables.
-
-    Args:
-        enviroment_path (Path): The path to the .env file.
-        _initial_folders (set): The set of folders initially in data/raw.
-        _data_raw_dir (Path): The path to the data/raw directory.
-    """
-    current_folders = get_existing_folders(_data_raw_dir)
-    new_folders = current_folders - _initial_folders
-    if new_folders:
-        new_folder = new_folders.pop()  # Assuming only one new folder is created
-        update_environment_variable(
-            environment_path, "MARKET_OFFERS_TIMEPLACE", new_folder
-        )
-        # Reload the environment variables
-        load_dotenv(dotenv_path=environment_path)
-
-
 # Capture the initial state before starting the pipeline
 
 
-def get_pipeline_error_message(_stage: str):
+def get_existing_folders(directory: Path) -> set:
+    """
+    Returns a set of existing folder names within the specified directory.
+
+    Args:
+        directory (Path): The directory to scan for folders.
+
+    Returns:
+        set: A set containing the names of all folders found in the specified directory.
+    """
+    return {item.name for item in directory.iterdir() if item.is_dir()}
+
+
+def get_pipeline_error_message(_stage: str, data_scraped_dir: Path):
     """
     Returns an error message for missing CSV files in the data/raw directory.
     """
     return (
-        "Required CSV files not found in the data/raw directory.\n"
+        "Required CSV files not found in the data/raw directory:\n"
+        f"{data_scraped_dir}\n"
         "Stage:\n"
-        f"{_stage}"
-        "Be sure that location query is correct: "
+        f"{_stage}\n"
+        "Be sure that location query is correct:\n"
         f"{os.getenv('LOCATION_QUERY')}\n"
     )
 
@@ -402,11 +388,12 @@ if __name__ == "__main__":
     for stage in stages:
         # Specific checks for cleaning stages
         if "b_cleaning" in stage:
-            olx_exists = list(data_raw_dir.glob("olx.pl.csv"))
-            otodom_exists = list(data_raw_dir.glob("otodom.pl.csv"))
+            data_scraped_dir = data_raw_dir / os.getenv("MARKET_OFFERS_TIMEPLACE")
+            olx_exists = list(data_scraped_dir.glob("olx.pl.csv"))
+            otodom_exists = list(data_scraped_dir.glob("otodom.pl.csv"))
 
             if not (olx_exists and otodom_exists):
-                raise PipelineError(get_pipeline_error_message(stage))
+                raise PipelineError(get_pipeline_error_message(stage, data_scraped_dir))
 
             # Skip stages based on file existence
             if "a_cleaning_OLX" in stage and not olx_exists:
@@ -420,7 +407,7 @@ if __name__ == "__main__":
 
         log_and_print(f"Running {stage}...")
         try:
-            run_stage(stage)
+            run_stage(stage, os.environ)
             log_and_print(f"{stage} completed successfully.")
         except PipelineError as e:
             log_and_print(f"Error running {stage}: {e}", logging.ERROR)
@@ -428,9 +415,23 @@ if __name__ == "__main__":
 
         # Check for new CSV files only after the scraping stage
         if "a_scraping" in stage:
-            csv_files = list(data_raw_dir.glob("*.csv"))
-            if not csv_files:
-                raise PipelineError(get_pipeline_error_message(stage))
-            detect_and_set_new_folder_env(Path(".env"), initial_folders, data_raw_dir)
+            current_folders = get_existing_folders(data_raw_dir)
+            new_folders = current_folders - initial_folders
+            if new_folders and len(new_folders) == 1:
+
+                new_folder_name = new_folders.pop()
+                data_scraped_dir = data_raw_dir / new_folder_name
+                update_environment_variable(
+                    env_path, "MARKET_OFFERS_TIMEPLACE", new_folder_name
+                )
+                csv_files = list(data_scraped_dir.glob("*.csv"))
+                if not csv_files:
+                    raise PipelineError(
+                        get_pipeline_error_message(stage, data_scraped_dir)
+                    )
+            else:
+                raise PipelineError(
+                    "Expected a new folder to be created during scraping, but none was found."
+                )
 
     log_and_print("Pipeline execution completed.")
