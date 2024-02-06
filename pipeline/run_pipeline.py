@@ -193,19 +193,11 @@ def run_command(
     if env_vars:
         env.update(env_vars)
 
-    try:
-        result = run(
-            command, env=env, check=True
-        )  # Use check=False to manually handle exit codes
-    except CalledProcessError as error:
-        raise PipelineError(
-            (
-                f"Error running command:\n{error}\n"
-                f"Command:\n{command}\n"
-                f"Returncode: {result.returncode}\n"
-                f"Command:\n{command}\n"
-            )
-        )
+    result = run(
+        command, env=env, check=False
+    )  # Use check=False to manually handle exit codes
+    if result.returncode != 0 and not ignore_exit_code:
+        raise CalledProcessError(result.returncode, command)
     return result.returncode
 
 
@@ -389,6 +381,8 @@ if __name__ == "__main__":
         # Specific checks for cleaning stages
         if "b_cleaning" in stage:
             data_scraped_dir = data_raw_dir / os.getenv("MARKET_OFFERS_TIMEPLACE")
+            print("data_scraped_dir", data_scraped_dir)
+            print("MARKET_OFFERS_TIMEPLACE\n", os.getenv("MARKET_OFFERS_TIMEPLACE"))
             olx_exists = list(data_scraped_dir.glob("olx.pl.csv"))
             otodom_exists = list(data_scraped_dir.glob("otodom.pl.csv"))
 
@@ -424,6 +418,7 @@ if __name__ == "__main__":
                 update_environment_variable(
                     env_path, "MARKET_OFFERS_TIMEPLACE", new_folder_name
                 )
+                print("MARKET_OFFERS_TIMEPLACE\n", os.getenv("MARKET_OFFERS_TIMEPLACE"))
                 csv_files = list(data_scraped_dir.glob("*.csv"))
                 if not csv_files:
                     raise PipelineError(
