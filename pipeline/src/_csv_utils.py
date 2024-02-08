@@ -22,30 +22,31 @@ class DataPathCleaningManager:
         data_timeplace (str): A string identifier combining time and location.
     """
 
-    def __init__(self, data_timeplace: str):
+    def __init__(self, data_timeplace: str, project_root: Path):
         """
         Initialize the DataPathCleaningManager with a specific time and place.
 
         Args:
             data_timeplace (str): A string identifier combining time and location.
         """
-        data_dir = "..\\data"
-        self.cleaned_path = f"{data_dir}\\cleaned\\{data_timeplace}"
-        self.raw_path = f"{data_dir}\\raw\\{data_timeplace}"
+        data_folder = project_root / Path("data")
+        self.cleaned_path = Path(data_folder, "cleaned", data_timeplace)
+        self.cleaned_path = Path(data_folder, "cleaned", data_timeplace)
+        self.raw_path = Path(data_folder, "raw", data_timeplace)
 
         self.cleaning_stage_path = Path("pipeline") / "src" / "b_cleaning"
 
         self.paths = {
             "target_folder": self.cleaned_path,
             "olx": {
-                "schema": f"{self.cleaned_path}\\olx_pl_schema.json",
-                "cleaned": f"{self.cleaned_path}\\olx.pl.csv",
-                "raw": f"{self.raw_path}\\olx.pl.csv",
+                "schema": self.cleaned_path / "olx_pl_schema.json",
+                "cleaned": self.cleaned_path / "olx.pl.csv",
+                "raw": self.raw_path / "olx.pl.csv",
             },
             "otodom": {
-                "schema": f"{self.cleaned_path}\\otodom_pl_schema.json",
-                "cleaned": f"{self.cleaned_path}\\otodom.pl.csv",
-                "raw": f"{self.raw_path}\\otodom.pl.csv",
+                "schema": self.cleaned_path / "otodom_pl_schema.json",
+                "cleaned": self.cleaned_path / "otodom.pl.csv",
+                "raw": self.raw_path / "otodom.pl.csv",
             },
             "combined": {
                 # The schema is preset during the cleaning process to prevent issues
@@ -55,12 +56,12 @@ class DataPathCleaningManager:
                 # notebooks\002_data_cleaning.ipynb.
                 # Use the query with the locations with a lot of offers
                 # for the best results
-                "schema": str(self.cleaning_stage_path / "combined_df_schema.json"),
-                "cleaned": f"{self.cleaned_path}\\combined.csv",
+                "schema": self.cleaning_stage_path / "combined_df_schema.json",
+                "cleaned": self.cleaned_path / "combined.csv",
             },
             "map": {
-                "schema": f"{self.cleaned_path}\\map_df_schema.json",
-                "cleaned": f"{self.cleaned_path}\\map_df.csv",
+                "schema": self.cleaned_path / "map_df_schema.json",
+                "cleaned": self.cleaned_path / "map_df.csv",
             },
         }
 
