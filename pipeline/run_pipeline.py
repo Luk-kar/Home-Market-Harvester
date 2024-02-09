@@ -418,7 +418,6 @@ if __name__ == "__main__":
     env_path = Path(".env")
     if args.user_data_path:
         update_environment_variable(env_path, "USER_OFFERS_PATH", args.user_data_path)
-        reload_environment_variables_from_file(env_path)
 
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
 
