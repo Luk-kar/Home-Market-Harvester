@@ -1,0 +1,1 @@
+{"dtypes": {"complete_address": "string", "city": "string", "price_total": "float64", "price": "float64", "rent": "float64", "rent_sqm": "Float64", "sqm": "Int64", "is_furnished": "bool", "coords": "object"}, "index": {"index_names": "None", "index_dtypes": "int64"}}

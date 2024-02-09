@@ -11,12 +11,23 @@ from pathlib import Path
 import streamlit as st
 
 
-def set_sys_path_to_project_root(__file__):
-    root_dir = Path(__file__).resolve().parents[3]
-    sys.path.append(str(root_dir))
+def set_project_root():
+    notebooks_dir = Path.cwd()
+
+    # Calculate the root directory of the project (go up three levels)
+    project_root = notebooks_dir.parent.parent.parent
+
+    if str(project_root) not in sys.path:
+        print(f"The root directory of the project is: {project_root}")
+        sys.path.append(str(project_root))
+
+    return project_root
 
 
-set_sys_path_to_project_root(__file__)
+project_root = set_project_root()
+
+
+project_root = set_project_root(__file__)
 
 # Local imports
 from pipeline.src.d_data_visualizing.config import DATA
@@ -72,7 +83,9 @@ def load_data():
             f"The specified file does not exist.\n{user_offers_path}"
         )
 
-    data_loader = DataLoader(DATA["market_data_datetime"], user_offers_path)
+    data_loader = DataLoader(
+        DATA["market_data_datetime"], user_offers_path, project_root
+    )
 
     user_apartments_df, market_apartments_df, map_offers_df = data_loader.load_data()
 

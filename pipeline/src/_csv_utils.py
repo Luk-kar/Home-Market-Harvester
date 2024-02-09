@@ -34,7 +34,7 @@ class DataPathCleaningManager:
         self.cleaned_path = Path(data_folder, "cleaned", data_timeplace)
         self.raw_path = Path(data_folder, "raw", data_timeplace)
 
-        self.cleaning_stage_path = Path("pipeline") / "src" / "b_cleaning"
+        self.cleaning_stage_path = project_root / "pipeline" / "src" / "b_cleaning"
 
         self.paths = {
             "target_folder": self.cleaned_path,

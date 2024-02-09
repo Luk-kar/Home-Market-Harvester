@@ -1,0 +1,4 @@
+complete_address,city,price_total,price,rent,rent_sqm,sqm,is_furnished,coords
+"Przeczyce, Śląskie","Przeczyce, Śląskie",3000.0,2500.0,500.0,50.0,60,True,"(50.43381, 19.17286)"
+"Mierzęcice, Śląskie","Mierzęcice, Śląskie",2601.0,2600.0,1.0,53.08163265306123,49,True,"(50.4630448, 19.1285463)"
+"Nowa Wieś, Śląskie","Nowa Wieś, Śląskie",1701.0,1700.0,1.0,36.191489361702125,47,True,"(50.9897878, 18.700881)"

@@ -10,9 +10,11 @@ facilitating various data operations like loading data from CSV files, type conv
 and computation of additional metrics such as price per meter. 
 It also incorporates error handling for common issues encountered during data loading and parsing.
 """
+
 # Standard imports
-import pandas as pd
+from pathlib import Path
 import numpy as np
+import pandas as pd
 
 # Third-party imports
 import streamlit as st
@@ -40,10 +42,9 @@ class DataLoader:
         user_offers_path (str): The path to the CSV file containing your offers.
     """
 
-    def __init__(self, data_timeplace: str, user_offers_path: str):
-        data_path_manager = DataPathCleaningManager(data_timeplace)
+    def __init__(self, data_timeplace: str, user_offers_path: str, project_root: Path):
+        data_path_manager = DataPathCleaningManager(data_timeplace, project_root)
         self.user_offers_path = user_offers_path
-        self._update_paths(data_path_manager.paths, "..\\data", "data")
         self.data_path_manager = data_path_manager
 
     def load_data(self):
@@ -92,28 +93,6 @@ class DataLoader:
 
         raise Exception("An unspecified error occurred.")
 
-    def _update_paths(self, _dict: dict, old_str: str, new_str: str) -> None:
-        """
-        Recursively updates all string values in a nested dictionary.
-
-        Args:
-            d (dict): The dictionary to update.
-            old_str (str): The string to replace.
-            new_str (str): The string to replace with.
-
-        Returns:
-            dict: The updated dictionary.
-        """
-        for key, value in _dict.items():
-            if isinstance(value, dict):
-                self._update_paths(
-                    value, old_str, new_str
-                )  # Corrected the method name here
-            else:
-                _dict[key] = value.replace(old_str, new_str)
-
-        return _dict
-
     def _convert_data_types(self, user_apartments_df: pd.DataFrame):
         """
         Convert data types of the user apartments DataFrame.
@@ -137,8 +116,10 @@ class DataLoader:
             user_apartments_df (pd.DataFrame): A DataFrame containing your offers.
         """
         user_apartments_df["price_per_meter"] = user_apartments_df.apply(
-            lambda row: round(row["price"] / row["area"], 2)
-            if pd.notna(row["price"]) and pd.notna(row["area"])
-            else np.nan,
+            lambda row: (
+                round(row["price"] / row["area"], 2)
+                if pd.notna(row["price"]) and pd.notna(row["area"])
+                else np.nan
+            ),
             axis=1,
         )
