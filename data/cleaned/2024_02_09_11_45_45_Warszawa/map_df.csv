@@ -1,0 +1,11 @@
+complete_address,city,price_total,price,rent,rent_sqm,sqm,is_furnished,coords
+"ul. Władysława Przanowskiego 83, Ulrychów, Wola, Warszawa, mazowieckie","Warszawa, mazowieckie",3000.0,3000.0,,83.33,36.0,True,"(52.2337172, 21.071432235636493)"
+"ul. Żeglugi Wiślanej, Kobiałka, Białołęka, Warszawa, mazowieckie","Warszawa, mazowieckie",2340.0,2340.0,,45.88,51.0,True,"(52.2337172, 21.071432235636493)"
+"ul. Ostrobramska, Gocław, Praga-Południe, Warszawa, mazowieckie","Warszawa, mazowieckie",3201.0,3200.0,1.0,74.44,43.0,True,"(52.2337172, 21.071432235636493)"
+"ul. Erazma z Zakroczymia, Tarchomin, Białołęka, Warszawa, mazowieckie","Warszawa, mazowieckie",3000.0,3000.0,,47.62,63.0,True,"(52.2337172, 21.071432235636493)"
+"Warszawa, Ursynów, Mazowieckie","Warszawa, Ursynów, Mazowieckie",2800.0,2100.0,700.0,93.33,30.0,True,"(52.1103103, 20.9931266)"
+"Warszawa, Wola, Mazowieckie","Warszawa, Wola, Mazowieckie",4000.0,3250.0,750.0,108.11,37.0,True,"(52.2297939, 20.9578322)"
+"Warszawa, Białołęka, Mazowieckie","Warszawa, Białołęka, Mazowieckie",2501.0,2500.0,1.0,62.52,40.0,True,"(52.3340372, 20.9858824)"
+"Warszawa, Targówek, Mazowieckie","Warszawa, Targówek, Mazowieckie",2400.0,2400.0,,,,True,"(52.2775107, 21.0223526)"
+"Warszawa, Ursynów, Mazowieckie","Warszawa, Ursynów, Mazowieckie",3201.0,3200.0,1.0,68.11,47.0,True,"(52.1103103, 20.9931266)"
+"Warszawa, Włochy, Mazowieckie","Warszawa, Włochy, Mazowieckie",2305.0,2300.0,5.0,65.86,35.0,True,"(52.162842999999995, 20.961137557252325)"

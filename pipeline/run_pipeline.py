@@ -256,10 +256,14 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
     pattern = r"^(?!.*[/\\][^/\\]*\.[^/\\]*$).*[/\\]([^/\\]+)$"
     match_dir_path_only = re.match(pattern, _stage)
 
+    args_valid_type = None
+    if args:
+        args_valid_type = [str(arg) for arg in args] if args else None
+
     exit_code = None
     try:
         if _stage.endswith(".py") or match_dir_path_only:
-            run_python(_stage, env_vars, args)
+            run_python(_stage, env_vars, args_valid_type)
         elif _stage.endswith(".ipynb"):
             run_ipynb(_stage, env_vars)
         elif _stage.endswith(".py"):
@@ -399,6 +403,12 @@ if __name__ == "__main__":
         default=default_args["scraped_offers_cap"],
         help=f"The maximum number of offers to scrape. Defaults to {default_args['scraped_offers_cap']}.",
     )
+    parser.add_argument(
+        "--user_data_path",
+        type=str,
+        nargs="?",
+        help="The path to the user data file in CSV format to display in the dashboard.",
+    )
 
     args = parser.parse_args()
 
@@ -406,6 +416,10 @@ if __name__ == "__main__":
     initial_folders = get_existing_folders(data_raw_dir)
 
     env_path = Path(".env")
+    if args.user_data_path:
+        update_environment_variable(env_path, "USER_OFFERS_PATH", args.user_data_path)
+        reload_environment_variables_from_file(env_path)
+
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
 
     stages = [
