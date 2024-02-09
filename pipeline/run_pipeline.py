@@ -417,7 +417,7 @@ if __name__ == "__main__":
 
     env_path = Path(".env")
     if args.user_data_path:
-        normalize_user_data_path = Path(args.user_data_path).resolve()
+        normalize_user_data_path = str(Path(args.user_data_path).resolve())
         if not normalize_user_data_path.exists():
             raise ValueError(
                 f"The user data file does not exist: {normalize_user_data_path}"
