@@ -322,15 +322,25 @@ def update_environment_variable(
         encoding (str, optional): The encoding used to read and write the .env file.
     """
     env_content = _env_path.read_text(encoding=encoding)
-    new_line = f"{key}={value}\n"
-    pattern = rf"{key}=.*\n"
 
-    # If key exists, replace its line
-    if re.search(pattern, env_content):
-        env_content = re.sub(pattern, new_line, env_content)
-    else:
-        # If key doesn't exist, append it
-        env_content += new_line
+    safe_value = value.replace(
+        "\\", "\\\\"
+    )  # Escape backslashes for safe regex and file writing
+    new_line = f"{key}={safe_value}\n"
+
+    # Properly escape the key for regex pattern
+    escaped_key = re.escape(key)
+    pattern = rf"^{escaped_key}=.*\n"
+
+    try:
+        # If key exists, replace its line using a regex pattern that accounts for multiline
+        if re.search(pattern, env_content, flags=re.MULTILINE):
+            env_content = re.sub(pattern, new_line, env_content, flags=re.MULTILINE)
+        else:
+            # If key doesn't exist, append it
+            env_content += new_line
+    except re.error as error:
+        raise ValueError(f"Error in regular expression: {error}")
 
     _env_path.write_text(env_content, encoding=encoding)
 
