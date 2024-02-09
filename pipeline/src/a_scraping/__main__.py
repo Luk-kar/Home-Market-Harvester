@@ -35,20 +35,20 @@ def parse_arguments():
         description="Run the web scraper for real estate offers."
     )
     parser.add_argument(
-        "location_query",
+        "--location_query",
         type=str,
         nargs="?",
         help="Location query for scraping. E.g. 'Warszawa'",
     )
     parser.add_argument(
-        "area_radius",
+        "--area_radius",
         type=int,
         choices=VALID_AREA_RADIUS,
         nargs="?",
         help="Radius of the area for scraping in kilometers.",
     )
     parser.add_argument(
-        "scraped_offers_cap",
+        "--scraped_offers_cap",
         type=int,
         nargs="?",
         help="Maximum number of offers to scrape. E.g., 1, 10, 100, 500...",

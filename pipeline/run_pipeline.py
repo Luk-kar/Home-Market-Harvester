@@ -29,6 +29,7 @@ The order of function invocations within the script is critical to its correct o
 """
 
 # Standard imports
+import argparse
 from dotenv import load_dotenv
 from pathlib import Path
 from subprocess import run, CalledProcessError
@@ -169,9 +170,7 @@ logging.basicConfig(
 )
 
 
-def run_command(
-    command: list[str], env_vars: Optional[dict] = None, ignore_exit_code: bool = False
-) -> int:
+def run_command(command: list[str], env_vars: Optional[dict] = None) -> int:
     """
     Run a command as a subprocess with optional environment variables
     and an option to ignore non-zero exit codes.
@@ -179,14 +178,12 @@ def run_command(
     Args:
         command (list[str]): The command to run as a list of strings.
         env_vars (dict, optional): Additional environment variables to set.
-        ignore_exit_code (bool, optional): If True, non-zero exit codes will not raise an exception.
-        Defaults to False.
 
     Returns:
         int: The exit code of the subprocess.
 
     Raises:
-        CalledProcessError: If the command fails and ignore_exit_code is False.
+        CalledProcessError: If the subprocess call fails.
     """
 
     env = os.environ.copy()
@@ -196,16 +193,24 @@ def run_command(
     result = run(
         command, env=env, check=False
     )  # Use check=False to manually handle exit codes
-    if result.returncode != 0 and not ignore_exit_code:
+    if result.returncode != 0:
         raise CalledProcessError(result.returncode, command)
     return result.returncode
 
 
-def run_python(script: list[str], env_vars: dict):
+def run_python(script: str, env_vars: dict, args: Optional[list] = None):
     """
-    Run a Python script as a subprocess.
+    Run a Python script as a subprocess with optional command-line arguments.
+
+    Args:
+        script (str): The path to the Python script to run.
+        env_vars (dict): Additional environment variables to set for the script.
+        args (list, optional): A list of command-line arguments to pass to the script.
     """
-    run_command(["python", script], env_vars)
+    command = ["python", script]
+    if args:
+        command.extend(args)
+    run_command(command, env_vars)
 
 
 def run_ipynb(script: list[str], env_vars: dict):
@@ -232,12 +237,14 @@ class PipelineError(Exception):
         super().__init__(self.message)
 
 
-def run_stage(_stage: str, env_vars: dict):
+def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
     """
     Run a stage of the pipeline.
 
     Args:
         _stage (str): The path to the stage to run.
+        env_vars (dict): The environment variables to set.
+        args (list, optional): Additional arguments to pass to the stage.
 
     Raises:
         PipelineError: If the stage is not found or fails.
@@ -252,7 +259,7 @@ def run_stage(_stage: str, env_vars: dict):
     exit_code = None
     try:
         if _stage.endswith(".py") or match_dir_path_only:
-            run_python(_stage, env_vars)
+            run_python(_stage, env_vars, args)
         elif _stage.endswith(".ipynb"):
             run_ipynb(_stage, env_vars)
         elif _stage.endswith(".py"):
@@ -365,9 +372,37 @@ def get_pipeline_error_message(_stage: str, data_scraped_dir: Path):
 
 
 if __name__ == "__main__":
-    data_raw_dir = Path("data") / "raw"
-    print("data_raw_dir", data_raw_dir)
+    parser = argparse.ArgumentParser(description="Run the data processing pipeline.")
 
+    default_args = {
+        "location_query": 1500,
+        "area_radius": 25,
+        "scraped_offers_cap": 100,
+    }
+
+    parser.add_argument(
+        "--location_query",
+        type=str,
+        default=default_args["location_query"],
+        help=f"The location query for scraping. Defaults to '{default_args['location_query']}'.",
+    )
+    parser.add_argument(
+        "--area_radius",
+        type=int,
+        default=default_args["area_radius"],
+        help=f"The radius of the area for scraping in kilometers. Defaults to {default_args['area_radius']}.",
+    )
+
+    parser.add_argument(
+        "--scraped_offers_cap",
+        type=int,
+        default=default_args["scraped_offers_cap"],
+        help=f"The maximum number of offers to scrape. Defaults to {default_args['scraped_offers_cap']}.",
+    )
+
+    args = parser.parse_args()
+
+    data_raw_dir = Path("data") / "raw"
     initial_folders = get_existing_folders(data_raw_dir)
 
     env_path = Path(".env")
@@ -413,8 +448,23 @@ if __name__ == "__main__":
 
         log_and_print(f"Running {stage}...")
         try:
-            run_stage(stage, os.environ)
+            if "a_scraping" in stage:
+
+                scraping_stage_args = [
+                    "--location_query",
+                    args.location_query,
+                    "--area_radius",
+                    args.area_radius,
+                    "--scraped_offers_cap",
+                    args.scraped_offers_cap,
+                ]
+                run_stage(stage, os.environ, scraping_stage_args)
+
+            else:
+                run_stage(stage, os.environ)
+
             log_and_print(f"{stage} completed successfully.")
+
         except PipelineError as e:
             log_and_print(f"Error running {stage}: {e}", logging.ERROR)
             break  # Stop the pipeline if an error occurs
