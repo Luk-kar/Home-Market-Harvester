@@ -42,6 +42,7 @@ class ConfigManager:
             raise FileNotFoundError("The specified configuration file does not exist.")
 
         self.config_path = config_file_path
+        self.encoding = "utf-8"
 
     def read_value(self, key_to_find: str) -> str:
         """
@@ -56,13 +57,13 @@ class ConfigManager:
         Raises:
         - ConfigKeyError: If the key is not found or the value is empty.
         """
-        with open(self.config_path, "r") as file:
+        with open(self.config_path, "r", encoding=self.encoding) as file:
             for line in file:
                 if line.startswith(key_to_find):
                     key_value_pair = line.split("=", 1)
                     value = key_value_pair[1].strip()
                     is_value_emptish = value == ""
-                    if len(key_value_pair) > 1 and is_value_emptish:
+                    if len(key_value_pair) > 1 and not is_value_emptish:
                         return value
                     else:
                         raise ConfigKeyError(
@@ -82,7 +83,7 @@ class ConfigManager:
         - value: The value corresponding to the key.
         """
         lines = []
-        with open(self.config_path, "r") as file:
+        with open(self.config_path, "r", encoding=self.encoding) as file:
             lines = file.readlines()
 
         key_found = False
@@ -95,5 +96,5 @@ class ConfigManager:
         if not key_found:
             lines.append(f"{key}={value}\n")
 
-        with open(self.config_path, "w") as file:
+        with open(self.config_path, "w", encoding=self.encoding) as file:
             file.writelines(lines)

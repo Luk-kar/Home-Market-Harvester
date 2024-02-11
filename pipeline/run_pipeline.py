@@ -40,6 +40,9 @@ import os
 import re
 import sys
 
+# Local imports
+from config._config_manager import ConfigManager
+
 
 def set_sys_path_to_project_root(__file__: str):
     """
@@ -53,9 +56,6 @@ def set_sys_path_to_project_root(__file__: str):
 
 
 set_sys_path_to_project_root(__file__)
-
-# Local imports
-from pipeline.config._config_manager import ConfigManager
 
 
 def initialize_environment_settings():
