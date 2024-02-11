@@ -1,11 +1,11 @@
 # Standard imports
-from typing import Any, Literal
+from typing import Any, Dict, Literal
 import pandas as pd
 import os
 import json
 from pathlib import Path
 
-Data_Paths = dict[str, Any]
+Data_Paths = Dict[str, Any]
 Domain = Literal["olx", "otodom", "combined"], "map"
 
 data_timeplace = "2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie"
@@ -207,7 +207,7 @@ class DataPathCleaningManager:
             raise KeyError(f"Invalid domain '{domain}' specified.")
         return df
 
-    def load_schema(self, domain: Domain) -> dict:
+    def load_schema(self, domain: Domain) -> Dict:
         """
         Loads the schema information for the specified domain.
 
