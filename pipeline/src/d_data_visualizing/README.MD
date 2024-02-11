@@ -4,7 +4,9 @@ The Rent Comparison Dashboard is a Streamlit-based web application designed for 
 It provides users with insights into the real estate market,
 allowing them to evaluate and compare their own rental offers with the current market trends.
 Ultimately, the dashboard accepts arguments from environment variables:
-`USER_OFFERS_PATH`, `MARKET_OFFERS_TIMEPLACE`, `MODEL_PATH`
+`USER_OFFERS_PATH`, `MODEL_PATH`
+and the `run_pipeline.conf`
+`MARKET_OFFERS_TIMEPLACE`
 
 ## 🔨 Usage
 

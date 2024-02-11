@@ -9,9 +9,13 @@ from os import getenv
 from pathlib import Path
 
 # Local imports
-from pipeline.src._csv_utils import (
-    data_timeplace,
-)
+from pipeline.config._config_manager import ConfigManager
+
+config_file = ConfigManager("run_pipeline.conf")
+TIMEPLACE = "MARKET_OFFERS_TIMEPLACE"
+data_timeplace = config_file.read_value(TIMEPLACE)
+if not data_timeplace:
+    raise ValueError(f"The environment variable {TIMEPLACE} is not set.")
 
 
 def _warn_default_usage(env_var_name):
@@ -29,7 +33,7 @@ _MODEL_PATH_DEFAULT = str(
 
 DATA = {
     "user_data_path": getenv("USER_OFFERS_PATH", _USER_DATA_PATH_DEFAULT),
-    "market_data_datetime": getenv("MARKET_OFFERS_TIMEPLACE", data_timeplace),
+    "market_data_datetime": data_timeplace,
 }
 
 MODEL = {
@@ -39,9 +43,6 @@ MODEL = {
 # Warning messages
 if DATA["user_data_path"] == _USER_DATA_PATH_DEFAULT:
     _warn_default_usage("USER_OFFERS_PATH")
-
-if DATA["market_data_datetime"] == data_timeplace:
-    _warn_default_usage("MARKET_OFFERS_TIMEPLACE")
 
 if MODEL["model_path"] == _MODEL_PATH_DEFAULT:
     _warn_default_usage("MODEL_PATH")

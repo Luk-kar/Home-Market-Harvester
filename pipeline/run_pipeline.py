@@ -54,6 +54,9 @@ def set_sys_path_to_project_root(__file__: str):
 
 set_sys_path_to_project_root(__file__)
 
+# Local imports
+from pipeline.config._config_manager import ConfigManager
+
 
 def initialize_environment_settings():
     """
@@ -73,7 +76,6 @@ def initialize_environment_settings():
     env_content = (
         # A structure example
         f"USER_OFFERS_PATH={str(Path('data') / 'test' / 'your_offers.csv')}\n"
-        "MARKET_OFFERS_TIMEPLACE=\n"  # To be created after the scraping stage
         "MODEL_PATH=model.pkl\n"  # To be created after model training
         "LOCATION_QUERY=Warszawa\n"  # Be sure that location fits the query
         "AREA_RADIUS=25\n"  # 0, 5, 10, 15, 25, 50, 75
@@ -345,19 +347,6 @@ def update_environment_variable(
     _env_path.write_text(env_content, encoding=encoding)
 
 
-def reload_environment_variables_from_file(_env_path: Path):
-    """
-    Reloads environment variables from the .env file.
-
-    Args:
-        _env_path (Path): The path to the .env file.
-    """
-    load_dotenv(_env_path, override=True)
-
-
-# Capture the initial state before starting the pipeline
-
-
 def get_existing_folders(directory: Path) -> set:
     """
     Returns a set of existing folder names within the specified directory.
@@ -438,6 +427,9 @@ if __name__ == "__main__":
 
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
 
+    # The ipynb files have problems with reading updated environment variables
+    config_file = ConfigManager("run_pipeline.conf")
+
     stages = [
         str(Path("pipeline") / "src" / "a_scraping"),
         str(Path("pipeline") / "src" / "b_cleaning" / "a_cleaning_OLX.ipynb"),
@@ -458,7 +450,7 @@ if __name__ == "__main__":
         # Specific checks for cleaning stages
         if "b_cleaning" in stage:
             # It used the old env value
-            MARKET_OFFERS_TIMEPLACE = os.getenv("MARKET_OFFERS_TIMEPLACE")
+            MARKET_OFFERS_TIMEPLACE = config_file.read_value("MARKET_OFFERS_TIMEPLACE")
             data_scraped_dir = Path(data_raw_dir) / str(MARKET_OFFERS_TIMEPLACE)
             olx_exists = list(data_scraped_dir.glob("olx.pl.csv"))
             otodom_exists = list(data_scraped_dir.glob("otodom.pl.csv"))
@@ -513,11 +505,7 @@ if __name__ == "__main__":
                     raise PipelineError(
                         get_pipeline_error_message(stage, data_scraped_dir)
                     )
-
-                update_environment_variable(
-                    env_path, "MARKET_OFFERS_TIMEPLACE", new_folder_name
-                )
-                reload_environment_variables_from_file(env_path)
+                config_file.write_value("MARKET_OFFERS_TIMEPLACE", new_folder_name)
             else:
                 raise PipelineError(
                     "Expected a new folder to be created during scraping, but none was found."
