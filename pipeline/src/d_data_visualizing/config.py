@@ -11,11 +11,23 @@ from pathlib import Path
 # Local imports
 from pipeline.config._config_manager import ConfigManager
 
-config_file = ConfigManager("run_pipeline.conf")
-TIMEPLACE = "MARKET_OFFERS_TIMEPLACE"
-data_timeplace = config_file.read_value(TIMEPLACE)
-if not data_timeplace:
-    raise ValueError(f"The environment variable {TIMEPLACE} is not set.")
+
+def load_timeplace():
+    """
+    Load the time and place of the market data from the configuration file.
+    """
+
+    config_file = ConfigManager("run_pipeline.conf")
+    TIMEPLACE = "MARKET_OFFERS_TIMEPLACE"
+    data_timeplace = config_file.read_value(TIMEPLACE)
+
+    if not data_timeplace:
+        raise ValueError(f"The configuration variable {TIMEPLACE} is not set.")
+
+    return data_timeplace
+
+
+data_timeplace = load_timeplace()
 
 
 def _warn_default_usage(env_var_name):
