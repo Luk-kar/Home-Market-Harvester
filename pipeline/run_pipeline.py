@@ -285,11 +285,13 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
 
     exit_code = None
     try:
-        if _stage.endswith(".py") or match_dir_path_only:
+        if (
+            _stage.endswith(".py") and not _stage.endswith("streamlit_app.py")
+        ) or match_dir_path_only:
             run_python(_stage, env_vars, args_valid_type)
         elif _stage.endswith(".ipynb"):
             run_ipynb(_stage, env_vars)
-        elif _stage.endswith(".py"):
+        elif _stage.endswith("streamlit_app.py"):
             run_streamlit(_stage, env_vars)
         else:
             raise ValueError(f"Unsupported file type: {_stage}")

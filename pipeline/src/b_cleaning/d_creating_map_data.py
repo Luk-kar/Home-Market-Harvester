@@ -9,6 +9,7 @@ import pandas as pd
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 # Third-party imports
+import enlighten
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 from geopy.geocoders import Nominatim
 
@@ -21,7 +22,7 @@ def set_project_root() -> Path:
     Returns:
         Path: The root directory of the project.
     """
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     if str(project_root) not in sys.path:
         print(f"The root directory of the project is: {project_root}")
         sys.path.append(str(project_root))
@@ -82,11 +83,34 @@ def add_geo_data_to_offers(df: pd.DataFrame, geolocator) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The offers DataFrame with geographical data.
     """
-    df_temp = df.copy()
-    df_temp["coords"] = df_temp[("location", "complete_address")].apply(
-        lambda addr: get_coordinates(geolocator, addr)
+    df_temp = pd.DataFrame()
+    df_temp["complete_address"] = df[("location", "complete_address")]
+    df_temp["city"] = df[("location", "city")] + ", " + df[("location", "voivodeship")]
+
+    # Create unique address list
+    unique_addresses = df_temp["complete_address"].unique()
+    address_coords = {}
+
+    manager = enlighten.get_manager()
+    address_bar = manager.counter(
+        total=len(unique_addresses), desc="Processing", unit="addresses"
     )
-    return df_temp
+
+    for address in unique_addresses:
+        coords = get_coordinates(geolocator, address)
+        if coords == (None, None):
+            # If coordinates for the complete address are not found, try with city
+            city = df_temp[df_temp["complete_address"] == address]["city"].values[0]
+            coords = get_coordinates(geolocator, city)
+        address_coords[address] = coords
+        address_bar.update()
+
+    manager.stop()
+
+    # Map the coordinates back to the DataFrame
+    coords = df_temp["complete_address"].map(address_coords)
+
+    return coords
 
 
 def get_recent_data_timeplace():
@@ -100,7 +124,9 @@ def get_recent_data_timeplace():
         ValueError: If the configuration variable is not set.
     """
 
-    config_file = ConfigManager(project_root / "run_pipeline.conf")
+    config_file = ConfigManager(
+        str(project_root / "pipeline" / "config" / "run_pipeline.conf")
+    )
     TIMEPLACE = "MARKET_OFFERS_TIMEPLACE"
     data_timeplace = config_file.read_value(TIMEPLACE)
 
@@ -109,14 +135,40 @@ def get_recent_data_timeplace():
     return data_timeplace
 
 
+def filter_columns(df: pd.DataFrame):
+    """
+    Filter the columns of the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to filter.
+
+    Returns:
+        pd.DataFrame: The filtered DataFrame.
+    """
+
+    df_temp = pd.DataFrame()
+    df_temp["complete_address"] = df[("location", "complete_address")]
+    df_temp["city"] = df[("location", "city")] + ", " + df[("location", "voivodeship")]
+    df_temp["price_total"] = df[("pricing", "total_rent")]
+    df_temp["price"] = df[("pricing", "price")]
+    df_temp["rent"] = df[("pricing", "rent")]
+    df_temp["rent_sqm"] = df[("pricing", "total_rent_sqm")]
+    df_temp["sqm"] = df[("size", "square_meters")]
+    df_temp["is_furnished"] = df[("equipment", "furniture")]
+
+    return df_temp
+
+
 def main():
     data_timeplace = get_recent_data_timeplace()
 
     data_path_manager = DataPathCleaningManager(data_timeplace, project_root)
     combined_df = data_path_manager.load_df(domain="combined", is_cleaned=True)
 
+    map_df = filter_columns(combined_df)
+
     geolocator = get_geolocator(user_agent="your_app_name")
-    map_df = add_geo_data_to_offers(combined_df, geolocator)
+    map_df["coords"] = add_geo_data_to_offers(combined_df, geolocator)
 
     data_path_manager.save_df(map_df, "map")
 

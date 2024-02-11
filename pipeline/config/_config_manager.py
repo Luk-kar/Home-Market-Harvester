@@ -39,7 +39,12 @@ class ConfigManager:
 
         config_file_path = os.path.join(file_dir, config_name)
         if not os.path.exists(config_file_path):
-            raise FileNotFoundError("The specified configuration file does not exist.")
+            raise FileNotFoundError(
+                (
+                    "The specified configuration file does not exist:\n"
+                    f"{config_file_path}\n"
+                )
+            )
 
         self.config_path = config_file_path
         self.encoding = "utf-8"
