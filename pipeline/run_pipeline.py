@@ -215,13 +215,34 @@ def run_python(script: str, env_vars: dict, args: Optional[list] = None):
     run_command(command, env_vars)
 
 
-def run_ipynb(script: list[str], env_vars: dict):
+def run_ipynb(_stage: str, env_vars: dict):
     """
     Run a Jupyter notebook as a subprocess by converting it to a script first.
+    The execution uses the `pipenv` environment.
+
+    Args:
+        _stage (str): The path to the Jupyter notebook to run.
+        env_vars (dict): Additional environment variables to set for the notebook.
     """
-    run_command(
-        ["jupyter", "nbconvert", "--to", "script", script, "--execute"], env_vars
-    )
+
+    notebook_path = Path(_stage).resolve()
+
+    # Command to convert and execute the notebook using nbconvert within pipenv
+    command = [
+        "pipenv",
+        "run",
+        "jupyter",
+        "nbconvert",
+        "--to",
+        "script",
+        "--execute",
+        "--output-dir",
+        str(notebook_path.parent),
+        str(notebook_path),
+    ]
+
+    # Run the command
+    run_command(command, env_vars)
 
 
 def run_streamlit(script: list[str], env_vars: dict):
@@ -435,7 +456,7 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "b_cleaning" / "a_cleaning_OLX.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "b_cleaning_OtoDom.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "c_combining_data.ipynb"),
-        str(Path("pipeline") / "src" / "b_cleaning" / "d_creating_map_data.ipynb"),
+        str(Path("pipeline") / "src" / "b_cleaning" / "d_creating_map_data.py"),
         str(Path("pipeline") / "src" / "c_model_developing" / "model_training.ipynb"),
         str(
             Path("pipeline")
@@ -445,6 +466,8 @@ if __name__ == "__main__":
             / "streamlit_app.py"
         ),
     ]
+
+    pipeline_success = True
 
     for stage in stages:
         # Specific checks for cleaning stages
@@ -489,6 +512,7 @@ if __name__ == "__main__":
 
         except PipelineError as e:
             log_and_print(f"Error running {stage}: {e}", logging.ERROR)
+            pipeline_success = False
             break  # Stop the pipeline if an error occurs
 
         # Check for new CSV files only after the scraping stage
@@ -510,5 +534,8 @@ if __name__ == "__main__":
                 raise PipelineError(
                     "Expected a new folder to be created during scraping, but none was found."
                 )
+    else:
+        log_and_print("Pipeline execution interrupted.", logging.ERROR)
 
-    log_and_print("Pipeline execution completed.")
+    if pipeline_success:
+        log_and_print("Pipeline execution completed.")
