@@ -6,12 +6,10 @@ of the scraper in a live web environment.
 
 # Standard imports
 from typing import Set
-from unittest.mock import patch
 import csv
 import datetime
 import os
 import shutil
-import sys
 import unittest
 
 # Third-party imports
