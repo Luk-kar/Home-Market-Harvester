@@ -1,3 +1,12 @@
+"""
+This module provides a comprehensive pipeline for processing and analyzing property data, 
+aimed at preparing the data for machine learning modeling, specifically linear regression analysis. 
+The pipeline includes functions for setting the project root directory, loading cleaned data, 
+filtering rows based on predefined criteria, preprocessing features 
+(including creating dummy variables and imputing missing values), 
+and training a linear regression model to predict property prices.
+"""
+
 # Standard library imports
 from datetime import datetime
 from pathlib import Path
@@ -51,7 +60,7 @@ def load_data(project_root: str, data_timeplace: str) -> pd.DataFrame:
     return df
 
 
-def get_current_scraped_folder_name():
+def get_current_scraped_folder_name() -> str:
     """
     Get the current scraped folder name from the configuration file.
 
@@ -68,13 +77,23 @@ def get_current_scraped_folder_name():
     return data_timeplace
 
 
-def filter_data(df):
+def filter_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters the DataFrame to include only relevant rows for modeling.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the data to filter.
+
+    Returns:
+        pd.DataFrame: A new DataFrame containing only the relevant rows.
+    """
     return df[df.apply(filter_relevant_rows, axis=1)].copy()
 
 
-def filter_relevant_rows(row):
+def filter_relevant_rows(row: pd.Series) -> bool:
     """
-    Determines whether a row meets specific conditions related to property location and characteristics.
+    Determines whether a row meets specific conditions
+    related to property location and characteristics.
 
     Args:
         row (pd.Series): A row from a DataFrame representing property data.
@@ -149,7 +168,8 @@ def preprocess_features(
     df: pd.DataFrame,
 ) -> Tuple[pd.DataFrame, np.ndarray]:
     """
-    Preprocesses DataFrame features for modeling, including dummy variable creation and missing value imputation.
+    Preprocesses DataFrame features for modeling,
+    including dummy variable creation and missing value imputation.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the data to model.
@@ -185,17 +205,15 @@ def preprocess_features(
 
     knn_imputer = KNNImputer(n_neighbors=5)
     X_imputed = knn_imputer.fit_transform(X).astype(float)
-    # X_imputed_df = pd.DataFrame(X_imputed, columns=X.columns)
-
-    # TODO Fix the wrong
+    X_imputed_df = pd.DataFrame(X_imputed, columns=X.columns)
 
     print("X:\n", X)
-    print("X_imputed:\n", X_imputed)
+    print("X_imputed_df:\n", X_imputed_df)
 
-    return X_imputed, Y.values, X
+    return X_imputed_df, Y.values
 
 
-def select_columns_for_modeling(df):
+def select_columns_for_modeling(df: pd.DataFrame) -> pd.DataFrame:
     """
     Selects and preprocesses a subset of columns from the DataFrame for modeling.
 
@@ -221,7 +239,8 @@ def select_columns_for_modeling(df):
 
 def drop_multi_level_indexing(columns: pd.MultiIndex) -> pd.Index:
     """
-    Drops the top level of a multi-level index in a pandas MultiIndex object, simplifying it to a single-level Index.
+    Drops the top level of a multi-level index in a pandas MultiIndex object,
+    simplifying it to a single-level Index.
 
     Args:
         columns (pd.MultiIndex): A pandas MultiIndex object from a DataFrame.
@@ -245,7 +264,8 @@ def train_model(X_train: pd.DataFrame, Y_train: np.ndarray):
     Trains a linear regression model using the provided training feature set and target values.
 
     Args:
-        X_train (pd.DataFrame): The feature matrix as a pandas DataFrame with shape (n_samples, n_features).
+        X_train (pd.DataFrame): The feature matrix as a pandas DataFrame
+                                with shape (n_samples, n_features).
         Y_train (np.ndarray): The target values as a NumPy array with shape (n_samples,).
 
     Returns:
@@ -272,7 +292,8 @@ def save_model(project_root: Path, data_timeplace, model, X_train):
         project_root (Path):   The root directory of the project as a Path object.
                                This is where the model directory will be created.
 
-        data_timeplace (str):  A string identifier for the specific model version or training instance.
+        data_timeplace (str):  A string identifier for the specific model version
+                               or training instance.
                                This is used to create a unique directory for saving the model.
 
         model (BaseEstimator): The trained model object.
@@ -305,13 +326,13 @@ def main():
     df = load_data(project_root, data_timeplace)
 
     df_filtered = filter_data(df)
-    X, Y, X_df = preprocess_features(df_filtered)
+    X, Y = preprocess_features(df_filtered)
     X_train, X_test, Y_train, Y_test = train_test_split(
-        X, Y, test_size=0.2, random_state=42
+        X.values, Y, test_size=0.2, random_state=42
     )
 
     model = train_model(X_train, Y_train)
-    save_model(project_root, data_timeplace, model, X_df)
+    save_model(project_root, data_timeplace, model, X)
 
 
 if __name__ == "__main__":
