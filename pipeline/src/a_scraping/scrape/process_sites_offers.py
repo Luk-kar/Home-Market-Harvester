@@ -55,7 +55,7 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
         offers_cap = search_criteria["scraped_offers_cap"]
 
         progress = enlighten.Counter(
-            desc="Total progress",
+            desc="Scraping Offers",
             unit="offers",
             color="green",
             total=offers_cap,

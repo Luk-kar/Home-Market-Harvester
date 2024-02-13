@@ -29,16 +29,17 @@ The order of function invocations within the script is critical to its correct o
 """
 
 # Standard imports
-import argparse
+from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
-from subprocess import run, CalledProcessError
 from typing import Optional
-from datetime import datetime
+import argparse
 import logging
 import os
 import re
+import subprocess
 import sys
+import time
 
 # Local imports
 from config._config_manager import ConfigManager
@@ -184,18 +185,18 @@ def run_command(command: list[str], env_vars: Optional[dict] = None) -> int:
         int: The exit code of the subprocess.
 
     Raises:
-        CalledProcessError: If the subprocess call fails.
+        subprocess.CalledProcessError: If the subprocess call fails.
     """
 
     env = os.environ.copy()
     if env_vars:
         env.update(env_vars)
 
-    result = run(
+    result = subprocess.run(
         command, env=env, check=False
     )  # Use check=False to manually handle exit codes
     if result.returncode != 0:
-        raise CalledProcessError(result.returncode, command)
+        raise subprocess.CalledProcessError(result.returncode, command)
     return result.returncode
 
 
@@ -246,9 +247,54 @@ def run_ipynb(_stage: str, env_vars: dict):
 
 def run_streamlit(script: list[str], env_vars: dict):
     """
-    Run a Streamlit app as a subprocess.
+    Run a Streamlit app as a subprocess and monitor its output to log when it's successfully initialized.
+
+    Args:
+        script (str): The path to the Streamlit script.
+        env_vars (dict): Environment variables to set for the subprocess.
+
+    WARNING:
+        This function starts the Streamlit server as a non-blocking concurrent process.
+        It is important to manage this process by monitoring its output for successful initialization
+        and ensuring it is properly terminated when no longer needed.
+        Failure to terminate the Streamlit process can result in resource leaks
+        and unintended operation of the application.
+        It is recommended to track the process ID and implement
+        a mechanism to terminate the process based on the application's lifecycle or user action.
     """
-    run_command(["streamlit", "run", script], env_vars)
+    env = os.environ.copy()
+    env.update(env_vars)
+
+    # Start Streamlit as a subprocess and capture its output
+    process = subprocess.Popen(
+        ["streamlit", "run", script],
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        universal_newlines=True,
+    )
+
+    # Monitor the subprocess output for a success message
+    while True:
+        output = process.stdout.readline()
+        print(output, end="")  # Optional: print Streamlit's output to console
+        if "You can now view your Streamlit app in your browser." in output:
+            log_and_print("Streamlit app initialized successfully.")
+            # WARNING about concurrent process management
+            log_and_print(
+                "WARNING: Streamlit app is running as a concurrent process. "
+                "Ensure it is terminated appropriately when no longer needed.",
+                logging.WARNING,
+            )
+            break
+        if process.poll() is not None:
+            log_and_print("Streamlit app failed to start.", logging.ERROR)
+            break
+        time.sleep(0.1)  # Avoid busy waiting
+
+    return process
 
 
 class PipelineError(Exception):
@@ -268,6 +314,9 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
         env_vars (dict): The environment variables to set.
         args (list, optional): Additional arguments to pass to the stage.
 
+    Returns:
+        subprocess.Popen: The process object for the Streamlit app, if applicable.
+
     Raises:
         PipelineError: If the stage is not found or fails.
     """
@@ -282,7 +331,9 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
     if args:
         args_valid_type = [str(arg) for arg in args] if args else None
 
+    process = None
     exit_code = None
+
     try:
         if (
             _stage.endswith(".py") and not _stage.endswith("streamlit_app.py")
@@ -291,7 +342,7 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
         elif _stage.endswith(".ipynb"):
             run_ipynb(_stage, env_vars)
         elif _stage.endswith("streamlit_app.py"):
-            run_streamlit(_stage, env_vars)
+            process = run_streamlit(_stage, env_vars)
         else:
             raise ValueError(f"Unsupported file type: {_stage}")
 
@@ -300,11 +351,13 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
                 f"Stage {_stage} completed with exit code {exit_code}.", logging.WARNING
             )
 
-    except CalledProcessError as error:
+    except subprocess.CalledProcessError as error:
         log_and_print(
             f"Error in {_stage} with exit code {error.returncode}.", logging.ERROR
         )
         raise PipelineError(f"Error in {_stage}. Exiting pipeline.") from error
+
+    return process
 
 
 def log_and_print(message: str, logging_level: int = logging.INFO):
@@ -462,7 +515,7 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "d_data_visualizing" / "streamlit_app.py"),
     ]
 
-    pipeline_success = True
+    streamlit_process = None
 
     for stage in stages:
         # Specific checks for cleaning stages
@@ -487,6 +540,7 @@ if __name__ == "__main__":
                 continue
 
         log_and_print(f"Running {stage}...")
+
         try:
             if "a_scraping" in stage:
 
@@ -500,6 +554,38 @@ if __name__ == "__main__":
                 ]
                 run_stage(stage, os.environ, scraping_stage_args)
 
+            elif "streamlit_app" in stage:
+                streamlit_process = run_stage(stage, os.environ)
+
+                print(
+                    "Type 'stop' and press Enter to terminate the Dashboard and its server:"
+                )
+                stop_command = "stop"
+                user_input = None
+
+                try:
+                    while user_input != stop_command:
+                        user_input = input().strip().lower()
+                        if user_input == stop_command:
+                            streamlit_process.terminate()
+
+                            # Optionally, wait for the process to terminate before continuing
+                            streamlit_process.wait()
+
+                            log_and_print("Dashboard has been terminated.")
+                            break
+                        else:
+                            print(
+                                "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
+                            )
+
+                except KeyboardInterrupt:
+                    print("\nCtrl+C detected. Terminating the Dashboard...")
+                    streamlit_process.terminate()  # Terminate the Streamlit process
+                    streamlit_process.wait()  # Optionally, wait for the process to terminate
+                    log_and_print("Dashboard has been terminated due to Ctrl+C.")
+                    sys.exit(1)
+
             else:
                 run_stage(stage, os.environ)
 
@@ -507,7 +593,6 @@ if __name__ == "__main__":
 
         except PipelineError as e:
             log_and_print(f"Error running {stage}: {e}", logging.ERROR)
-            pipeline_success = False
             break  # Stop the pipeline if an error occurs
 
         # Check for new CSV files only after the scraping stage
@@ -530,7 +615,6 @@ if __name__ == "__main__":
                     "Expected a new folder to be created during scraping, but none was found."
                 )
     else:
-        log_and_print("Pipeline execution interrupted.", logging.ERROR)
-
-    if pipeline_success:
+        # if the loop completes without breaking,
+        # the pipeline has finished successfully
         log_and_print("Pipeline execution completed.")

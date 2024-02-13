@@ -92,7 +92,7 @@ def add_geo_data_to_offers(df: pd.DataFrame, geolocator) -> pd.DataFrame:
 
     manager = enlighten.get_manager()
     address_bar = manager.counter(
-        total=len(unique_addresses), desc="Processing", unit="addresses"
+        total=len(unique_addresses), desc="Geocoding Addresses", unit="addresses"
     )
 
     for address in unique_addresses:
