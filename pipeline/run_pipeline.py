@@ -386,9 +386,7 @@ def log_and_print(message: str, logging_level: int = logging.INFO):
     print(f"{current_time}: {message}")
 
 
-def update_environment_variable(
-    _env_path: Path, key: str, value: str, encoding: str = "utf-8"
-):
+def update_environment_variable(_env_path: Path, key: str, value: str):
     """
     Updates or adds an environment variable in the .env file.
 
@@ -396,8 +394,8 @@ def update_environment_variable(
         _env_path (Path): The path to the .env file.
         key (str): The environment variable key to update.
         value (str): The new value for the environment variable.
-        encoding (str, optional): The encoding used to read and write the .env file.
     """
+    encoding = "utf-8"
     env_content = _env_path.read_text(encoding=encoding)
 
     safe_value = value.replace(
@@ -449,7 +447,13 @@ def get_pipeline_error_message(_stage: str, data_scraped_dir: Path):
     )
 
 
-if __name__ == "__main__":
+def parse_arguments() -> argparse.Namespace:
+    """
+    Parse command-line arguments for the pipeline.
+
+    Returns:
+        argparse.Namespace: The parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(description="Run the data processing pipeline.")
 
     default_args = {
@@ -485,20 +489,41 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    return args
+
+
+def set_user_data_path_env_var(
+    args: argparse.Namespace, env_path: Path, env_var_name: str = "USER_OFFERS_PATH"
+) -> None:
+    """
+    Validates the user data file path provided in command line arguments
+    and updates the corresponding environment variable
+    in the .env file with this path.
+
+    Args:
+        args (argparse.Namespace): Parsed command line arguments containing the user data file path.
+        env_path (Path): Path object pointing to the .env configuration file.
+        env_var_name: The name of the environment variable to update with the user data path. Defaults to "USER_OFFERS_PATH".
+
+    Raises:
+        FileNotFoundError: If the specified user data file does not exist at the provided path.
+    """
+    user_data_path = Path(args.user_data_path).resolve()
+    if not user_data_path.exists():
+        raise ValueError(f"The user data file does not exist: {user_data_path}")
+    update_environment_variable(env_path, env_var_name, str(user_data_path))
+
+
+if __name__ == "__main__":
+
+    args = parse_arguments()
 
     data_raw_dir = Path("data") / "raw"
     initial_folders = get_existing_folders(data_raw_dir)
 
     env_path = Path(".env")
     if args.user_data_path:
-        normalize_user_data_path = Path(args.user_data_path).resolve()
-        if not normalize_user_data_path.exists():
-            raise ValueError(
-                f"The user data file does not exist: {normalize_user_data_path}"
-            )
-        update_environment_variable(
-            env_path, "USER_OFFERS_PATH", str(normalize_user_data_path)
-        )
+        set_user_data_path_env_var(args, env_path, "USER_OFFERS_PATH")
 
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
 
