@@ -36,6 +36,11 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# nbconvert preprocessor - translations of notebook to the Python script
+a_cleaning_OLX.py
+b_cleaning_OtoDom.py
+c_combining_data.py
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

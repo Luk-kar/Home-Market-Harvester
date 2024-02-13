@@ -4,6 +4,7 @@ This module contains functions for statistical analysis of the data.
 
 # Third-party imports
 import pandas as pd
+import numpy as np
 
 # Local imports
 from pipeline.src.d_data_visualizing.config import MODEL
@@ -146,12 +147,30 @@ def calculate_yours_price_percentile_against_others(
 ) -> pd.Series:
     """
     Calculate the percentile of user the price compared to the market offers.
+
+    Args:
+        apartments_df (pd.DataFrame): A DataFrame containing offers data.
+        market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
+
+    Returns:
+        pd.Series: A Series containing the percentile of user the price compared to the market offers.
     """
 
     def calculate_percentile(row, prices_series):
-        return prices_series[prices_series <= row["your_price"]].count() / len(
-            prices_series
-        )
+
+        if pd.isna(row["your_price"]) or len(prices_series) == 0:
+            return np.nan
+
+        # Calculate the percentile
+        count = prices_series[prices_series <= row["your_price"]].count()
+        total = len(prices_series)
+
+        has_data = total > 0
+
+        if has_data:
+            return count / total
+        else:
+            return np.nan
 
     furnished_prices = market_apartments_df[
         market_apartments_df["equipment"]["furniture"] == True

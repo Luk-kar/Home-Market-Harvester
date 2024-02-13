@@ -30,7 +30,6 @@ def set_project_root() -> Path:
     """
     project_root = Path(__file__).resolve().parents[3]
     if str(project_root) not in sys.path:
-        print(f"The root directory of the project is: {project_root}")
         sys.path.append(str(project_root))
     return project_root
 
@@ -207,9 +206,6 @@ def preprocess_features(
     X_imputed = knn_imputer.fit_transform(X).astype(float)
     X_imputed_df = pd.DataFrame(X_imputed, columns=X.columns)
 
-    print("X:\n", X)
-    print("X_imputed_df:\n", X_imputed_df)
-
     return X_imputed_df, Y.values
 
 
@@ -259,7 +255,7 @@ def drop_multi_level_indexing(columns: pd.MultiIndex) -> pd.Index:
     return columns.droplevel(0)
 
 
-def train_model(X_train: pd.DataFrame, Y_train: np.ndarray):
+def train_model(X_train: pd.DataFrame, Y_train: np.ndarray) -> LinearRegression:
     """
     Trains a linear regression model using the provided training feature set and target values.
 
@@ -276,10 +272,15 @@ def train_model(X_train: pd.DataFrame, Y_train: np.ndarray):
         X_train.columns.tolist() if isinstance(X_train, pd.DataFrame) else None
     )
 
-    model = LinearRegression().fit(X_train, Y_train)
-
-    if feature_names:
+    if not feature_names:
+        raise ValueError(
+            "The feature names could not be determined.\n"
+            "The feature matrix must be a DataFrame."
+        )
+    else:
         print("Model trained with feature names:", feature_names)
+
+    model = LinearRegression().fit(X_train, Y_train)
 
     return model
 
@@ -328,7 +329,7 @@ def main():
     df_filtered = filter_data(df)
     X, Y = preprocess_features(df_filtered)
     X_train, X_test, Y_train, Y_test = train_test_split(
-        X.values, Y, test_size=0.2, random_state=42
+        X, Y, test_size=0.2, random_state=42
     )
 
     model = train_model(X_train, Y_train)

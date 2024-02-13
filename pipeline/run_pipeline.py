@@ -459,13 +459,7 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "b_cleaning" / "c_combining_data.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "d_creating_map_data.py"),
         str(Path("pipeline") / "src" / "c_model_developing" / "model_training.py"),
-        str(
-            Path("pipeline")
-            / "src"
-            / "d_data_visualizing"
-            / "dashboard"
-            / "streamlit_app.py"
-        ),
+        str(Path("pipeline") / "src" / "d_data_visualizing" / "streamlit_app.py"),
     ]
 
     pipeline_success = True

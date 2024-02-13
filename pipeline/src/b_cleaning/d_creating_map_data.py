@@ -24,7 +24,6 @@ def set_project_root() -> Path:
     """
     project_root = Path(__file__).resolve().parents[3]
     if str(project_root) not in sys.path:
-        print(f"The root directory of the project is: {project_root}")
         sys.path.append(str(project_root))
     return project_root
 

@@ -396,9 +396,11 @@ class BarChartVisualizer:
         sns.barplot(
             x="Category",
             y="Value",
+            hue="Category",
             data=df,
             ax=axis,
             palette=self.display_settings["palette"],
+            legend=False,
         )
 
         self._set_plot_aesthetics(axis, title=title, xlabel=xlabel, ylabel=ylabel)
