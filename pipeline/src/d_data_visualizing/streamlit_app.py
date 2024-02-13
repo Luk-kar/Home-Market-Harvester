@@ -11,23 +11,21 @@ from pathlib import Path
 import streamlit as st
 
 
-def set_project_root():
-    notebooks_dir = Path.cwd()
+def set_project_root() -> Path:
+    """
+    Sets the project root and appends it to the system path.
 
-    # Calculate the root directory of the project (go up three levels)
-    project_root = notebooks_dir.parent.parent.parent
-
+    Returns:
+        Path: The root directory of the project.
+    """
+    project_root = Path(__file__).resolve().parents[3]
     if str(project_root) not in sys.path:
         print(f"The root directory of the project is: {project_root}")
         sys.path.append(str(project_root))
-
     return project_root
 
 
 project_root = set_project_root()
-
-
-project_root = set_project_root(__file__)
 
 # Local imports
 from pipeline.src.d_data_visualizing.config import DATA

@@ -29,6 +29,9 @@ def load_timeplace():
 
 data_timeplace = load_timeplace()
 
+if not data_timeplace:
+    raise ValueError("The configuration variable MARKET_OFFERS_TIMEPLACE is not set.")
+
 
 def _warn_default_usage(env_var_name):
     print(
@@ -39,9 +42,6 @@ def _warn_default_usage(env_var_name):
 
 # Constants
 _USER_DATA_PATH_DEFAULT = str(Path("data", "test", "your_offers.csv"))
-_MODEL_PATH_DEFAULT = str(
-    Path("pipeline", "src", "c_model_developing", "model", "model.pkl")
-)
 
 DATA = {
     "user_data_path": getenv("USER_OFFERS_PATH", _USER_DATA_PATH_DEFAULT),
@@ -49,12 +49,9 @@ DATA = {
 }
 
 MODEL = {
-    "model_path": getenv("MODEL_PATH", _MODEL_PATH_DEFAULT),
+    "model_path": str(Path("model", data_timeplace, "model.pkl")),
 }
 
 # Warning messages
 if DATA["user_data_path"] == _USER_DATA_PATH_DEFAULT:
     _warn_default_usage("USER_OFFERS_PATH")
-
-if MODEL["model_path"] == _MODEL_PATH_DEFAULT:
-    _warn_default_usage("MODEL_PATH")

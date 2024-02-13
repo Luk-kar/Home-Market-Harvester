@@ -115,7 +115,6 @@ def validate_environment_variables(_env_path: Path, encoding: str = "utf-8"):
     # Define essential variables with optional validation rules
     essential_vars = {
         "USER_OFFERS_PATH": {"extension": ".csv"},
-        "MODEL_PATH": {"extension": ".pkl"},
         "AREA_RADIUS": {"allowed_values": [0, 5, 10, 15, 25, 50, 75]},
         "SCRAPED_OFFERS_CAP": {"is_digit": True},
         "CHROME_DRIVER_PATH": {"check_exists": True},
@@ -459,7 +458,7 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "b_cleaning" / "b_cleaning_OtoDom.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "c_combining_data.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "d_creating_map_data.py"),
-        str(Path("pipeline") / "src" / "c_model_developing" / "model_training.ipynb"),
+        str(Path("pipeline") / "src" / "c_model_developing" / "model_training.py"),
         str(
             Path("pipeline")
             / "src"

@@ -20,6 +20,7 @@ streamlit = "*"
 numpy = "*"
 plotly = "*"
 scikit-learn = "*"
+statsmodels = "*"
 
 [dev-packages]
 pylint = "*"

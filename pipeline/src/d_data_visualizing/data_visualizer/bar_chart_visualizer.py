@@ -165,7 +165,7 @@ class BarChartVisualizer:
                 if not price_column:
                     continue  # Handle the case where price_column is not found
 
-                median = df[price_column].median().round(2)
+                median = round(df[price_column].median(), 2)
                 position_to_add_space = ADDITIONAL_SPACING.get(category)
                 column_name = self._format_column_name_for_display(
                     furniture, position_to_add_space
@@ -263,13 +263,9 @@ class BarChartVisualizer:
                 "unfurnished": user_df[user_df["is_furnished"] == False],
             },
             "Similar": {
-                "furnished": similar_df[
-                    (similar_df["equipment"]["furniture"] == True)
-                    & (similar_df["location"]["city"] == "będziński")
-                ],
+                "furnished": similar_df[(similar_df["equipment"]["furniture"] == True)],
                 "unfurnished": similar_df[
                     (similar_df["equipment"]["furniture"] == False)
-                    & (similar_df["location"]["city"] == "będziński")
                 ],
             },
             "All in 20 km radius": {

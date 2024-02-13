@@ -232,5 +232,8 @@ def round_to_nearest_fifty(number: float) -> int:
     """
     Round a number to the nearest 50.
     """
-    round_to = 50
-    return round(number / round_to) * round_to
+    if pd.isna(number):
+        return number
+    else:
+        round_to = 50
+        return round(number / round_to) * round_to

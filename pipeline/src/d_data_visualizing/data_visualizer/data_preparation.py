@@ -83,14 +83,25 @@ def matches_city_building_year_criteria(row: pd.Series) -> bool:
         )
         return (
             city
-            in [
-                "będziński",
-                "Zawada",
-                "Siewierz",
-                "tarnogórski",
-                "Piekary Śląskie",
-                "zawierciański",
-                "Siemianowice Śląskie",
+            not in [
+                "Katowice",
+                "Sosnowiec",
+                "Bytom",
+                "Dąbrowa Górnicza",
+                "Chorzów",
+                "Jaworzno",
+                "Mysłowice",
+                "Świętochłowice",
+                "Ruda Śląska",
+                "częstochowski",
+                "Mikołów",
+                "Ogrodzieniec",
+                "Olkusz",
+                "Będzin",
+                "Czeladź",
+                "Zabrze",
+                "Częstochowa",
+                "Tychy",
             ]
             and building_type in ["block_of_flats", "apartment_building"]
             and build_year <= 1970
