@@ -32,7 +32,7 @@ The order of function invocations within the script is critical to its correct o
 from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
-from typing import Optional
+from typing import Union, Optional, Set
 import argparse
 import logging
 import os
@@ -40,9 +40,6 @@ import re
 import subprocess
 import sys
 import time
-
-# Local imports
-from config._config_manager import ConfigManager
 
 
 def set_sys_path_to_project_root(__file__: str):
@@ -57,6 +54,22 @@ def set_sys_path_to_project_root(__file__: str):
 
 
 set_sys_path_to_project_root(__file__)
+
+# Local imports
+from config._config_manager import ConfigManager
+
+
+def setup_logging():
+    """
+    Sets up logging to write to a file with UTF-8 encoding.
+    """
+    logging.basicConfig(
+        filename=str(Path("logs") / "pipeline.log"),
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        filemode="a",  # Append mode
+        encoding="utf-8",
+    )
 
 
 def initialize_environment_settings():
@@ -163,15 +176,6 @@ def validate_environment_variables(_env_path: Path, encoding: str = "utf-8"):
             raise ValueError(f"The {var} on Windows must be an .exe file.")
 
 
-initialize_environment_settings()
-
-logging.basicConfig(
-    filename=str(Path("logs") / "pipeline.log"),
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s:%(message)s",
-)
-
-
 def run_command(command: list[str], env_vars: Optional[dict] = None) -> int:
     """
     Run a command as a subprocess with optional environment variables
@@ -200,7 +204,7 @@ def run_command(command: list[str], env_vars: Optional[dict] = None) -> int:
     return result.returncode
 
 
-def run_python(script: str, env_vars: dict, args: Optional[list] = None):
+def run_python(script: str, env_vars: dict, args: Optional[list] = None) -> int:
     """
     Run a Python script as a subprocess with optional command-line arguments.
 
@@ -208,11 +212,17 @@ def run_python(script: str, env_vars: dict, args: Optional[list] = None):
         script (str): The path to the Python script to run.
         env_vars (dict): Additional environment variables to set for the script.
         args (list, optional): A list of command-line arguments to pass to the script.
+
+    Returns:
+        int: The exit code of the subprocess.
     """
     command = ["python", script]
     if args:
         command.extend(args)
-    run_command(command, env_vars)
+
+    exit_code = run_command(command, env_vars)
+
+    return exit_code
 
 
 def run_ipynb(_stage: str, env_vars: dict):
@@ -223,6 +233,9 @@ def run_ipynb(_stage: str, env_vars: dict):
     Args:
         _stage (str): The path to the Jupyter notebook to run.
         env_vars (dict): Additional environment variables to set for the notebook.
+
+    Returns:
+        int: The exit code of the subprocess.
     """
 
     notebook_path = Path(_stage).resolve()
@@ -242,7 +255,9 @@ def run_ipynb(_stage: str, env_vars: dict):
     ]
 
     # Run the command
-    run_command(command, env_vars)
+    exit_code = run_command(command, env_vars)
+
+    return exit_code
 
 
 def run_streamlit(script: list[str], env_vars: dict):
@@ -338,15 +353,15 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
         if (
             _stage.endswith(".py") and not _stage.endswith("streamlit_app.py")
         ) or match_dir_path_only:
-            run_python(_stage, env_vars, args_valid_type)
+            exit_code = run_python(_stage, env_vars, args_valid_type)
         elif _stage.endswith(".ipynb"):
-            run_ipynb(_stage, env_vars)
+            exit_code = run_ipynb(_stage, env_vars)
         elif _stage.endswith("streamlit_app.py"):
             process = run_streamlit(_stage, env_vars)
         else:
             raise ValueError(f"Unsupported file type: {_stage}")
 
-        if exit_code != 0:
+        if exit_code is not None and exit_code != 0:
             log_and_print(
                 f"Stage {_stage} completed with exit code {exit_code}.", logging.WARNING
             )
@@ -420,7 +435,7 @@ def update_environment_variable(_env_path: Path, key: str, value: str):
     _env_path.write_text(env_content, encoding=encoding)
 
 
-def get_existing_folders(directory: Path) -> set:
+def get_existing_folders(directory: Path) -> Set[str]:
     """
     Returns a set of existing folder names within the specified directory.
 
@@ -428,8 +443,12 @@ def get_existing_folders(directory: Path) -> set:
         directory (Path): The directory to scan for folders.
 
     Returns:
-        set: A set containing the names of all folders found in the specified directory.
+        set[str]: A set containing the names of all folders found in the specified directory.
     """
+
+    if not directory.exists() or not directory.is_dir():
+        raise FileNotFoundError(f"The specified directory does not exist: {directory}")
+
     return {item.name for item in directory.iterdir() if item.is_dir()}
 
 
@@ -445,6 +464,28 @@ def get_pipeline_error_message(_stage: str, data_scraped_dir: Path):
         "Be sure that location query is correct:\n"
         f"{os.getenv('LOCATION_QUERY')}\n"
     )
+
+
+def set_user_data_path_env_var(
+    args: argparse.Namespace, env_path: Path, env_var_name: str = "USER_OFFERS_PATH"
+) -> None:
+    """
+    Validates the user data file path provided in command line arguments
+    and updates the corresponding environment variable
+    in the .env file with this path.
+
+    Args:
+        args (argparse.Namespace): Parsed command line arguments containing the user data file path.
+        env_path (Path): Path object pointing to the .env configuration file.
+        env_var_name: The name of the environment variable to update with the user data path. Defaults to "USER_OFFERS_PATH".
+
+    Raises:
+        FileNotFoundError: If the specified user data file does not exist at the provided path.
+    """
+    user_data_path = Path(args.user_data_path).resolve()
+    if not user_data_path.exists():
+        raise ValueError(f"The user data file does not exist: {user_data_path}")
+    update_environment_variable(env_path, env_var_name, str(user_data_path))
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -492,43 +533,277 @@ def parse_arguments() -> argparse.Namespace:
     return args
 
 
-def set_user_data_path_env_var(
-    args: argparse.Namespace, env_path: Path, env_var_name: str = "USER_OFFERS_PATH"
-) -> None:
+def skip_olx_or_otodom_cleaning_stage(
+    stage: str, data_raw_dir: Path, config_file: ConfigManager
+) -> bool:
     """
-    Validates the user data file path provided in command line arguments
-    and updates the corresponding environment variable
-    in the .env file with this path.
+    Determines if a cleaning stage for OLX or Otodom should be skipped based on the
+    presence of the respective data files.
 
     Args:
-        args (argparse.Namespace): Parsed command line arguments containing the user data file path.
-        env_path (Path): Path object pointing to the .env configuration file.
-        env_var_name: The name of the environment variable to update with the user data path. Defaults to "USER_OFFERS_PATH".
+        stage (str): The name of the current pipeline stage.
+        data_raw_dir (Path): The directory where raw data is stored.
+        config_file (ConfigManager): A configuration manager instance to access configuration values.
+
+    Returns:
+        bool: True if the stage should be skipped, False otherwise.
 
     Raises:
-        FileNotFoundError: If the specified user data file does not exist at the provided path.
+        PipelineError: If neither OLX nor Otodom data files are found.
     """
-    user_data_path = Path(args.user_data_path).resolve()
-    if not user_data_path.exists():
-        raise ValueError(f"The user data file does not exist: {user_data_path}")
-    update_environment_variable(env_path, env_var_name, str(user_data_path))
+
+    MARKET_OFFERS_TIMEPLACE = config_file.read_value("MARKET_OFFERS_TIMEPLACE")
+    data_scraped_dir = data_raw_dir / MARKET_OFFERS_TIMEPLACE
+    olx_exists = data_scraped_dir.glob("olx.pl.csv")
+    otodom_exists = data_scraped_dir.glob("otodom.pl.csv")
+
+    if not olx_exists and not otodom_exists:
+        raise PipelineError(get_pipeline_error_message(stage, data_scraped_dir))
+
+    if "a_cleaning_OLX" in stage and not olx_exists:
+        log_and_print("Skipping OLX cleaning due to missing olx.pl.csv file.")
+        return True
+
+    elif "b_cleaning_OtoDom" in stage and not otodom_exists:
+        log_and_print("Skipping Otodom cleaning due to missing otodom.pl.csv file.")
+        return True
+
+    else:
+        return False
+
+
+def run_pipeline(
+    stages: list[str],
+    args: argparse.Namespace,
+    config_file: ConfigManager,
+    data_raw_dir: Path,
+):
+    """
+    Executes the defined pipeline stages.
+
+    Args:
+        stages (List[str]): A list of stage names to run.
+        args (argparse.Namespace): The parsed command-line arguments required for the stages.
+        config_file (ConfigManager): The configuration manager instance for accessing configuration values.
+        data_raw_dir (Path): The directory where raw data is stored.
+    """
+    streamlit_process = None
+    for stage in stages:
+        if "b_cleaning" in stage and skip_olx_or_otodom_cleaning_stage(
+            stage, data_raw_dir, config_file
+        ):
+            continue  # Skip this stage based on the checks
+
+        log_and_print(f"Running {stage}...")
+        try:
+            process_stage(stage, args, streamlit_process, data_raw_dir, config_file)
+
+            if "c_model_developing" in stage:
+                exit(
+                    0
+                )  # Exit the pipeline after the cleaning stage to avoid running the rest of the pipeline
+        except PipelineError as e:
+            log_and_print(f"Error running {stage}: {e}", logging.ERROR)
+            break  # Exit the loop on error
+
+    else:
+        log_and_print("Pipeline execution completed.")
+
+
+def process_stage(
+    stage: str,
+    args: argparse.Namespace,
+    streamlit_process: None,
+    data_raw_dir: Path,
+    config_file: ConfigManager,
+):
+    """
+    Processes a given pipeline stage based on its type (scraping, streamlit app, etc.).
+
+    Args:
+        stage (str): The name of the stage to process.
+        args (Any): Arguments required for the stage.
+        streamlit_process (None: The current streamlit process, if applicable.
+        data_raw_dir (Path): Path to the directory where raw data is stored.
+        config_file (ConfigManager): The configuration manager for accessing and updating config values.
+    """
+    if "a_scraping" in stage:
+        scraping_args = [
+            "--location_query",
+            args.location_query,
+            "--area_radius",
+            args.area_radius,
+            "--scraped_offers_cap",
+            args.scraped_offers_cap,
+        ]
+
+        initial_folders = get_existing_folders(data_raw_dir)
+
+        run_stage(stage, os.environ, scraping_args)
+        update_after_scraping(data_raw_dir, config_file, initial_folders)
+    elif "streamlit_app" in stage:
+        handle_streamlit_app(stage, streamlit_process)
+    else:
+        run_stage(stage, os.environ)
+
+
+def handle_streamlit_app(stage: str, streamlit_process: None):
+    """
+    Handles the execution of a Streamlit app stage within the pipeline.
+
+    Args:
+        stage (str): The name of the stage, expected to be a Streamlit app.
+        streamlit_process (Optional[Any]): The Streamlit process to manage, if already running.
+    """
+    streamlit_process = run_stage(stage, os.environ)
+    manage_streamlit_process(streamlit_process)
+
+
+def manage_streamlit_process(streamlit_process: subprocess.Popen):
+    """
+    Provides an interface for managing the lifecycle of a Streamlit process.
+
+    Args:
+        streamlit_process (subprocess.Popen): The Streamlit process to manage.
+    """
+
+    print("Type 'stop' and press Enter to terminate the Dashboard and its server:")
+    while True:
+        user_input = input().strip().lower()
+        if user_input == "stop":
+            terminate_streamlit(streamlit_process)
+            break
+        else:
+            print(
+                "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
+            )
+
+
+def terminate_streamlit(streamlit_process: subprocess.Popen):
+    """
+    Terminates the Streamlit process.
+
+    Args:
+        streamlit_process (subprocess.Popen): The Streamlit process to terminate.
+    """
+
+    try:
+        streamlit_process.terminate()
+        streamlit_process.wait()
+        log_and_print("Dashboard has been terminated.")
+    except KeyboardInterrupt:
+        handle_ctrl_c(streamlit_process)
+
+
+def handle_ctrl_c(streamlit_process: subprocess.Popen):
+    """
+    Handles a KeyboardInterrupt event by terminating the Streamlit process.
+
+    Args:
+        streamlit_process (subprocess.Popen): The Streamlit process to terminate.
+    """
+
+    print("\nCtrl+C detected. Terminating the Dashboard...")
+    streamlit_process.terminate()
+    streamlit_process.wait()
+    log_and_print("Dashboard has been terminated due to Ctrl+C.")
+    sys.exit(1)
+
+
+def update_after_scraping(
+    data_raw_dir: Path, config_file: ConfigManager, initial_folders: Set[str]
+):
+    """
+    Updates the configuration file after scraping based on the newly created folders.
+
+    Args:
+        data_raw_dir (Path): Path to the directory where raw data is stored.
+        config_file (ConfigManager): The configuration manager for accessing and updating config values.
+        initial_folders (Set[str]): A set of folder names present before the scraping stage.
+    """
+
+    new_folder = check_new_csv_files(data_raw_dir, initial_folders)
+
+    if new_folder and new_folder != config_file.read_value("MARKET_OFFERS_TIMEPLACE"):
+
+        log_and_print(
+            f"New folder found: {new_folder}. Updating the configuration file."
+            f'Writing "MARKET_OFFERS_TIMEPLACE"={new_folder} to {config_file.config_path}'
+        )
+
+        config_file.write_value("MARKET_OFFERS_TIMEPLACE", new_folder)
+    else:
+        log_and_print(
+            "No new folders were found after scraping. Exiting the pipeline.",
+            logging.WARNING,
+        )
+        exit(1)
+
+
+def check_new_csv_files(data_raw_dir: Path, initial_folders: Set[str]) -> str:
+    """
+    Checks for new CSV files in the raw data directory
+    and identifies the newly created folder.
+
+    Args:
+        data_raw_dir (Path): Path to the directory where raw data is stored.
+        initial_folders (Set[str]): A set of folder names present before the scraping stage.
+
+    Returns:
+        str: The name of the newly created folder.
+
+    Raises:
+        PipelineError: If no new folder is found or if multiple new folders are found.
+    """
+
+    current_folders = get_existing_folders(data_raw_dir)
+    new_folders = current_folders - initial_folders
+
+    if len(new_folders) == 1:
+        new_folder_name = new_folders.pop()
+        data_scraped_dir = data_raw_dir / new_folder_name
+        validate_csv_files_presence(data_scraped_dir)
+        return new_folder_name
+    raise PipelineError(
+        "Expected a new folder to be created during scraping, but none was found:\n"
+        f"data_raw_dir:\n{data_raw_dir}"
+        f"initial_folders:\n{initial_folders}"
+        f"current_folders:\n{current_folders}"
+        f"new_folders:\n{new_folders if new_folders else None}\n"
+    )
+
+
+def validate_csv_files_presence(data_scraped_dir: Path):
+    """
+    Validates the presence of CSV files within a specified directory.
+    It's used to ensure that expected data files are present after
+    a scraping operation else raise a PipelineError.
+
+    Args:
+        data_scraped_dir (Path): The directory to check for CSV files.
+
+    Raises:
+        PipelineError: If no CSV files are found in the directory.
+    """
+
+    csv_files = list(data_scraped_dir.glob("*.csv"))
+    if not csv_files:
+        raise PipelineError(get_pipeline_error_message(data_scraped_dir))
 
 
 if __name__ == "__main__":
 
-    args = parse_arguments()
+    initialize_environment_settings()
 
-    data_raw_dir = Path("data") / "raw"
-    initial_folders = get_existing_folders(data_raw_dir)
+    setup_logging()
+
+    args = parse_arguments()
 
     env_path = Path(".env")
     if args.user_data_path:
         set_user_data_path_env_var(args, env_path, "USER_OFFERS_PATH")
 
     load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
-
-    # The ipynb files have problems with reading updated environment variables
-    config_file = ConfigManager("run_pipeline.conf")
 
     stages = [
         str(Path("pipeline") / "src" / "a_scraping"),
@@ -540,106 +815,4 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "d_data_visualizing" / "streamlit_app.py"),
     ]
 
-    streamlit_process = None
-
-    for stage in stages:
-        # Specific checks for cleaning stages
-        if "b_cleaning" in stage:
-            # It used the old env value
-            MARKET_OFFERS_TIMEPLACE = config_file.read_value("MARKET_OFFERS_TIMEPLACE")
-            data_scraped_dir = Path(data_raw_dir) / str(MARKET_OFFERS_TIMEPLACE)
-            olx_exists = list(data_scraped_dir.glob("olx.pl.csv"))
-            otodom_exists = list(data_scraped_dir.glob("otodom.pl.csv"))
-
-            if not olx_exists and not otodom_exists:
-                raise PipelineError(get_pipeline_error_message(stage, data_scraped_dir))
-
-            # Skip stages based on file existence
-            if "a_cleaning_OLX" in stage and not olx_exists:
-                log_and_print("Skipping OLX cleaning due to missing olx.pl.csv file.")
-                continue
-            if "b_cleaning_OtoDom" in stage and not otodom_exists:
-                log_and_print(
-                    "Skipping Otodom cleaning due to missing otodom.pl.csv file."
-                )
-                continue
-
-        log_and_print(f"Running {stage}...")
-
-        try:
-            if "a_scraping" in stage:
-
-                scraping_stage_args = [
-                    "--location_query",
-                    args.location_query,
-                    "--area_radius",
-                    args.area_radius,
-                    "--scraped_offers_cap",
-                    args.scraped_offers_cap,
-                ]
-                run_stage(stage, os.environ, scraping_stage_args)
-
-            elif "streamlit_app" in stage:
-                streamlit_process = run_stage(stage, os.environ)
-
-                print(
-                    "Type 'stop' and press Enter to terminate the Dashboard and its server:"
-                )
-                stop_command = "stop"
-                user_input = None
-
-                try:
-                    while user_input != stop_command:
-                        user_input = input().strip().lower()
-                        if user_input == stop_command:
-                            streamlit_process.terminate()
-
-                            # Optionally, wait for the process to terminate before continuing
-                            streamlit_process.wait()
-
-                            log_and_print("Dashboard has been terminated.")
-                            break
-                        else:
-                            print(
-                                "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
-                            )
-
-                except KeyboardInterrupt:
-                    print("\nCtrl+C detected. Terminating the Dashboard...")
-                    streamlit_process.terminate()  # Terminate the Streamlit process
-                    streamlit_process.wait()  # Optionally, wait for the process to terminate
-                    log_and_print("Dashboard has been terminated due to Ctrl+C.")
-                    sys.exit(1)
-
-            else:
-                run_stage(stage, os.environ)
-
-            log_and_print(f"{stage} completed successfully.")
-
-        except PipelineError as e:
-            log_and_print(f"Error running {stage}: {e}", logging.ERROR)
-            break  # Stop the pipeline if an error occurs
-
-        # Check for new CSV files only after the scraping stage
-        if "a_scraping" in stage:
-            current_folders = get_existing_folders(data_raw_dir)
-            new_folders = current_folders - initial_folders
-            if new_folders and len(new_folders) == 1:
-
-                new_folder_name = new_folders.pop()
-                data_scraped_dir = data_raw_dir / new_folder_name
-                csv_files = list(data_scraped_dir.glob("*.csv"))
-
-                if not csv_files:
-                    raise PipelineError(
-                        get_pipeline_error_message(stage, data_scraped_dir)
-                    )
-                config_file.write_value("MARKET_OFFERS_TIMEPLACE", new_folder_name)
-            else:
-                raise PipelineError(
-                    "Expected a new folder to be created during scraping, but none was found."
-                )
-    else:
-        # if the loop completes without breaking,
-        # the pipeline has finished successfully
-        log_and_print("Pipeline execution completed.")
+    run_pipeline(stages, args, ConfigManager("run_pipeline.conf"), Path("data") / "raw")

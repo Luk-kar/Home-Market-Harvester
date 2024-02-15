@@ -87,6 +87,7 @@ class ConfigManager:
         - key: The key to be added or updated.
         - value: The value corresponding to the key.
         """
+
         lines = []
         with open(self.config_path, "r", encoding=self.encoding) as file:
             lines = file.readlines()
