@@ -21,7 +21,7 @@ set_sys_path_to_project_root(__file__)
 
 
 # Local imports
-from pipeline.src.a_scraping.config import DATA, SCRAPER
+from pipeline.src.a_scraping.config import DATA, SCRAPER, LOGGING, WEBDRIVER
 from pipeline.src.a_scraping.logging_setup import log_setup
 from pipeline.src.a_scraping.scrape.process_sites_offers import scrape_offers
 from pipeline.src.a_scraping.webdriver_setup import get_driver
@@ -53,6 +53,12 @@ def parse_arguments():
         nargs="?",
         help="Maximum number of offers to scrape. E.g., 1, 10, 100, 500...",
     )
+    parser.add_argument(
+        "--debug",
+        type=bool,
+        nargs="?",
+        help="Set the logging level to DEBUG and show the browser.",
+    )
     return parser.parse_args()
 
 
@@ -81,22 +87,30 @@ def main(
     location_query: Optional[str] = None,
     area_radius: Optional[float] = None,
     scraped_offers_cap: Optional[int] = None,
+    debug: Optional[bool] = None,
 ):
     """
     The main execution function of the scraper script.
-    it sets up the logging, web driver, and search criteria for scraping.
+    it sets up the logging, web driver, debug, and search criteria for scraping.
     If no arguments are provided, the function uses the default settings.
 
     Args:
         location_query (str, optional): The location query for scraping. Defaults to None.
         area_radius (float, optional): The radius of the area for scraping in kilometers. Defaults to None.
         scraped_offers_cap (int, optional): The maximum number of offers to scrape. Defaults to None.
+        debug (bool, optional): Set the logging level to DEBUG and show the browser. Defaults to None.
     """
 
     if location_query is None and area_radius is None and scraped_offers_cap is None:
         location_query = SCRAPER["location_query"]
         area_radius = SCRAPER["area_radius"]
         scraped_offers_cap = SCRAPER["scraped_offers_cap"]
+
+    if debug is not None:
+        # These are global variables,
+        # so they are not passed as arguments to the function.
+        LOGGING["debug"] = debug
+        WEBDRIVER["headless"] = debug
 
     validate_arguments(location_query, area_radius, scraped_offers_cap)
     log_setup()
@@ -154,4 +168,4 @@ def print_current_time():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args.location_query, args.area_radius, args.scraped_offers_cap)
+    main(args.location_query, args.area_radius, args.scraped_offers_cap, args.debug)

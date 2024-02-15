@@ -74,6 +74,7 @@ class TestScraper(unittest.TestCase):
 
     def test_end_to_end(self) -> None:
         """Tests the end-to-end scraping functionality"""
+
         location_query = self.location_query["low_volume"]
         area_radius = 25
         scraped_offers_cap = 4
@@ -195,6 +196,7 @@ class TestScraper(unittest.TestCase):
 
     def _dump_html(self, filename: str) -> None:
         """Dumps the current HTML of the page to a file."""
+
         html_content = self.driver.page_source
         pretty_html = BeautifulSoup(html_content, "html.parser").prettify()
         log_folder = "logs"

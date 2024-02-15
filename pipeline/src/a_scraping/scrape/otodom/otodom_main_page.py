@@ -50,6 +50,8 @@ def process_domain_offers_otodom(
     location: str = search_criteria["location_query"]
     km: int = search_criteria["area_radius"]
 
+    accept_cookies(driver)
+
     search_offers(driver, location, km)
     page_offers_orchestrator(driver, search_criteria, timestamp, progress, scraped_urls)
 
@@ -67,8 +69,6 @@ def search_offers(driver: WebDriver, location_query_input: str, km: int):
         None
     """
     field_selectors = {
-        "cookies_banner": '[id="onetrust-banner-sdk"]',
-        "accept_cookies": '[id="onetrust-accept-btn-handler"]',
         "user_form": '[data-testid="form-wrapper"]',
         "transaction_type": '[data-cy="search-form--field--transaction"]',
         "for_rent": "#react-select-transaction-option-0",
@@ -81,8 +81,6 @@ def search_offers(driver: WebDriver, location_query_input: str, km: int):
         "distance_radius_options": "react-select-distanceRadius-listbox",
         "distance_radius_suggestions": "li[data-testid='suggestions-item']",
     }
-
-    accept_cookies(driver, field_selectors)
 
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.15, 0.2)
@@ -105,24 +103,23 @@ def search_offers(driver: WebDriver, location_query_input: str, km: int):
     press_find_offers_button(driver)
 
 
-def accept_cookies(driver: WebDriver, field_selectors: dict[str, str]):
+def accept_cookies(driver: WebDriver):
     """
     Accepts cookies on the webpage.
 
     Args:
         driver (WebDriver): The WebDriver instance used to interact with the webpage.
-        field_selectors (dict[str, str]): A dictionary containing CSS selectors for various fields on the webpage.
 
     Returns:
         None
     """
-    await_element(
-        driver, field_selectors["cookies_banner"], timeout=SCRAPER["multi_wait_timeout"]
-    )
+    field_selector = 'button[id="onetrust-accept-btn-handler"]'
+
+    await_element(driver, field_selector, timeout=SCRAPER["multi_wait_timeout"])
 
     accept_cookies_button = driver.find_element(
         By.CSS_SELECTOR,
-        f"{field_selectors['cookies_banner']} {field_selectors['accept_cookies']}",
+        field_selector,
     )
     if SCRAPER["anti_anti_bot"]:
         humans_delay(0.2, 0.4)

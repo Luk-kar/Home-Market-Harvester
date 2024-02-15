@@ -55,10 +55,10 @@ def page_offers_orchestrator(
         "radius": '[data-cy="filter-distance-input"]',
         "listing_links": {"name": "a", "attrs": {"data-cy": "listing-item-link"}},
         "main_feed": '[role="main"]',
-        "offers_per_page": "react-select-entriesPerPage-input",
+        "offers_per_page": "react-select-entriesPerPage-live-region",
         "offers_per_page_dropdown": "react-select-entriesPerPage-input",
         "offers_per_page_list": "react-select-entriesPerPage-listbox",
-        "highest_per_page_option": ".react-select__menu-list > .react-select__option:last-child",
+        "highest_per_page_option": "div[id^='react-select-entriesPerPage-option-']",
     }
 
     offers_cap: int = search_criteria["scraped_offers_cap"]
@@ -168,15 +168,19 @@ def set_max_offers_per_site(driver: WebDriver, field_selectors: dict[str, Any]):
     Returns:
         None
     """
-    input_per_page_selector = field_selectors["offers_per_page"]
+    child_selector = field_selectors["offers_per_page"]
     await_element(
         driver,
-        input_per_page_selector,
+        child_selector,
         by=By.ID,
         timeout=SCRAPER["multi_wait_timeout"],
     )
-    input_per_page = driver.find_element(By.ID, input_per_page_selector)
+    child_element = driver.find_element(By.ID, child_selector)
+    input_per_page = child_element.find_element(By.XPATH, "./..")
     input_per_page.click()
+
+    print("Clicked on the offers per page dropdown")
+    print(input_per_page.get_attribute("outerHTML"))
 
     dropdown_selector = field_selectors["offers_per_page_list"]
     await_element(
@@ -184,10 +188,18 @@ def set_max_offers_per_site(driver: WebDriver, field_selectors: dict[str, Any]):
     )
     offers_per_page_list = driver.find_element(By.ID, dropdown_selector)
 
-    last_option_element = offers_per_page_list.find_element(
+    options = offers_per_page_list.find_elements(
         By.CSS_SELECTOR, field_selectors["highest_per_page_option"]
     )
-    last_option_element.click()
+    last_option = options[-1] if options else None
+
+    if last_option:
+        # If there is at least one option, interact with the last one
+        last_option.click()
+    else:
+        raise NoSuchElementException(
+            "No options found in the offers per page dropdown."
+        )
 
 
 def click_next_page(driver: WebDriver, selector: str):
