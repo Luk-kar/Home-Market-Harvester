@@ -168,34 +168,31 @@ def set_max_offers_per_site(driver: WebDriver, field_selectors: dict[str, Any]):
     Returns:
         None
     """
-    child_selector = field_selectors["offers_per_page"]
+    pagination_input_selector = field_selectors["offers_per_page"]
     await_element(
         driver,
-        child_selector,
+        pagination_input_selector,
         by=By.ID,
         timeout=SCRAPER["multi_wait_timeout"],
     )
-    child_element = driver.find_element(By.ID, child_selector)
-    input_per_page = child_element.find_element(By.XPATH, "./..")
-    input_per_page.click()
+    pagination_input_element = driver.find_element(By.ID, pagination_input_selector)
+    pagination_container = pagination_input_element.find_element(By.XPATH, "./..")
+    pagination_container.click()
 
-    print("Clicked on the offers per page dropdown")
-    print(input_per_page.get_attribute("outerHTML"))
-
-    dropdown_selector = field_selectors["offers_per_page_list"]
+    dropdown_list_selector = field_selectors["offers_per_page_list"]
     await_element(
-        driver, dropdown_selector, by=By.ID, timeout=SCRAPER["multi_wait_timeout"]
+        driver, dropdown_list_selector, by=By.ID, timeout=SCRAPER["multi_wait_timeout"]
     )
-    offers_per_page_list = driver.find_element(By.ID, dropdown_selector)
+    offers_dropdown_list = driver.find_element(By.ID, dropdown_list_selector)
 
-    options = offers_per_page_list.find_elements(
+    dropdown_options = offers_dropdown_list.find_elements(
         By.CSS_SELECTOR, field_selectors["highest_per_page_option"]
     )
-    last_option = options[-1] if options else None
+    highest_option = dropdown_options[-1] if dropdown_options else None
 
-    if last_option:
+    if highest_option:
         # If there is at least one option, interact with the last one
-        last_option.click()
+        highest_option.click()
     else:
         raise NoSuchElementException(
             "No options found in the offers per page dropdown."
