@@ -26,8 +26,16 @@ class ConfigManager:
         """
         Initializes the ConfigManager with the path to the configuration file.
 
-        Parameters:
-        - config_path: The path to the configuration file.
+        Args:
+        - config_path (str): The path to the configuration file.
+
+        Raises:
+        - ValueError: If the configuration file format is invalid.
+        - FileNotFoundError: If the specified configuration file does not exist.
+
+        Notes:
+        - When the configuration file does not exist,
+        a new file is created with the specified name.
         """
         # get the file directory path
         file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -38,16 +46,19 @@ class ConfigManager:
             )
 
         config_file_path = os.path.join(file_dir, config_name)
-        if not os.path.exists(config_file_path):
-            raise FileNotFoundError(
-                (
-                    "The specified configuration file does not exist:\n"
-                    f"{config_file_path}\n"
-                )
-            )
 
         self.config_path = config_file_path
         self.encoding = "utf-8"
+
+        if not os.path.exists(config_file_path):
+
+            if "run_pipeline.conf" == config_name:
+                config_content = "MARKET_OFFERS_TIMEPLACE="
+            else:
+                config_content = ""
+
+            with open(config_file_path, "w", encoding=self.encoding) as file:
+                file.write(config_content)
 
     def read_value(self, key_to_find: str) -> str:
         """

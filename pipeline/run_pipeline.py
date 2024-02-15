@@ -533,7 +533,7 @@ def parse_arguments() -> argparse.Namespace:
     return args
 
 
-def skip_olx_or_otodom_cleaning_stage(
+def decide_skip_based_on_files(
     stage: str, data_raw_dir: Path, config_file: ConfigManager
 ) -> bool:
     """
@@ -550,26 +550,47 @@ def skip_olx_or_otodom_cleaning_stage(
 
     Raises:
         PipelineError: If neither OLX nor Otodom data files are found.
+        ValueError: If the stage is not supported.
     """
 
     MARKET_OFFERS_TIMEPLACE = config_file.read_value("MARKET_OFFERS_TIMEPLACE")
     data_scraped_dir = data_raw_dir / MARKET_OFFERS_TIMEPLACE
-    olx_exists = data_scraped_dir.glob("olx.pl.csv")
-    otodom_exists = data_scraped_dir.glob("otodom.pl.csv")
+    olx_exists = any(data_scraped_dir.glob("olx.pl.csv"))
+    otodom_exists = any(data_scraped_dir.glob("otodom.pl.csv"))
 
     if not olx_exists and not otodom_exists:
         raise PipelineError(get_pipeline_error_message(stage, data_scraped_dir))
 
-    if "a_cleaning_OLX" in stage and not olx_exists:
+    stages = {"OLX": "a_cleaning_OLX", "otodom": "b_cleaning_otodom"}
+
+    if not any(stage_identifier in stage for stage_identifier in stages.values()):
+        raise ValueError(f"Unsupported stage: {stage}")
+
+    if stages["OLX"] in stage and not olx_exists:
         log_and_print("Skipping OLX cleaning due to missing olx.pl.csv file.")
         return True
 
-    elif "b_cleaning_OtoDom" in stage and not otodom_exists:
+    elif stages["otodom"] in stage and not otodom_exists:
         log_and_print("Skipping Otodom cleaning due to missing otodom.pl.csv file.")
         return True
 
     else:
         return False
+
+
+def is_relevant_cleaning_stage(stage: str) -> bool:
+    """
+    Determines if the given stage is a cleaning stage for OLX or Otodom and should be skipped.
+
+    Args:
+        stage (str): The name of the current pipeline stage.
+
+    Returns:
+        bool: True if the stage is a cleaning stage for OLX or Otodom and should be skipped, False otherwise.
+    """
+    is_cleaning_stage = "b_cleaning" in stage
+    is_relevant_platform = "OLX" in stage or "otodom" in stage
+    return is_cleaning_stage and is_relevant_platform
 
 
 def run_pipeline(
@@ -589,19 +610,16 @@ def run_pipeline(
     """
     streamlit_process = None
     for stage in stages:
-        if "b_cleaning" in stage and skip_olx_or_otodom_cleaning_stage(
+        skip_stage = is_relevant_cleaning_stage(stage) and decide_skip_based_on_files(
             stage, data_raw_dir, config_file
-        ):
-            continue  # Skip this stage based on the checks
+        )
+        if skip_stage:
+            continue
 
         log_and_print(f"Running {stage}...")
         try:
             process_stage(stage, args, streamlit_process, data_raw_dir, config_file)
 
-            if "c_model_developing" in stage:
-                exit(
-                    0
-                )  # Exit the pipeline after the cleaning stage to avoid running the rest of the pipeline
         except PipelineError as e:
             log_and_print(f"Error running {stage}: {e}", logging.ERROR)
             break  # Exit the loop on error
@@ -808,7 +826,7 @@ if __name__ == "__main__":
     stages = [
         str(Path("pipeline") / "src" / "a_scraping"),
         str(Path("pipeline") / "src" / "b_cleaning" / "a_cleaning_OLX.ipynb"),
-        str(Path("pipeline") / "src" / "b_cleaning" / "b_cleaning_OtoDom.ipynb"),
+        str(Path("pipeline") / "src" / "b_cleaning" / "b_cleaning_otodom.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "c_combining_data.ipynb"),
         str(Path("pipeline") / "src" / "b_cleaning" / "d_creating_map_data.py"),
         str(Path("pipeline") / "src" / "c_model_developing" / "model_training.py"),

@@ -60,6 +60,9 @@ cover/
 *.mo
 *.pot
 
+# config
+run_pipeline.conf
+
 #logs
 *.log
 log/*
