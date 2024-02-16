@@ -83,13 +83,25 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
                 continue
 
             if DOMAINS["olx"]["domain"] in url:
-                process_domain_offers_olx(
-                    driver, search_criteria, timestamp, progress, scraped_urls
-                )
+
+                try:
+                    process_domain_offers_olx(
+                        driver, search_criteria, timestamp, progress, scraped_urls
+                    )
+                except Exception as error:
+                    logging.error(f"Error processing OLX offers: {error}")
+                    raise error
+
             elif DOMAINS["otodom"] in url:
-                process_domain_offers_otodom(
-                    driver, search_criteria, timestamp, progress, scraped_urls
-                )
+
+                try:
+                    process_domain_offers_otodom(
+                        driver, search_criteria, timestamp, progress, scraped_urls
+                    )
+                except Exception as error:
+                    logging.error(f"Error processing Otodom offers: {error}")
+                    raise error
+
             else:
                 raise RequestException(f"Unrecognized URL: {url}")
 
