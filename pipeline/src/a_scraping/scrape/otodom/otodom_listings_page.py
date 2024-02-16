@@ -51,7 +51,7 @@ def page_offers_orchestrator(
     """
 
     field_selectors = {
-        "next_page": '[data-cy="pagination.next-page"]',
+        "next_page": 'ul[data-testid="frontend.search.base-pagination.nexus-pagination"] li[title="Go to next Page"]',
         "radius": '[data-cy="filter-distance-input"]',
         "listing_links": {"name": "a", "attrs": {"data-cy": "listing-item-link"}},
         "main_feed": '[role="main"]',
@@ -89,7 +89,7 @@ def page_offers_orchestrator(
         if progress.count >= offers_cap:
             break
 
-        if not is_disabled(driver, field_selectors["next_page"]):
+        if is_element(driver, field_selectors["next_page"]):
             click_next_page(driver, field_selectors["next_page"])
         else:
             break
@@ -215,21 +215,21 @@ def click_next_page(driver: WebDriver, selector: str):
     next_button.click()
 
 
-def is_disabled(driver: WebDriver, selector: str) -> bool:
+def is_element(driver: WebDriver, selector: str) -> bool:
     """
-    Check if a clickable element with the given selector is disabled.
+    Checks if an element is present on the page.
 
     Args:
         driver (WebDriver): The WebDriver instance.
         selector (str): The CSS selector of the element.
 
     Returns:
-        bool: True if the element is disabled, False otherwise.
+        bool: True if the element is present, False otherwise.
     """
     try:
-        selector = f'{selector}[disabled=""]'
-
+        await_element(driver, selector, timeout=SCRAPER["multi_wait_timeout"])
         driver.find_element(By.CSS_SELECTOR, selector)
         return True
+
     except NoSuchElementException:
         return False

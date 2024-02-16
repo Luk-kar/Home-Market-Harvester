@@ -150,7 +150,10 @@ def print_new_data_files(existing_folders: set):
 
     new_folders = set(os.listdir(folder_scraped_data)) - existing_folders
 
-    print(f"\nNew files created in the folder {folder_scraped_data}\\:")
+    if new_folders:
+        print(f"\nNew files created in the folder {folder_scraped_data}\\:")
+    else:
+        print("\nNo new files created.")
 
     for folder in new_folders:
         print(2 * " " + f"\\{folder}\\:")
