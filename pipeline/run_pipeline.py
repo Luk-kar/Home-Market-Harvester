@@ -28,11 +28,7 @@ WARNING:
 The order of function invocations within the script is critical to its correct operation.
 """
 
-# Standard imports
-from datetime import datetime
-from dotenv import load_dotenv
-from pathlib import Path
-from typing import Union, Optional, Set
+# Standard library imports
 import argparse
 import logging
 import os
@@ -40,6 +36,12 @@ import re
 import subprocess
 import sys
 import time
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, Set
+
+# Third-party imports
+from dotenv import load_dotenv
 
 
 def set_sys_path_to_project_root(__file__: str):
@@ -82,9 +84,7 @@ def initialize_environment_settings():
         ValueError: If the .env file is not found or is empty.
     """
 
-    _env_path = Path(
-        ".env"
-    )  # Assuming the root of the project is the project directory
+    env_path = Path(".env")  # Assuming the root of the project is the project directory
     encoding = "utf-8"
 
     env_content = (
@@ -98,21 +98,21 @@ def initialize_environment_settings():
         "CHROME_BROWSER_PATH=\n"  # path to the Chrome browser
     )
 
-    if not _env_path.exists():
-        with open(_env_path, "w", encoding=encoding) as file:
+    if not env_path.exists():
+        with open(env_path, "w", encoding=encoding) as file:
             file.write(env_content)
 
-    validate_environment_variables(_env_path, encoding)
+    validate_environment_variables(env_path, encoding)
 
-    if _env_path.read_text(encoding=encoding) == env_content:
+    if env_path.read_text(encoding=encoding) == env_content:
         raise ValueError(
             "Please fill in the .env file with your data.\n"
-            f"The file {_env_path} is located at the root of the project.\n"
+            f"The file {env_path} is located at the root of the project.\n"
             "Reload the environment settings."
         )
 
 
-def validate_environment_variables(_env_path: Path, encoding: str = "utf-8"):
+def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
     """
     Validates that essential environment variables are set in the .env file.
 
@@ -124,7 +124,7 @@ def validate_environment_variables(_env_path: Path, encoding: str = "utf-8"):
         ValueError: If any essential environment variable is missing, not set, or invalid.
     """
     # Load environment variables from the file
-    env_content = _env_path.read_text(encoding=encoding)
+    env_content = env_path.read_text(encoding=encoding)
 
     # Define essential variables with optional validation rules
     essential_vars = {
@@ -262,15 +262,18 @@ def run_ipynb(_stage: str, env_vars: dict):
 
 def run_streamlit(script: list[str], env_vars: dict):
     """
-    Run a Streamlit app as a subprocess and monitor its output to log when it's successfully initialized.
+    Run a Streamlit app as a subprocess and monitor
+    its output to log when it's successfully initialized.
 
     Args:
         script (str): The path to the Streamlit script.
         env_vars (dict): Environment variables to set for the subprocess.
 
     WARNING:
-        This function starts the Streamlit server as a non-blocking concurrent process.
-        It is important to manage this process by monitoring its output for successful initialization
+        This function starts the Streamlit server as
+        a non-blocking concurrent process.
+        It is important to manage this process by monitoring
+        its output for successful initialization
         and ensuring it is properly terminated when no longer needed.
         Failure to terminate the Streamlit process can result in resource leaks
         and unintended operation of the application.
@@ -401,17 +404,17 @@ def log_and_print(message: str, logging_level: int = logging.INFO):
     print(f"{current_time}: {message}")
 
 
-def update_environment_variable(_env_path: Path, key: str, value: str):
+def update_environment_variable(env_path: Path, key: str, value: str):
     """
     Updates or adds an environment variable in the .env file.
 
     Args:
-        _env_path (Path): The path to the .env file.
+        env_path (Path): The path to the .env file.
         key (str): The environment variable key to update.
         value (str): The new value for the environment variable.
     """
     encoding = "utf-8"
-    env_content = _env_path.read_text(encoding=encoding)
+    env_content = env_path.read_text(encoding=encoding)
 
     safe_value = value.replace(
         "\\", "\\\\"
@@ -430,9 +433,9 @@ def update_environment_variable(_env_path: Path, key: str, value: str):
             # If key doesn't exist, append it
             env_content += new_line
     except re.error as error:
-        raise ValueError(f"Error in regular expression: {error}")
+        raise ValueError(f"Error in regular expression: {error}") from error
 
-    _env_path.write_text(env_content, encoding=encoding)
+    env_path.write_text(env_content, encoding=encoding)
 
 
 def get_existing_folders(directory: Path) -> Set[str]:
@@ -452,15 +455,17 @@ def get_existing_folders(directory: Path) -> Set[str]:
     return {item.name for item in directory.iterdir() if item.is_dir()}
 
 
-def get_pipeline_error_message(_stage: str, data_scraped_dir: Path):
+def get_pipeline_error_message(data_scraped_dir: Path):
     """
     Returns an error message for missing CSV files in the data/raw directory.
+
+    Args:
+        data_scraped_dir (Path): The directory where the required CSV files are missing.
     """
     return (
+        "During the scraping stage, the following error occurred:\n"
         "Required CSV files not found in the data/raw directory:\n"
         f"{data_scraped_dir}\n"
-        "Stage:\n"
-        f"{_stage}\n"
         "Be sure that location query is correct:\n"
         f"{os.getenv('LOCATION_QUERY')}\n"
     )
@@ -475,9 +480,11 @@ def set_user_data_path_env_var(
     in the .env file with this path.
 
     Args:
-        args (argparse.Namespace): Parsed command line arguments containing the user data file path.
+        args (argparse.Namespace): Parsed command line arguments
+                                    containing the user data file path.
         env_path (Path): Path object pointing to the .env configuration file.
-        env_var_name: The name of the environment variable to update with the user data path. Defaults to "USER_OFFERS_PATH".
+        env_var_name: The name of the environment variable to update with the user data path.
+                      Defaults to "USER_OFFERS_PATH".
 
     Raises:
         FileNotFoundError: If the specified user data file does not exist at the provided path.
@@ -513,14 +520,20 @@ def parse_arguments() -> argparse.Namespace:
         "--area_radius",
         type=int,
         default=default_args["area_radius"],
-        help=f"The radius of the area for scraping in kilometers. Defaults to {default_args['area_radius']}.",
+        help=(
+            "The radius of the area for scraping in kilometers."
+            f"Defaults to {default_args['area_radius']}."
+        ),
     )
 
     parser.add_argument(
         "--scraped_offers_cap",
         type=int,
         default=default_args["scraped_offers_cap"],
-        help=f"The maximum number of offers to scrape. Defaults to {default_args['scraped_offers_cap']}.",
+        help=(
+            "The maximum number of offers to scrape."
+            f"Defaults to {default_args['scraped_offers_cap']}."
+        ),
     )
     parser.add_argument(
         "--user_data_path",
@@ -529,8 +542,8 @@ def parse_arguments() -> argparse.Namespace:
         help="The path to the user data file in CSV format to display in the dashboard.",
     )
 
-    args = parser.parse_args()
-    return args
+    command_arguments = parser.parse_args()
+    return command_arguments
 
 
 def decide_skip_based_on_files(
@@ -543,7 +556,8 @@ def decide_skip_based_on_files(
     Args:
         stage (str): The name of the current pipeline stage.
         data_raw_dir (Path): The directory where raw data is stored.
-        config_file (ConfigManager): A configuration manager instance to access configuration values.
+        config_file (ConfigManager): A configuration manager instance
+                                     to access configuration values.
 
     Returns:
         bool: True if the stage should be skipped, False otherwise.
@@ -559,23 +573,22 @@ def decide_skip_based_on_files(
     otodom_exists = any(data_scraped_dir.glob("otodom.pl.csv"))
 
     if not olx_exists and not otodom_exists:
-        raise PipelineError(get_pipeline_error_message(stage, data_scraped_dir))
+        raise PipelineError(get_pipeline_error_message(data_scraped_dir))
 
-    stages = {"OLX": "a_cleaning_OLX", "otodom": "b_cleaning_otodom"}
+    _stages = {"OLX": "a_cleaning_OLX", "otodom": "b_cleaning_otodom"}
 
-    if not any(stage_identifier in stage for stage_identifier in stages.values()):
+    if not any(stage_identifier in stage for stage_identifier in _stages.values()):
         raise ValueError(f"Unsupported stage: {stage}")
 
-    if stages["OLX"] in stage and not olx_exists:
+    if _stages["OLX"] in stage and not olx_exists:
         log_and_print("Skipping OLX cleaning due to missing olx.pl.csv file.")
         return True
 
-    elif stages["otodom"] in stage and not otodom_exists:
+    if _stages["otodom"] in stage and not otodom_exists:
         log_and_print("Skipping Otodom cleaning due to missing otodom.pl.csv file.")
         return True
 
-    else:
-        return False
+    return False
 
 
 def is_relevant_cleaning_stage(stage: str) -> bool:
@@ -586,19 +599,20 @@ def is_relevant_cleaning_stage(stage: str) -> bool:
         stage (str): The name of the current pipeline stage.
 
     Returns:
-        bool: True if the stage is a cleaning stage for OLX or Otodom and should be skipped, False otherwise.
+        bool: True if the stage is a cleaning stage for OLX or Otodom and should be skipped,
+              False otherwise.
     """
     is_cleaning_stage = "b_cleaning" in stage
     is_relevant_platform = "OLX" in stage or "otodom" in stage
     return is_cleaning_stage and is_relevant_platform
 
 
-def run_pipeline(stages: list[str], args: argparse.Namespace):
+def run_pipeline(_stages: list[str], args: argparse.Namespace):
     """
     Executes the defined pipeline stages.
 
     Args:
-        stages (List[str]): A list of stage names to run.
+        _stages (List[str]): A list of stage names to run.
         args (argparse.Namespace): The parsed command-line arguments required for the stages.
     """
     data_raw_dir = Path("data") / "raw"
@@ -606,7 +620,7 @@ def run_pipeline(stages: list[str], args: argparse.Namespace):
 
     log_and_print("Starting pipeline execution...")
 
-    for stage in stages:
+    for stage in _stages:
         skip_stage = is_relevant_cleaning_stage(stage) and decide_skip_based_on_files(
             stage, data_raw_dir, config_file
         )
@@ -638,7 +652,8 @@ def process_stage(
         stage (str): The name of the stage to process.
         args (Any): Arguments required for the stage.
         data_raw_dir (Path): Path to the directory where raw data is stored.
-        config_file (ConfigManager): The configuration manager for accessing and updating config values.
+        config_file (ConfigManager): The configuration manager for accessing
+                                     and updating config values.
     """
     if "a_scraping" in stage:
         scraping_args = [
@@ -687,10 +702,10 @@ def manage_streamlit_process(streamlit_process: subprocess.Popen):
             if user_input == "stop":
                 terminate_streamlit(streamlit_process)
                 break
-            else:
-                print(
-                    "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
-                )
+
+            print(
+                "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
+            )
         except KeyboardInterrupt:
             handle_ctrl_c(streamlit_process)
 
@@ -734,7 +749,8 @@ def update_after_scraping(
 
     Args:
         data_raw_dir (Path): Path to the directory where raw data is stored.
-        config_file (ConfigManager): The configuration manager for accessing and updating config values.
+        config_file (ConfigManager): The configuration manager for accessing
+                                     and updating config values.
         initial_folders (Set[str]): A set of folder names present before the scraping stage.
     """
 
@@ -753,7 +769,7 @@ def update_after_scraping(
             "No new folders were found after scraping. Exiting the pipeline.",
             logging.WARNING,
         )
-        exit(1)
+        sys.exit(1)
 
 
 def check_new_csv_files(data_raw_dir: Path, initial_folders: Set[str]) -> str:
@@ -813,13 +829,13 @@ if __name__ == "__main__":
 
     setup_logging()
 
-    args = parse_arguments()
+    command_args = parse_arguments()
 
-    env_path = Path(".env")
-    if args.user_data_path:
-        set_user_data_path_env_var(args, env_path, "USER_OFFERS_PATH")
+    environment_path = Path(".env")
+    if command_args.user_data_path:
+        set_user_data_path_env_var(command_args, environment_path, "USER_OFFERS_PATH")
 
-    load_dotenv(dotenv_path=env_path)  # Load environment variables from .env
+    load_dotenv(dotenv_path=environment_path)  # Load environment variables from .env
 
     stages = [
         str(Path("pipeline") / "src" / "a_scraping"),
@@ -831,4 +847,4 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "d_data_visualizing" / "streamlit_app.py"),
     ]
 
-    run_pipeline(stages, args)
+    run_pipeline(stages, command_args)

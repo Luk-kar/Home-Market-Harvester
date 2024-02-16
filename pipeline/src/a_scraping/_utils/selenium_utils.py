@@ -52,9 +52,6 @@ def humans_delay(
     Args:
     - min_seconds (float): The min of seconds to delay.
     - max_seconds (float): The max of seconds to delay.
-
-    Returns:
-    None.
     """
     time.sleep(random.uniform(min_seconds, max_seconds))
 
