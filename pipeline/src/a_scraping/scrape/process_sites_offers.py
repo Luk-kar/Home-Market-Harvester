@@ -11,8 +11,10 @@ or other unexpected errors.
 """
 
 # Standard imports
-import logging
 import datetime
+import logging
+import random
+import time
 
 # Third-party imports
 from requests.exceptions import RequestException
@@ -75,14 +77,10 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
 
             humans_delay()
             try:
-                driver.get(url)
+                driver = get_website(driver, url)
             except WebDriverException as error:
-                # Attempt to refresh the page or handle the error as needed
-                if LOGGING["debug"]:
-                    raise error
-
-                logging.error("Connection issue encountered: %s", error)
-                driver.refresh()
+                logging.error("Error occurred: %s", error)
+                continue
 
             if DOMAINS["olx"]["domain"] in url:
                 process_domain_offers_olx(
@@ -100,3 +98,40 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
             raise error
 
         logging.error("Error occurred: %s", error)
+
+
+def get_website(driver: WebDriver, url: str) -> WebDriver:
+    """
+    Get the website using the provided WebDriver.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        url (str): The URL of the website to navigate to.
+
+    Returns:
+        WebDriver: The WebDriver instance after navigating to the website.
+    """
+    max_retries = random.randint(4, 5)
+    retry_delay = random.uniform(4, 5)
+    attempts = 0
+
+    while attempts < max_retries:
+        try:
+            driver.get(url)
+            break
+        except WebDriverException as error:
+            attempts += 1
+            message = (
+                "Connection issue encountered. Retrying..."
+                f"Attempt {attempts} of {max_retries}."
+            )
+            print(message)
+            logging.warning(message)
+            time.sleep(retry_delay)
+            driver.refresh()
+
+            # Attempt to refresh the page or handle the error as needed
+            if attempts == max_retries:
+                raise error
+
+    return driver

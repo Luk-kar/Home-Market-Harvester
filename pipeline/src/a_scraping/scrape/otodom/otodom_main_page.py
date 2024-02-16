@@ -14,6 +14,7 @@ ensure that relevant offers are captured and processed.
 import re
 
 # Third-party imports
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -50,7 +51,10 @@ def process_domain_offers_otodom(
     location: str = search_criteria["location_query"]
     km: int = search_criteria["area_radius"]
 
-    accept_cookies(driver)
+    try:
+        accept_cookies(driver)
+    except NoSuchElementException:
+        pass
 
     search_offers(driver, location, km)
     page_offers_orchestrator(driver, search_criteria, timestamp, progress, scraped_urls)
@@ -112,6 +116,9 @@ def accept_cookies(driver: WebDriver):
 
     Returns:
         None
+
+    Raises:
+        NoSuchElementException: If the button to accept cookies is not found.
     """
     field_selector = 'button[id="onetrust-accept-btn-handler"]'
 

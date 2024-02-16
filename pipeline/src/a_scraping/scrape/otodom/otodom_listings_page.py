@@ -17,7 +17,7 @@ from typing import Any
 # Third-party imports
 from bs4 import BeautifulSoup
 from enlighten import Counter
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -209,10 +209,34 @@ def click_next_page(driver: WebDriver, selector: str):
 
     Returns:
         None
+
+    Raises:
+        TimeoutException: If the next page button is not found.
+        NoSuchElementException: If the next page button is not found.
+        Exception: If an unexpected error occurs.
     """
-    await_element(driver, selector, timeout=SCRAPER["multi_wait_timeout"])
-    next_button = driver.find_element(By.CSS_SELECTOR, selector)
-    next_button.click()
+
+    def get_error_message(selector, e):
+        return "Selector:\n" f"{selector}\n" "Error:" f"{e}"
+
+    try:
+        await_element(driver, selector, timeout=SCRAPER["multi_wait_timeout"])
+        next_button = driver.find_element(By.CSS_SELECTOR, selector)
+        next_button.click()
+    except TimeoutException as e:
+        raise TimeoutException(
+            "Timeout waiting for next page button.\n"
+            f"{get_error_message(selector, e)}"
+        )
+    except NoSuchElementException as e:
+        raise NoSuchElementException(
+            "Next page button not found." f"{get_error_message(selector, e)}"
+        )
+    except Exception as e:
+        raise Exception(
+            f"Unexpected error clicking next page.\n"
+            f"{get_error_message(selector, e)}"
+        )
 
 
 def is_element(driver: WebDriver, selector: str) -> bool:

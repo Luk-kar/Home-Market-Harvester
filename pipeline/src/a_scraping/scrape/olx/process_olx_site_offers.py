@@ -18,6 +18,7 @@ from enlighten import Counter
 from requests.exceptions import RequestException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.common.exceptions import NoSuchElementException
 
 
 # Local imports
@@ -72,7 +73,10 @@ def process_domain_offers_olx(
     location_query = search_criteria["location_query"]
     offers_cap = search_criteria["scraped_offers_cap"]
 
-    accept_cookies(driver, field_selectors["accept_cookies"])
+    try:
+        accept_cookies(driver, field_selectors["accept_cookies"])
+    except NoSuchElementException:
+        pass
 
     humans_delay(0.2, 0.4)
 
