@@ -18,19 +18,19 @@ from selenium.webdriver.remote.webdriver import WebDriver
 import enlighten
 
 # Local imports
-from pipeline.src.a_scraping._utils.selenium_utils import humans_delay
-from pipeline.src.a_scraping._utils.string_transformations import (
+from pipeline.stages.a_scraping._utils.selenium_utils import humans_delay
+from pipeline.stages.a_scraping._utils.string_transformations import (
     transform_location_to_url_format,
 )
-from pipeline.src.a_scraping.config import DATA, SCRAPER, DOMAINS
-from pipeline.src.a_scraping.scrape.olx.process_olx_site_offers import (
+from pipeline.stages.a_scraping.config import DATA, SCRAPER, DOMAINS
+from pipeline.stages.a_scraping.scrape.olx.process_olx_site_offers import (
     process_domain_offers_olx,
 )
-from pipeline.src.a_scraping.scrape.otodom.otodom_main_page import (
+from pipeline.stages.a_scraping.scrape.otodom.otodom_main_page import (
     process_domain_offers_otodom,
 )
-from pipeline.src.a_scraping.webdriver_setup import get_driver
-from pipeline.src.a_scraping.__main__ import main
+from pipeline.stages.a_scraping.webdriver_setup import get_driver
+from pipeline.stages.a_scraping.__main__ import main
 
 
 class TestScraper(unittest.TestCase):
