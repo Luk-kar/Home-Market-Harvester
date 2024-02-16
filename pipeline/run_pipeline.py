@@ -593,22 +593,19 @@ def is_relevant_cleaning_stage(stage: str) -> bool:
     return is_cleaning_stage and is_relevant_platform
 
 
-def run_pipeline(
-    stages: list[str],
-    args: argparse.Namespace,
-    config_file: ConfigManager,
-    data_raw_dir: Path,
-):
+def run_pipeline(stages: list[str], args: argparse.Namespace):
     """
     Executes the defined pipeline stages.
 
     Args:
         stages (List[str]): A list of stage names to run.
         args (argparse.Namespace): The parsed command-line arguments required for the stages.
-        config_file (ConfigManager): The configuration manager instance for accessing configuration values.
-        data_raw_dir (Path): The directory where raw data is stored.
     """
-    streamlit_process = None
+    data_raw_dir = Path("data") / "raw"
+    config_file = ConfigManager("run_pipeline.conf")
+
+    log_and_print("Starting pipeline execution...")
+
     for stage in stages:
         skip_stage = is_relevant_cleaning_stage(stage) and decide_skip_based_on_files(
             stage, data_raw_dir, config_file
@@ -618,7 +615,7 @@ def run_pipeline(
 
         log_and_print(f"Running {stage}...")
         try:
-            process_stage(stage, args, streamlit_process, data_raw_dir, config_file)
+            process_stage(stage, args, data_raw_dir, config_file)
 
         except PipelineError as e:
             log_and_print(f"Error running {stage}: {e}", logging.ERROR)
@@ -631,7 +628,6 @@ def run_pipeline(
 def process_stage(
     stage: str,
     args: argparse.Namespace,
-    streamlit_process: None,
     data_raw_dir: Path,
     config_file: ConfigManager,
 ):
@@ -641,7 +637,6 @@ def process_stage(
     Args:
         stage (str): The name of the stage to process.
         args (Any): Arguments required for the stage.
-        streamlit_process (None: The current streamlit process, if applicable.
         data_raw_dir (Path): Path to the directory where raw data is stored.
         config_file (ConfigManager): The configuration manager for accessing and updating config values.
     """
@@ -660,19 +655,19 @@ def process_stage(
         run_stage(stage, os.environ, scraping_args)
         update_after_scraping(data_raw_dir, config_file, initial_folders)
     elif "streamlit_app" in stage:
-        handle_streamlit_app(stage, streamlit_process)
+        handle_streamlit_app(stage)
     else:
         run_stage(stage, os.environ)
 
 
-def handle_streamlit_app(stage: str, streamlit_process: None):
+def handle_streamlit_app(stage: str):
     """
     Handles the execution of a Streamlit app stage within the pipeline.
 
     Args:
         stage (str): The name of the stage, expected to be a Streamlit app.
-        streamlit_process (Optional[Any]): The Streamlit process to manage, if already running.
     """
+
     streamlit_process = run_stage(stage, os.environ)
     manage_streamlit_process(streamlit_process)
 
@@ -833,4 +828,4 @@ if __name__ == "__main__":
         str(Path("pipeline") / "src" / "d_data_visualizing" / "streamlit_app.py"),
     ]
 
-    run_pipeline(stages, args, ConfigManager("run_pipeline.conf"), Path("data") / "raw")
+    run_pipeline(stages, args)
