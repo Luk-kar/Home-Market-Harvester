@@ -695,7 +695,9 @@ def manage_streamlit_process(streamlit_process: subprocess.Popen):
             handle_ctrl_c(streamlit_process)
 
 
-def terminate_streamlit(streamlit_process: subprocess.Popen):
+def terminate_streamlit(
+    streamlit_process: subprocess.Popen, message: str = "Dashboard has been terminated."
+):
     """
     Terminates the Streamlit process.
 
@@ -705,7 +707,7 @@ def terminate_streamlit(streamlit_process: subprocess.Popen):
 
     streamlit_process.terminate()
     streamlit_process.wait()
-    log_and_print("Dashboard has been terminated.")
+    log_and_print(message)
 
 
 def handle_ctrl_c(streamlit_process: subprocess.Popen):
@@ -717,9 +719,10 @@ def handle_ctrl_c(streamlit_process: subprocess.Popen):
     """
 
     print("\nCtrl+C detected. Terminating the Dashboard...")
-    streamlit_process.terminate()
-    streamlit_process.wait()
-    log_and_print("Dashboard has been terminated due to Ctrl+C.")
+
+    terminate_streamlit(
+        streamlit_process, "Dashboard has been terminated due to Ctrl+C."
+    )
     sys.exit(1)
 
 
