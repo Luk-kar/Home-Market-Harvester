@@ -682,14 +682,17 @@ def manage_streamlit_process(streamlit_process: subprocess.Popen):
 
     print("Type 'stop' and press Enter to terminate the Dashboard and its server:")
     while True:
-        user_input = input().strip().lower()
-        if user_input == "stop":
-            terminate_streamlit(streamlit_process)
-            break
-        else:
-            print(
-                "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
-            )
+        try:
+            user_input = input().strip().lower()
+            if user_input == "stop":
+                terminate_streamlit(streamlit_process)
+                break
+            else:
+                print(
+                    "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
+                )
+        except KeyboardInterrupt:
+            handle_ctrl_c(streamlit_process)
 
 
 def terminate_streamlit(streamlit_process: subprocess.Popen):
@@ -700,12 +703,9 @@ def terminate_streamlit(streamlit_process: subprocess.Popen):
         streamlit_process (subprocess.Popen): The Streamlit process to terminate.
     """
 
-    try:
-        streamlit_process.terminate()
-        streamlit_process.wait()
-        log_and_print("Dashboard has been terminated.")
-    except KeyboardInterrupt:
-        handle_ctrl_c(streamlit_process)
+    streamlit_process.terminate()
+    streamlit_process.wait()
+    log_and_print("Dashboard has been terminated.")
 
 
 def handle_ctrl_c(streamlit_process: subprocess.Popen):
