@@ -23,7 +23,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
 from pipeline.stages.a_scraping._utils.selenium_utils import await_element, humans_delay
-from pipeline.stages.a_scraping.config import SCRAPER, DOMAINS
+from pipeline.config.a_scraping import SCRAPER, DOMAINS
 from pipeline.stages.a_scraping.scrape.otodom.otodom_offer_page import (
     open_process_and_close_window,
 )

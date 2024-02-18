@@ -12,7 +12,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Local imports
-from pipeline.stages.a_scraping.config import LOGGING, WEBDRIVER, WEBBROWSER
+from pipeline.config.a_scraping import LOGGING, WEBDRIVER, WEBBROWSER
 
 
 class WebDriverSetupError(Exception):

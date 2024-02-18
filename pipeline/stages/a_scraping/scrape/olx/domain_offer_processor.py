@@ -20,7 +20,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
 from pipeline.stages.a_scraping.csv_manager import save_to_csv
-from pipeline.stages.a_scraping.config import LOGGING
+from pipeline.config.a_scraping import LOGGING
 from pipeline.stages.a_scraping.scrape.olx.extract_offer_olx import (
     scrape_offer as process_offer_olx,
 )

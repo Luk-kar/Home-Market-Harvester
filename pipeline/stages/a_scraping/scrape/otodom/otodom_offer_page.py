@@ -20,7 +20,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
 from pipeline.stages.a_scraping._utils.selenium_utils import humans_delay
-from pipeline.stages.a_scraping.config import DOMAINS, SCRAPER, LOGGING
+from pipeline.config.a_scraping import DOMAINS, SCRAPER, LOGGING
 from pipeline.stages.a_scraping.csv_manager import save_to_csv
 from pipeline.stages.a_scraping.scrape.custom_errors import OfferProcessingError
 from pipeline.stages.a_scraping.scrape.otodom.extract_offer_otodom import (

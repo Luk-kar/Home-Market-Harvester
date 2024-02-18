@@ -19,7 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from pipeline.stages.a_scraping.config import SCRAPER
+from pipeline.config.a_scraping import SCRAPER
 
 
 def await_element(

@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Local imports
-from pipeline.stages.a_scraping.config import SCRAPER
+from pipeline.config.a_scraping import SCRAPER
 
 
 def return_to_listing_page(driver: WebDriver):

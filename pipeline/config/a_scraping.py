@@ -16,6 +16,7 @@ customizing the scraper's performance and interactions with web elements.
 """
 
 # Standard imports
+from pathlib import Path
 import logging
 import os
 
@@ -37,7 +38,11 @@ SCRAPER: dict[str, str | int | float] = {
 WEBDRIVER: dict[str, str | bool] = {
     "auto_install": False,
     "path": sanitize_path(
-        os.getenv("CHROME_DRIVER_PATH", "pipeline\\src\\a_scraping\\chromedriver.exe")
+        os.getenv(
+            "CHROME_DRIVER_PATH",
+            Path("pipeline") / "stages" / "a_scraping"
+            "chrome" / "119.0.6045.105" / "chromedriver.exe",
+        )
     ),
     "user_agent": "random",  # Use 'random' for random user agent or specify a string
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
@@ -48,7 +53,12 @@ WEBBROWSER: dict[str, str] = {
     "binary_location_path": sanitize_path(
         os.getenv(
             "CHROME_BROWSER_PATH",
-            "pipeline\\src\\a_scraping\\chrome\\119.0.6045.105\\chrome.exe",
+            Path("pipeline")
+            / "stages"
+            / "a_scraping"
+            / "chrome"
+            / "119.0.6045.105"
+            / "chrome.exe",
         )
     ),
 }

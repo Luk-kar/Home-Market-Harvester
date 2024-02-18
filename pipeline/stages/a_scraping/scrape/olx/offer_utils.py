@@ -17,7 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # Local imports
-from pipeline.stages.a_scraping.config import LOGGING
+from pipeline.config.a_scraping import LOGGING
 
 
 def has_offer(driver: WebDriver, selector: str) -> bool:

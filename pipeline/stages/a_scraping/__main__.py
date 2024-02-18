@@ -21,7 +21,7 @@ set_sys_path_to_project_root(__file__)
 
 
 # Local imports
-from pipeline.stages.a_scraping.config import DATA, SCRAPER, LOGGING, WEBDRIVER
+from pipeline.config.a_scraping import DATA, SCRAPER, LOGGING, WEBDRIVER
 from pipeline.stages.a_scraping.logging_setup import log_setup
 from pipeline.stages.a_scraping.scrape.process_sites_offers import scrape_offers
 from pipeline.stages.a_scraping.webdriver_setup import get_driver

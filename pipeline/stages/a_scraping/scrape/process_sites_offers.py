@@ -28,7 +28,7 @@ from pipeline.stages.a_scraping._utils.selenium_utils import humans_delay
 from pipeline.stages.a_scraping._utils.string_transformations import (
     transform_location_to_url_format,
 )
-from pipeline.stages.a_scraping.config import DOMAINS, LOGGING
+from pipeline.config.a_scraping import DOMAINS, LOGGING
 from pipeline.stages.a_scraping.scrape.olx.process_olx_site_offers import (
     process_domain_offers_olx,
 )

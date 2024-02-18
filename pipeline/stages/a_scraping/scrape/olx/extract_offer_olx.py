@@ -23,7 +23,7 @@ from pipeline.stages.a_scraping._utils.selenium_utils import (
     wait_for_conditions,
     extract_data,
 )
-from pipeline.stages.a_scraping.config import LOGGING
+from pipeline.config.a_scraping import LOGGING
 from pipeline.stages.a_scraping.scrape.custom_errors import OfferProcessingError
 
 

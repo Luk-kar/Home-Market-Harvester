@@ -23,7 +23,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 # Local imports
 from pipeline.stages.a_scraping._utils.selenium_utils import await_element, humans_delay
-from pipeline.stages.a_scraping.config import DOMAINS, SCRAPER
+from pipeline.config.a_scraping import DOMAINS, SCRAPER
 from pipeline.stages.a_scraping.scrape.olx.offer_utils import (
     extract_offer_urls,
     has_offer,
