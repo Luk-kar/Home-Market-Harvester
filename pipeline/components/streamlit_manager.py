@@ -10,6 +10,7 @@ applications.
 import os
 import subprocess
 import sys
+import threading
 
 # Local imports
 from pipeline.components.logging import log_and_print
@@ -31,17 +32,31 @@ def handle_streamlit_app(stage: str):
 def manage_streamlit_process(streamlit_process: subprocess.Popen):
     """
     Provides an interface for managing the lifecycle of a Streamlit process.
+    Terminates the Streamlit process when the user types 'stop' and presses Enter.
+    Or when the timeout interval is reached.
 
     Args:
         streamlit_process (subprocess.Popen): The Streamlit process to manage.
     """
 
+    hour = 3600
+    timeout_interval = 3 * hour
+    timer = threading.Timer(
+        timeout_interval, handle_timeout, [streamlit_process, timeout_interval]
+    )
+    timer.start()
+
     print("Type 'stop' and press Enter to terminate the Dashboard and its server:")
     while True:
         try:
             user_input = input().strip().lower()
-            if user_input == "stop":
+            if user_input in [
+                "stop",
+                "exit",
+                "quit",
+            ]:  # We do not need to be strict here
                 terminate_streamlit(streamlit_process)
+                timer.cancel()
                 break
 
             print(
@@ -49,6 +64,22 @@ def manage_streamlit_process(streamlit_process: subprocess.Popen):
             )
         except KeyboardInterrupt:
             handle_ctrl_c(streamlit_process)
+            timer.cancel()
+
+
+def handle_timeout(streamlit_process: subprocess.Popen, interval: int):
+    """
+    Handler for the timeout that checks if the process is still running and terminates it.
+
+    Args:
+        streamlit_process (subprocess.Popen): The Streamlit process to check and possibly terminate.
+        interval (int): The timeout interval in seconds.
+    """
+    if streamlit_process.poll() is None:  # Check if process is still running
+        log_and_print(
+            f"Terminating the Dashboard due to timeout after {interval // 3600} hours."
+        )
+        terminate_streamlit(streamlit_process)
 
 
 def terminate_streamlit(

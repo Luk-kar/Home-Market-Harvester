@@ -181,11 +181,14 @@ def run_streamlit(script: list[str], env_vars: dict):
     env.update(env_vars)
 
     # Start Streamlit as a subprocess and capture its output
+    # https://docs.python.org/3/library/subprocess.html#subprocess.Popen
+    # https://docs.python.org/3/library/subprocess.html#subprocess.PIPE
+    # https://docs.python.org/3/library/subprocess.html#subprocess.STDOUT
     process = subprocess.Popen(
         ["streamlit", "run", script],
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,  # Capture the output
+        stderr=subprocess.STDOUT,  # Merge stdout and stderr
         text=True,
         bufsize=1,
         universal_newlines=True,
@@ -193,8 +196,10 @@ def run_streamlit(script: list[str], env_vars: dict):
 
     # Monitor the subprocess output for a success message
     while True:
+
         output = process.stdout.readline()
         print(output, end="")  # Optional: print Streamlit's output to console
+
         if "You can now view your Streamlit app in your browser." in output:
             log_and_print("Streamlit app initialized successfully.")
             # WARNING about concurrent process management
@@ -204,9 +209,11 @@ def run_streamlit(script: list[str], env_vars: dict):
                 logging.WARNING,
             )
             break
+
         if process.poll() is not None:
             log_and_print("Streamlit app failed to start.", logging.ERROR)
             break
+
         time.sleep(0.1)  # Avoid busy waiting
 
     return process
