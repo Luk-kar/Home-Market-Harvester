@@ -37,9 +37,12 @@ def set_project_root() -> Path:
 set_project_root()
 
 # Local imports
+from pipeline.components.logging import setup_logging, log_and_print
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 from pipeline.stages.c_model_developing.model_io_operations import ModelManager
+
+setup_logging()
 
 
 def load_data(project_root: str, data_timeplace: str) -> pd.DataFrame:
@@ -277,10 +280,16 @@ def train_model(X_train: pd.DataFrame, Y_train: np.ndarray) -> LinearRegression:
             "The feature names could not be determined.\n"
             "The feature matrix must be a DataFrame."
         )
-    else:
-        print("Model trained with feature names:", feature_names)
 
     model = LinearRegression().fit(X_train, Y_train)
+
+    log_and_print(
+        (
+            f"Model of type {type(model).__name__} trained successfully.\n"
+            f"Model trained with feature names: {feature_names}.\n"
+            f"Trained on {X_train.shape[0]} samples."
+        )
+    )
 
     return model
 
