@@ -1,3 +1,9 @@
+"""
+This module provides functionality for running various stages of a data processing pipeline.
+It supports executing Python scripts, Jupyter notebooks, and Streamlit applications as subprocesses,
+allowing for flexible integration of different types of data processing and visualization tasks.
+"""
+
 # Standard library imports
 from pathlib import Path
 from typing import Optional

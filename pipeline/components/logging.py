@@ -1,3 +1,11 @@
+"""
+This module provides logging functionalities for a data processing pipeline,
+enabling both file-based and console logging with configurable levels of detail.
+It is designed to facilitate tracking of the pipeline's execution status,
+errors, and warnings by writing logs to a file 
+and simultaneously printing them to the console.
+"""
+
 # Standard library imports
 import logging
 from datetime import datetime

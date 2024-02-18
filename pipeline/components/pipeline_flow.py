@@ -1,12 +1,20 @@
+"""
+This module defines the main functionality for running and managing a data pipeline,
+which includes executing various stages like scraping, cleaning, and presenting data through a Streamlit app.
+It manages the execution flow based on the presence or absence of data files for specific stages,
+decides on skipping stages when necessary, and updates the pipeline configuration dynamically.
+It also integrates local components for specific pipeline functionalities, 
+such as managing configurations, logging and printing, subprocess management,
+error handling, and Streamlit app management.
+"""
+
 # Standard library imports
 import argparse
 import logging
 import os
-import re
-import subprocess
 import sys
 from pathlib import Path
-from typing import Optional, Set
+from typing import Set
 
 # Local imports
 from config._config_manager import ConfigManager

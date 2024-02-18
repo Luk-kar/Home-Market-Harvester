@@ -1,31 +1,36 @@
 """
-This script orchestrates the execution of a data processing pipeline, ensuring that
-environment settings are initialized, essential environment variables are validated,
-and various stages of the pipeline (such as data scraping, cleaning, model training,
-and data visualization) are executed in a specific order.
+This module serves as the orchestrator for a comprehensive data processing pipeline. 
+It is designed to systematically execute various stages of the pipeline, 
+including data scraping, cleaning, model training, and data visualization, in a predetermined sequence. 
+The orchestration process involves initializing environment settings, validating essential environment variables, 
+and managing the execution of external scripts or Jupyter notebooks through subprocess calls. 
+This approach ensures robust execution by handling errors and exit codes effectively.
 
-The pipeline leverages external scripts and tools, managing execution through subprocess
-calls and handling errors and exit codes appropriately to ensure robust execution.
-Environment settings are managed via a .env file, which is validated at runtime to
-ensure all required configurations are set.
+Key functionalities include:
+- Environment setup from a .env file, ensuring all necessary configurations are present 
+  and correct for the pipeline's operation.
+- Validation of essential environment variables at runtime to avoid configuration errors.
+- Modular execution of pipeline stages, allowing for flexibility in processing different types of tasks 
+  (e.g., Python scripts, Jupyter notebooks).
+- Comprehensive logging of execution details and status updates, 
+  facilitating monitoring and debugging of the pipeline process.
 
 Usage:
-    Run this script directly from the command line to execute the entire pipeline.
-    Ensure the .env file is properly configured in the script's directory before running.
-
-Features:
-- Initializes environment settings from a .env file.
-- Validates essential environment variables for the pipeline's operation.
-- Executes pipeline stages defined as external scripts or Jupyter notebooks.
-- Handles subprocess execution, including error handling and exit code management.
-- Logs execution details and prints status updates to the console.
+    The module can be executed directly from the command line. 
+    Before running, ensure that the .env file is correctly set up 
+    in the project's root directory to configure the pipeline environment properly.
 
 Requirements:
-- A .env file with the necessary environment variables must be present in the same
-  directory as this script.
+- Presence of a .env file in the same directory as root project, 
+  containing all required environment variables.
 
 WARNING:
-The order of function invocations within the script is critical to its correct operation.
+The order in which functions are invoked is crucial for the correct operation of the script. 
+Adjustments to the execution sequence should be made 
+with an understanding of the pipeline's architecture and dependencies.
+
+Example Command:
+    python run_pipeline.py --location_query "Warszawa" --area_radius 50 --scraped_offers_cap 500 --user_data_path "/path/to/user/data.csv"
 """
 
 # Standard library imports

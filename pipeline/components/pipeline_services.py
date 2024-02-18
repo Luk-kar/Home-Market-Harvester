@@ -1,3 +1,11 @@
+"""
+This module provides functionality for managing and verifying the presence of data within
+specific directories, particularly focusing on the handling of raw data folders and CSV files
+within data processing pipelines. It offers tools to scan directories for existing folders,
+validate the presence of new data after a scraping stage, and ensure the existence of required
+CSV files, thereby facilitating error-free data pipeline executions.
+"""
+
 # Standard library imports
 import os
 from pathlib import Path

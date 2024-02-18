@@ -1,3 +1,8 @@
+"""
+This module defines a custom exception classes.
+"""
+
+
 class PipelineError(Exception):
     """Exception raised for errors in the pipeline."""
 

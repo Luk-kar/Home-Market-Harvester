@@ -1,3 +1,11 @@
+"""
+This module provides mechanisms for integrating Streamlit applications into data processing
+pipelines, specifically focusing on the execution and lifecycle management of Streamlit processes.
+It facilitates the seamless operation of Streamlit apps as part of broader data engineering and
+analysis workflows, offering utilities to start, monitor, and gracefully terminate Streamlit
+applications.
+"""
+
 # Standard library imports
 import os
 import subprocess
