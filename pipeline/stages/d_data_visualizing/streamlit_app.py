@@ -27,7 +27,7 @@ def set_project_root() -> Path:
 project_root = set_project_root()
 
 # Local imports
-from pipeline.stages.d_data_visualizing.config import DATA
+from pipeline.config.d_data_visualizing import DATA
 from pipeline.stages.d_data_visualizing.data_visualizer._config import (
     config as display_settings,
 )

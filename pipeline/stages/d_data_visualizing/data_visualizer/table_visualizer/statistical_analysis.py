@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 # Local imports
-from pipeline.stages.d_data_visualizing.config import MODEL
+from pipeline.config.d_data_visualizing import MODEL
 from pipeline.stages.d_data_visualizing.data_visualizer.table_visualizer.styling import (
     format_with_plus_sign,
 )
