@@ -1,3 +1,9 @@
+"""
+This module provides a simple interface for managing configuration settings through a file-based system.
+It includes a custom exception class for handling missing or empty configuration values and a `ConfigManager`
+class designed to facilitate the reading and writing of key-value pairs stored within a configuration file.
+"""
+
 # Standard imports
 import os
 
