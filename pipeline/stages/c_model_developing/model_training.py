@@ -37,7 +37,7 @@ def set_project_root() -> Path:
 set_project_root()
 
 # Local imports
-from pipeline.config._config_manager import ConfigManager
+from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 from pipeline.stages.c_model_developing.model_io_operations import ModelManager
 

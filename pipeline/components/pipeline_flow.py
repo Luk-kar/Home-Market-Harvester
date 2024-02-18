@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Set
 
 # Local imports
-from config._config_manager import ConfigManager
+from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.components.logging import log_and_print
 from pipeline.components.pipeline_services import (
     check_new_csv_files,

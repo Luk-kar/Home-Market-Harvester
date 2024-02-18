@@ -9,7 +9,7 @@ from os import getenv
 from pathlib import Path
 
 # Local imports
-from pipeline.config._config_manager import ConfigManager
+from pipeline.config._conf_file_manager import ConfigManager
 
 
 def load_timeplace():

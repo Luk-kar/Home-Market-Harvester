@@ -2,7 +2,7 @@
 import os
 
 
-class ConfigKeyError(Exception):
+class ConfKeyError(Exception):
     """Custom exception for missing or empty configuration values."""
 
     pass
@@ -82,12 +82,12 @@ class ConfigManager:
                     if len(key_value_pair) > 1 and not is_value_emptish:
                         return value
                     else:
-                        raise ConfigKeyError(
+                        raise ConfKeyError(
                             f"Value for key '{key_to_find}' is empty or not found."
                         )
 
         # If the loop completes without returning, the key was not found
-        raise ConfigKeyError(f"Key '{key_to_find}' not found in configuration.")
+        raise ConfKeyError(f"Key '{key_to_find}' not found in configuration.")
 
     def write_value(self, key: str, value: str):
         """
