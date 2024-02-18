@@ -95,6 +95,7 @@ def terminate_streamlit(
     streamlit_process.terminate()
     streamlit_process.wait()
     log_and_print(message)
+    sys.exit(0)
 
 
 def handle_ctrl_c(streamlit_process: subprocess.Popen):
