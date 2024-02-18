@@ -1,4 +1,4 @@
-"""pipeline\.src\.
+"""pipeline\.stages\.
 This module contains the Streamlit application for the Home Market Harvester d_data_visualizing.
 """
 
