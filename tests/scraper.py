@@ -1,6 +1,5 @@
 """
-Designed as a streamlined validation tool,
-this test suite primarily ensures basic operational integrity
+Test suite primarily ensures basic operational integrity
 of the scraper in a live web environment.
 """
 
