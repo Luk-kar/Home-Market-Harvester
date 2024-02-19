@@ -2,9 +2,11 @@
 import unittest
 import subprocess
 import requests
+import shutil
 import time
 import os
 from pathlib import Path
+from typing import List
 
 # Third-party imports
 import pandas as pd
@@ -15,220 +17,232 @@ from pipeline.config._conf_file_manager import ConfigManager
 
 
 class TestPipelineAndDashboard(unittest.TestCase):
-    pipeline_config = ConfigManager("run_pipeline.conf")
-
-    data_folder = Path("data")
-    clean_folder = data_folder / "raw"
-    cleaned_folder = data_folder / "cleaned"
-    model_folder = Path("model")
-
-    for folder in [data_folder, clean_folder, cleaned_folder, model_folder]:
-        if not folder.exists():
-            raise FileNotFoundError(f"The folder {folder} does not exist.")
-
-    # check existing folders in raw_folder and cleaned_folder
-    raw_folder_paths = [
-        str(folder) for folder in clean_folder.glob("*") if folder.is_dir()
-    ]
-    cleaned_folder_paths = [
-        str(folder) for folder in cleaned_folder.glob("*") if folder.is_dir()
-    ]
-    model_folder_paths = [
-        str(folder) for folder in model_folder.glob("*") if folder.is_dir()
-    ]
-
-    pre_existing_conditions = {
-        "MARKET_OFFERS_TIMEPLACE": pipeline_config.read_value(
-            "MARKET_OFFERS_TIMEPLACE"
-        ),
-        "raw_folders": raw_folder_paths,
-        "cleaned_folders": cleaned_folder_paths,
-        "model_folders": model_folder_paths,
-    }
-
-    scraped_time_place = None
-
     @classmethod
     def setUpClass(cls):
-
-        start_pipeline_command = "python pipeline/run_pipeline.py --location_query 'Warszawa' --area_radius 25 --scraped_offers_cap 100"
-        cls.command = start_pipeline_command
-        cls.process = subprocess.Popen(
-            cls.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        """
+        Sets up the test environment by creating the necessary folders and starting the pipeline.
+        """
+        cls.data_folder = Path("data")
+        cls.raw_folder = cls.data_folder / "raw"
+        cls.cleaned_folder = cls.data_folder / "cleaned"
+        cls.model_folder = Path("model")
+        cls.verify_folders_exist(
+            [cls.data_folder, cls.raw_folder, cls.cleaned_folder, cls.model_folder]
         )
 
-        cls.wait_for_dashboard_to_start()
+        cls.pipeline_config = ConfigManager("run_pipeline.conf")
+        cls.pre_existing_conditions = cls.get_pre_existing_conditions()
 
-    def wait_for_dashboard_to_start(self):
-        """
-        Waits for the Streamlit dashboard to start by checking if the server is running.
-        """
-
-        streamlit_port_key = "STREAMLIT_SERVER_PORT"
-        port = os.getenv(streamlit_port_key)
-        if not port:
-            raise ValueError(f"{streamlit_port_key} environment variable not set")
-
-        is_pipeline_finished = False
-        while not is_pipeline_finished:
-            time.sleep(1)
-
-            response = requests.get(f"http://localhost:{port}")
-
-            OK_response = 200
-            if response.status_code == OK_response:
-                is_pipeline_finished = True
-                time.sleep(
-                    5
-                )  # Wait a bit longer to ensure the dashboard is fully loaded
+        cls.start_pipeline()
 
     @classmethod
-    def tearDownClass(cls):
+    def verify_folders_exist(cls, folders: List[Path]):
         """
-        Cleans up after test execution by terminating the main pipeline process and all its child processes.
+        Verifies that the specified folders exist.
 
-        This method ensures that all resources used by the pipeline and any associated processes,
-        such as the Streamlit dashboard, are properly released after tests are completed.
-        It uses the `psutil` library to identify and terminate the main process along with any child processes,
-        preventing resource leaks and ensuring a clean test environment for subsequent tests.
+        Args:
+            folders (List[Path]): The folders to verify.
 
-        Terminating the processes involves sending a terminate signal
-        to each child process recursively before terminating the main process itself.
-        The method then waits for the main process to exit,
-        ensuring that all processes have been cleanly shut down.
+        Raises:
+            FileNotFoundError: If a folder does not exist.
         """
-        try:
-            parent = psutil.Process(cls.process.pid)
-        except psutil.NoSuchProcess:
-            return  # Process already terminated
+        for folder in folders:
+            if not folder.exists():
+                raise FileNotFoundError(f"The folder {folder} does not exist.")
 
-        if parent.is_running():
-            # Kill all children processes of the pipeline process
-            for child in parent.children(recursive=True):
-                child.terminate()
-                child.wait()  # Wait for the child process to be terminated
+    @staticmethod
+    def get_folder_paths(folder: Path):
+        """
+        Returns the paths of the folders in the specified directory.
 
-            parent.terminate()  # Terminate the main process
-            parent.wait()  # Wait for the main process to be terminated
+        Args:
+            folder (Path): The directory to search for folders.
+
+        Returns:
+            List[str]: The paths of the folders in the specified directory.
+        """
+        return [str(folder) for folder in folder.glob("*") if folder.is_dir()]
+
+    @classmethod
+    def start_pipeline(cls):
+        """
+        Starts the pipeline by running the `run_pipeline.py` script
+        with the specified location query, area radius, and scraped offers cap.
+        """
+        command = "python pipeline/run_pipeline.py --location_query 'Warszawa' --area_radius 25 --scraped_offers_cap 100"
+        cls.process = subprocess.Popen(
+            command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        cls.wait_for_dashboard_to_start()
+
+    @classmethod
+    def get_pre_existing_conditions(cls):
+        """
+        Returns the pre-existing conditions in the raw, cleaned, and model directories.
+        """
+        return {
+            "MARKET_OFFERS_TIMEPLACE": cls.pipeline_config.read_value(
+                "MARKET_OFFERS_TIMEPLACE"
+            ),
+            "raw_folders": cls.get_folder_paths(cls.raw_folder),
+            "cleaned_folders": cls.get_folder_paths(cls.cleaned_folder),
+            "model_folders": cls.get_folder_paths(cls.model_folder),
+        }
+
+    @classmethod
+    def wait_for_dashboard_to_start(cls):
+        """
+        Waits for the dashboard to start by sending requests to the dashboard server.
+
+        Raises:
+            ValueError: If the STREAMLIT_SERVER_PORT environment variable is not set.
+        """
+        port = os.getenv("STREAMLIT_SERVER_PORT")
+        if not port:
+            raise ValueError("STREAMLIT_SERVER_PORT environment variable not set")
+
+        while True:
+            try:
+                response = requests.get(f"http://localhost:{port}")
+                if response.status_code == 200:
+                    time.sleep(5)  # Ensure the dashboard is fully loaded
+                    break
+            except requests.ConnectionError:
+                pass
+            time.sleep(1)
 
     def test_scraping_stage_ran_successfully(self):
+        """
+        Validates the presence of expected files in the new folder created by the scraping stage.
+        """
+
         current_raw_folder_paths = [
-            str(folder) for folder in self.clean_folder.glob("*") if folder.is_dir()
+            str(folder) for folder in self.raw_folder.glob("*") if folder.is_dir()
         ]
-        pre_existing_raw_folders = self.pre_existing_conditions["raw_folders"]
-        new_raw_folders = list(
-            set(current_raw_folder_paths) - set(pre_existing_raw_folders)
+        self.assert_stage_success(
+            stage="scraping",
+            current_folder_paths=current_raw_folder_paths,
+            pre_existing_folders=self.pre_existing_conditions["raw_folders"],
+            expected_files=["olx.pl.csv", "otodom.pl.csv"],
         )
 
-        self.assertTrue(
-            len(new_raw_folders) == 1,
-            (
-                "Scraping stage did not create a folder in the raw data folder.\n"
-                f"The raw data folder {self.pre_existing_conditions['raw_folder']}\n"
-                f"new_raw_folders:\n{new_raw_folders}\n"
-            ),
-        )
-
-        new_folder = Path(new_raw_folders[0])
-
-        olx_csv = new_folder / "olx.pl.csv"
-        oto_dom_csv = new_folder / "otodom.pl.csv"
-
-        olx_exists = olx_csv.exists()
-        oto_dom_exists = oto_dom_csv.exists()
-
-        self.assertTrue(
-            olx_exists or oto_dom_exists,
-            (
-                "Scraping stage did not create a file in the new folder in the raw data folder.\n"
-                f"The new folder:\n{new_folder}\n"
-            ),
-        )
-
-        self.are_cvs_files_valid([olx_csv, oto_dom_csv])
-
-    def are_cvs_files_valid(self, csv_files: list[Path]):
-
-        for csv in csv_files:
-            if csv.exists():
-                try:
-                    df = pd.read_csv(csv)
-                    if df.empty:
-                        self.fail(f"The CSV file {csv} is empty.")
-
-                except pd.errors.EmptyDataError:
-                    self.fail(f"The CSV file {csv} is empty.")
-
-                except Exception as error:
-                    self.fail(
-                        f"Failed to read or validate the CSV file {csv}:\n{error}"
-                    )
-
-    def test_scraping_stage_ran_successfully(self):
+    def test_cleaning_stage_ran_successfully(self):
+        """
+        Validates the presence of expected files in the new folder created by the cleaning stage.
+        """
         current_clean_folder_paths = [
-            str(folder) for folder in self.clean_folder.glob("*") if folder.is_dir()
+            str(folder) for folder in self.raw_folder.glob("*") if folder.is_dir()
         ]
-        pre_existing_clean_folders = self.pre_existing_conditions["clean_folders"]
-        new_clean_folders = list(
-            set(current_clean_folder_paths) - set(pre_existing_clean_folders)
+        self.assert_stage_success(
+            stage="cleaning",
+            current_folder_paths=current_clean_folder_paths,
+            pre_existing_folders=self.pre_existing_conditions["clean_folders"],
+            expected_files=[
+                "olx.pl.csv",
+                "otodom.pl.csv",
+                "map_df.csv",
+                "combined_df.csv",
+            ],
         )
 
+    def assert_stage_success(
+        self,
+        stage: str,
+        current_folder_paths: List[str],
+        pre_existing_folders: List[str],
+        expected_files: List[str],
+    ):
+        """
+        Validates the presence of expected files in the new folder created by a pipeline stage.
+        """
+        valid_csv_files = self.validate_stage_file_presence(
+            stage, current_folder_paths, pre_existing_folders, expected_files
+        )
+        self.are_cvs_files_valid(valid_csv_files)
+
+    def verify_and_collect_new_stage_files(
+        self,
+        stage: str,
+        current_folder_paths: List[str],
+        pre_existing_folders: List[str],
+        expected_files: List[str],
+    ):
+        """
+        Validates the presence of expected files in the new folder created by a pipeline stage.
+
+        Args:
+            stage (str): The name of the pipeline stage.
+            current_folder_paths (List[str]): The current folder paths in the pipeline stage.
+            pre_existing_folders (List[str]): The pre-existing folder paths in the pipeline stage.
+            expected_files (List[str]): The expected file names in the new folder.
+
+        Returns:
+            List[Path]: The valid CSV files in the new folder.
+        """
+
+        new_folders = list(set(current_folder_paths) - set(pre_existing_folders))
+
+        # Assert exactly one new folder is created
         self.assertTrue(
-            len(new_clean_folders) == 1,
-            (
-                f"Cleaning stage did not create a new folder in the cleaned data folder.\n"
-                f"The cleaned data folder {self.pre_existing_conditions['cleaned_folder']}\n"
-            ),
+            len(new_folders) == 1,
+            f"{stage.capitalize()} stage did not create exactly one new folder as expected.",
         )
 
-        new_folder = Path(new_clean_folders[0])
+        new_folder = Path(new_folders[0])
 
-        olx_csv = new_folder / "olx.pl.csv"
-        oto_dom_csv = new_folder / "otodom.pl.csv"
-        map_df_csv = new_folder / "map_df.csv"
-        combined_df_csv = new_folder / "combined_df.csv"
+        # Check and collect existence of expected files
+        files_existence = {
+            file_name: (Path(new_folder) / file_name).exists()
+            for file_name in expected_files
+        }
 
-        olx_exists = olx_csv.exists()
-        oto_dom_exists = oto_dom_csv.exists()
-        map_df_exists = map_df_csv.exists()
-        combined_df_exists = combined_df_csv.exists()
-
+        # The map_df and combined_df files depend on the presence of either olx.pl.csv or otodom.pl.csv files.
         self.assertTrue(
-            olx_exists or oto_dom_exists,
-            (
-                "Scraping stage did not create a file in the new folder in the raw data folder.\n"
-                f"The new folder:\n{new_folder}\n"
-            ),
+            any(files_existence.values()),
+            f"{stage.capitalize()} stage did not create any of the expected files in the new folder: {new_folder}",
         )
 
-        self.assertTrue(
-            map_df_exists,
-            (
-                "Scraping stage did not create a file in the new folder in the raw data folder.\n"
-                f"The new folder:\n{new_folder}\n"
-            ),
-        )
-
-        self.assertTrue(
-            combined_df_exists,
-            (
-                "Scraping stage did not create a file in the new folder in the raw data folder.\n"
-                f"The new folder:\n{new_folder}\n"
-            ),
-        )
-
-        csv_files_to_validate = [
-            csv_file
-            for csv_file in [
-                olx_csv if olx_exists else None,
-                oto_dom_csv if oto_dom_exists else None,
-                map_df_csv,
-                combined_df_csv,
-            ]
-            if csv_file is not None
+        # Validate CSV files
+        valid_csv_files = [
+            new_folder / file_name
+            for file_name, exists in files_existence.items()
+            if exists
         ]
 
-        self.are_cvs_files_valid(csv_files_to_validate)
+        return valid_csv_files
+
+    def test_modeling_stage_ran_successfully(self):
+        """
+        Validates the presence of expected files in the new folder created by the modeling stage.
+        """
+        current_model_folder_paths = [
+            str(folder) for folder in self.model_folder.glob("*") if folder.is_dir()
+        ]
+        self.verify_and_collect_new_stage_files(
+            stage="modeling_developing",
+            current_folder_paths=current_model_folder_paths,
+            pre_existing_folders=self.pre_existing_conditions["model_folders"],
+            expected_files=["model.pkl"],
+        )
+
+    def test_dashboard_is_running(self):
+        """
+        Tests if the dashboard is running at the expected address.
+        Fails the test if the dashboard is not running.
+        """
+        port = os.getenv("STREAMLIT_SERVER_PORT")
+        if not port:
+            self.fail("STREAMLIT_SERVER_PORT environment variable not set")
+
+        try:
+            response = requests.get(f"http://localhost:{port}")
+            self.assertEqual(
+                response.status_code,
+                200,
+                "The dashboard is not running at the expected address.",
+            )
+        except requests.ConnectionError:
+            self.fail("The dashboard is not running.")
 
     def test_close_dashboard(self):
         """
@@ -255,7 +269,100 @@ class TestPipelineAndDashboard(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to send 'stop' command to the dashboard process: {e}")
 
-    # You can add more tests here to check specific outcomes or behaviors of your pipeline/dashboard
+    @staticmethod
+    def are_cvs_files_valid(self, csv_files: list[Path]):
+        """
+        Validates the CSV files in the list.
+
+        Args:
+            csv_files (list[Path]): The CSV files to validate.
+
+        Raises:
+            AssertionError: If a CSV file is empty or cannot be read.
+        """
+
+        for csv in csv_files:
+            if csv.exists():
+                try:
+                    df = pd.read_csv(csv)
+                    if df.empty:
+                        self.fail(f"The CSV file {csv} is empty.")
+
+                except pd.errors.EmptyDataError:
+                    self.fail(f"The CSV file {csv} is empty.")
+
+                except Exception as error:
+                    self.fail(
+                        f"Failed to read or validate the CSV file {csv}:\n{error}"
+                    )
+
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Cleans up the files and processes created during the tests.
+        """
+
+        if cls.process:
+            return cls.kill_parent_and_its_children_processes()
+
+        cls.clean_up_newly_created_files()
+
+        # set the `run_pipeline.conf` file back to its original state
+        cls.set_timeplace_config_to_pre_existing_state()
+
+    @classmethod
+    def set_timeplace_config_to_pre_existing_state(cls):
+        """
+        Sets the `MARKET_OFFERS_TIMEPLACE` configuration in the `run_pipeline.conf` file back to its original state.
+        """
+        cls.pipeline_config.write_value(
+            "MARKET_OFFERS_TIMEPLACE",
+            cls.pre_existing_conditions["MARKET_OFFERS_TIMEPLACE"],
+        )
+
+    @classmethod
+    def kill_parent_and_its_children_processes(cls):
+        """
+        Kills the parent and its children processes.
+        """
+        try:
+            parent = psutil.Process(cls.process.pid)
+        except psutil.NoSuchProcess:
+            return  # Process already terminated
+
+        for child in parent.children(recursive=True):
+            child.terminate()
+            child.wait()
+
+        parent.terminate()
+        parent.wait()
+
+    @classmethod
+    def clean_up_newly_created_files(cls):
+        """
+        Deletes new folders and their files created during the tests in the raw, cleaned, and model directories.
+        """
+        folder_map = {
+            "raw_folders": cls.raw_folder,
+            "cleaned_folders": cls.cleaned_folder,
+            "model_folders": cls.model_folder,
+        }
+
+        for folder_type, initial_folders_set in cls.pre_existing_conditions.items():
+
+            if folder_type in folder_map:
+
+                stage_folder = folder_map[folder_type]
+                current_folders = set(cls.get_folder_paths(stage_folder))
+
+                new_folders = current_folders - set(initial_folders_set)
+
+                for folder_path in new_folders:
+                    try:
+                        shutil.rmtree(Path(folder_path))
+                        print(f"Deleted new folder: {folder_path}")
+                    except Exception as e:
+                        print(f"Failed to delete {folder_path}: {e}")
 
 
 if __name__ == "__main__":
