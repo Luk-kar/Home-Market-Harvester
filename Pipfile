@@ -21,6 +21,7 @@ numpy = "*"
 plotly = "*"
 scikit-learn = "*"
 statsmodels = "*"
+psutil = "*"
 
 [dev-packages]
 pylint = "*"

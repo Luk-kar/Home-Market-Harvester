@@ -27,12 +27,6 @@ def load_timeplace():
     return data_timeplace
 
 
-data_timeplace = load_timeplace()
-
-if not data_timeplace:
-    raise ValueError("The configuration variable MARKET_OFFERS_TIMEPLACE is not set.")
-
-
 def _warn_default_usage(env_var_name):
     print(
         f"WARNING: You are using the default {env_var_name.split('_')[0].lower()}. "
@@ -41,6 +35,11 @@ def _warn_default_usage(env_var_name):
 
 
 # Constants
+data_timeplace = load_timeplace()
+
+if not data_timeplace:
+    raise ValueError("The configuration variable MARKET_OFFERS_TIMEPLACE is not set.")
+
 _USER_DATA_PATH_DEFAULT = str(Path("data", "test", "your_offers.csv"))
 
 DATA = {

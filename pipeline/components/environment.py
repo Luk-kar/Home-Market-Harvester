@@ -34,6 +34,7 @@ def initialize_environment_settings():
         "SCRAPED_OFFERS_CAP=5\n"  # Sky is the limit
         "CHROME_DRIVER_PATH=\n"  # path to the ChromeDriver
         "CHROME_BROWSER_PATH=\n"  # path to the Chrome browser
+        "STREAMLIT_SERVER_PORT=8501\n"  # Default port for Streamlit
     )
 
     if not env_path.exists():
@@ -71,6 +72,7 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
         "SCRAPED_OFFERS_CAP": {"is_digit": True},
         "CHROME_DRIVER_PATH": {"check_exists": True},
         "CHROME_BROWSER_PATH": {"check_exists": True},
+        "STREAMLIT_SERVER_PORT": {"is_port": True},
         # Add other variables as needed
     }
 
@@ -112,6 +114,13 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
             and path.suffix != ".exe"
         ):
             raise ValueError(f"The {var} on Windows must be an .exe file.")
+
+        if ("is_port" in rules) and (
+            not value.isdigit() or not (1 <= int(value) <= 65535)
+        ):
+            raise ValueError(
+                f"The {var} must be a valid port number (1-65535), but was set to: {value}"
+            )
 
 
 def update_environment_variable(env_path: Path, key: str, value: str):
