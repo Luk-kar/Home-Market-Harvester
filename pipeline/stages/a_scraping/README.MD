@@ -49,13 +49,13 @@ python -m scraper "Warszawa" 25 10
 
 This command will scrape up to `10 offers` from a `25 km radius` around `Warsaw`.
 
-The output is saved in the `data\raw\{timestamp}_{place}\{site_1}.csv, {site_2}.csv, ...`
-For example: `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie\olx.pl.csv`
+The output is saved in the `data/raw/{timestamp}_{place}/{site_1}.csv, {site_2}.csv, ...`
+For example: `data/raw/2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie/olx.pl.csv`
 
 ## 🪓 Configuration
 
 When arguments in the CLI are not provided the missing values are replaced by the config values.
-Simply modify the config file: `pipeline\\src\\a_scraping\\a_scraping\\config.py`.
+Simply modify the config file: `pipeline/config/a_scraping.pyy`.
 More important arguments are:
 
 ```
@@ -65,11 +65,11 @@ SCRAPER:
     "scraped_offers_cap": 3,
 
 WEBDRIVER:
-    "path": sanitize_path("pipeline\\src\\a_scraping\\chromedriver.exe"),  # Path to the webdriver
+    "path": sanitize_path("pipeline/stages/a_scraping/chromedriver.exe"),  # Path to the webdriver
     "headless": True,  # Set to False to see the browser, watch out LOGGING["debug"]
 
 WEBBROWSER:
-    "binary_location_path":"pipeline\\src\\a_scraping\\chrome\\119.0.6045.105\\chrome.exe"
+    "binary_location_path":"pipeline/stages/a_scraping/chrome/119.0.6045.105/chrome.exe"
 
 LOGGING:
     "debug": False,  # also sets the headless option to True
@@ -90,7 +90,7 @@ except the personal data of the seller.
 
 To see what data is scraped look at the example files at:
 
-- `data\raw\2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie`
+- `data/raw/2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie`
 
 ## 📜 License
 

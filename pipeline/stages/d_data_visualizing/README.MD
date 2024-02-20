@@ -29,7 +29,7 @@ You can share the outcome via the local or network URL.
 
 ## 🪓 Configuration
 
-Simply modify the config file: `d_data_visualizing\config.py`.
+Simply modify the config file: `pipeline//config//d_data_visualizing.py`.
 Important arguments include:
 
 ```
