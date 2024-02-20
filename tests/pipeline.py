@@ -1,12 +1,22 @@
+"""
+This module contains the implementation of 
+a data processing pipeline and associated dashboard functionalities. 
+
+The core components include:
+- A pipeline process for data transformation, training and loading.
+- A dashboard interface for monitoring and interacting with the pipeline's output.
+"""
+
 # Standard imports
-import unittest
-import subprocess
-import requests
-import shutil
-import time
-import os
 from pathlib import Path
 from typing import List
+import logging
+import os
+import requests
+import shutil
+import subprocess
+import time
+import unittest
 
 # Third-party imports
 import pandas as pd
@@ -17,11 +27,27 @@ from pipeline.config._conf_file_manager import ConfigManager
 
 
 class TestPipelineAndDashboard(unittest.TestCase):
+    """
+    Facilitates testing of the pipeline
+    and dashboard functionalities to ensure system integrity and performance.
+
+    This class provides a set of methods to automate the testing of
+    data processing pipelines and their corresponding dashboards.
+    It aims to identify potential issues and performance bottlenecks
+    within the pipeline processing and dashboard visualization components.
+    """
+
     @classmethod
     def setUpClass(cls):
         """
-        Sets up the test environment by creating the necessary folders and starting the pipeline.
+        Sets up the test environment by creating the necessary folders, starting the pipeline,
+        and configuring logging.
         """
+        cls.log_folder = Path("log")
+        cls.log_file = cls.log_folder / "test_pipeline.log"
+        cls.verify_and_create_folder(cls.log_folder)
+        cls.configure_logging()
+
         cls.data_folder = Path("data")
         cls.raw_folder = cls.data_folder / "raw"
         cls.cleaned_folder = cls.data_folder / "cleaned"
@@ -36,6 +62,28 @@ class TestPipelineAndDashboard(unittest.TestCase):
         cls.start_pipeline()
 
     @classmethod
+    def verify_and_create_folder(cls, folder: Path):
+        """
+        Verifies that the specified folder exists, and creates it if it does not.
+
+        Args:
+            folder (Path): The folder to verify and potentially create.
+        """
+        if not folder.exists():
+            folder.mkdir(parents=True)
+
+    @classmethod
+    def configure_logging(cls):
+        """
+        Configures logging to write messages to a file in the specified log folder.
+        """
+        logging.basicConfig(
+            filename=str(cls.log_file),
+            level=logging.DEBUG,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+        )
+
+    @classmethod
     def verify_folders_exist(cls, folders: List[Path]):
         """
         Verifies that the specified folders exist.
@@ -48,7 +96,9 @@ class TestPipelineAndDashboard(unittest.TestCase):
         """
         for folder in folders:
             if not folder.exists():
-                raise FileNotFoundError(f"The folder {folder} does not exist.")
+                message = f"The folder {folder} does not exist."
+                logging.error(message)
+                raise FileNotFoundError(message)
 
     @staticmethod
     def get_folder_paths(folder: Path):
@@ -69,10 +119,15 @@ class TestPipelineAndDashboard(unittest.TestCase):
         Starts the pipeline by running the `run_pipeline.py` script
         with the specified location query, area radius, and scraped offers cap.
         """
-        command = "python pipeline/run_pipeline.py --location_query 'Warszawa' --area_radius 25 --scraped_offers_cap 100"
+        command = (
+            "python pipeline/run_pipeline.py --location_query"
+            "'Warszawa' --area_radius 25 --scraped_offers_cap 100"
+        )
+        # pylint: disable=consider-using-with
         cls.process = subprocess.Popen(
             command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
+        logging.info("Pipeline process started with PID: %s", cls.process.pid)
         cls.wait_for_dashboard_to_start()
 
     @classmethod
@@ -92,24 +147,36 @@ class TestPipelineAndDashboard(unittest.TestCase):
     @classmethod
     def wait_for_dashboard_to_start(cls):
         """
-        Waits for the dashboard to start by sending requests to the dashboard server.
-
-        Raises:
-            ValueError: If the STREAMLIT_SERVER_PORT environment variable is not set.
+        Waits for the dashboard to start by checking if the expected port is open.
+        Raises a TimeoutError if the dashboard does not start within 30 minutes.
         """
         port = os.getenv("STREAMLIT_SERVER_PORT")
         if not port:
-            raise ValueError("STREAMLIT_SERVER_PORT environment variable not set")
+            message = "STREAMLIT_SERVER_PORT environment variable not set"
+            logging.error(message)
+            raise ValueError(message)
+
+        start_time = time.time()
+        half_hour = 30 * 60
 
         while True:
+            if (time.time() - start_time) > half_hour:
+                message = "Dashboard did not start within 30 minutes"
+                logging.error(message)
+                raise TimeoutError(message)
+
             try:
-                response = requests.get(f"http://localhost:{port}")
+                response = requests.get(f"http://localhost:{port}", timeout=5)
                 if response.status_code == 200:
-                    time.sleep(5)  # Ensure the dashboard is fully loaded
+                    message = "Dashboard is up and running."
+                    logging.info(message)
+                    print(message)
                     break
-            except requests.ConnectionError:
-                pass
-            time.sleep(1)
+            except (requests.ConnectionError, requests.Timeout) as error:
+                message = f"Connection attempt failed: {error}"
+                logging.error(message)
+                print(message)
+                time.sleep(5)  # Wait for 5 seconds before trying again
 
     def test_scraping_stage_ran_successfully(self):
         """
@@ -155,7 +222,7 @@ class TestPipelineAndDashboard(unittest.TestCase):
         """
         Validates the presence of expected files in the new folder created by a pipeline stage.
         """
-        valid_csv_files = self.validate_stage_file_presence(
+        valid_csv_files = self.verify_and_collect_new_stage_files(
             stage, current_folder_paths, pre_existing_folders, expected_files
         )
         self.are_cvs_files_valid(valid_csv_files)
@@ -183,10 +250,16 @@ class TestPipelineAndDashboard(unittest.TestCase):
         new_folders = list(set(current_folder_paths) - set(pre_existing_folders))
 
         # Assert exactly one new folder is created
-        self.assertTrue(
-            len(new_folders) == 1,
-            f"{stage.capitalize()} stage did not create exactly one new folder as expected.",
+        folders_count = len(new_folders)
+        message = (
+            f"{stage.capitalize()} stage not create exactly one new folder as expected."
         )
+        self.assertTrue(
+            folders_count == 1,
+            message,
+        )
+        if folders_count != 1:
+            logging.error(message)
 
         new_folder = Path(new_folders[0])
 
@@ -196,11 +269,19 @@ class TestPipelineAndDashboard(unittest.TestCase):
             for file_name in expected_files
         }
 
-        # The map_df and combined_df files depend on the presence of either olx.pl.csv or otodom.pl.csv files.
-        self.assertTrue(
-            any(files_existence.values()),
-            f"{stage.capitalize()} stage did not create any of the expected files in the new folder: {new_folder}",
+        # The map_df and combined_df files depend on the presence
+        # of either olx.pl.csv or otodom.pl.csv files.
+        are_neccecery_files_present = any(files_existence.values())
+        message = (
+            f"{stage.capitalize()} stage did not create any of the expected files"
+            f"in the new folder: {new_folder}"
         )
+        self.assertTrue(
+            are_neccecery_files_present,
+            message,
+        )
+        if not are_neccecery_files_present:
+            logging.error(message)
 
         # Validate CSV files
         valid_csv_files = [
@@ -232,17 +313,25 @@ class TestPipelineAndDashboard(unittest.TestCase):
         """
         port = os.getenv("STREAMLIT_SERVER_PORT")
         if not port:
-            self.fail("STREAMLIT_SERVER_PORT environment variable not set")
+            message = "STREAMLIT_SERVER_PORT environment variable not set"
+            logging.error(message)
+            self.fail(message)
 
         try:
-            response = requests.get(f"http://localhost:{port}")
-            self.assertEqual(
-                response.status_code,
-                200,
-                "The dashboard is not running at the expected address.",
+            response = requests.get(f"http://localhost:{port}", timeout=5)
+            is_OK = response.status_code == 200
+            message = "The dashboard is not running at the expected address."
+            self.assertTrue(
+                is_OK,
+                message,
             )
+            if not is_OK:
+                logging.error(message)
+
         except requests.ConnectionError:
-            self.fail("The dashboard is not running.")
+            message = "The dashboard is not running."
+            logging.error(message)
+            self.fail(message)
 
     def test_close_dashboard(self):
         """
@@ -262,14 +351,23 @@ class TestPipelineAndDashboard(unittest.TestCase):
             if (
                 self.process.poll() is None
             ):  # If poll() returns None, the process is still running
-                self.fail(
-                    "The dashboard process did not stop within 5 seconds after sending 'stop'."
+                message = (
+                    "The dashboard process did not stop within 5 seconds"
+                    "after sending 'stop'."
                 )
+                logging.error(message)
+                self.fail(message)
 
-        except Exception as e:
-            self.fail(f"Failed to send 'stop' command to the dashboard process: {e}")
+        except (IOError, OSError) as specific_e:
+            message = f"Failed to communicate with the dashboard process: {specific_e}"
+            logging.error(message)
+            self.fail(message)
+        except Exception as unexpected_e:  # pylint: disable=broad-except
+            # Catching broad exception due to the need to fail the test for any unexpected issue
+            message = f"Unexpected error when trying to stop the dashboard process: {unexpected_e}"
+            logging.error(message)
+            self.fail(message)
 
-    @staticmethod
     def are_cvs_files_valid(self, csv_files: list[Path]):
         """
         Validates the CSV files in the list.
@@ -286,34 +384,53 @@ class TestPipelineAndDashboard(unittest.TestCase):
                 try:
                     df = pd.read_csv(csv)
                     if df.empty:
-                        self.fail(f"The CSV file {csv} is empty.")
+                        message = f"The CSV file {csv} is empty."
+                        logging.error(message)
+                        self.fail(message)
 
                 except pd.errors.EmptyDataError:
-                    self.fail(f"The CSV file {csv} is empty.")
+                    message = f"The CSV file {csv} is empty."
+                    logging.error(message)
+                    self.fail(message)
 
-                except Exception as error:
-                    self.fail(
-                        f"Failed to read or validate the CSV file {csv}:\n{error}"
+                except Exception as unexpected_e:
+                    message = (
+                        "Unexpected error.\n"
+                        f"Failed to read or validate the CSV file {csv}:\n{unexpected_e}"
                     )
+                    logging.error(message)
+                    self.fail(message)
 
     @classmethod
     def tearDownClass(cls):
         """
-        Cleans up the files and processes created during the tests.
+        Cleans up the files and processes created during the tests,
+        and resets configurations to their original state.
         """
+        # Check if the process was started and is still running before attempting to terminate it
+        if hasattr(cls, "process") and cls.process:
+            cls.kill_parent_and_its_children_processes()
 
-        if cls.process:
-            return cls.kill_parent_and_its_children_processes()
+        # Clean up newly created files if the initial condition checks were set up
+        if hasattr(cls, "pre_existing_conditions"):
+            cls.clean_up_newly_created_files()
 
-        cls.clean_up_newly_created_files()
+        # Reset the configuration to its pre-existing state if it was modified
+        if (
+            hasattr(cls, "pre_existing_conditions")
+            and "MARKET_OFFERS_TIMEPLACE" in cls.pre_existing_conditions
+        ):
+            cls.set_timeplace_config_to_pre_existing_state()
 
-        # set the `run_pipeline.conf` file back to its original state
-        cls.set_timeplace_config_to_pre_existing_state()
+        # Call the superclass method to ensure any additional teardown logic is executed
+        super().tearDownClass()
 
     @classmethod
     def set_timeplace_config_to_pre_existing_state(cls):
         """
-        Sets the `MARKET_OFFERS_TIMEPLACE` configuration in the `run_pipeline.conf` file back to its original state.
+        Sets the `MARKET_OFFERS_TIMEPLACE` configuration
+        in the `run_pipeline.conf`file
+        back to its original state.
         """
         cls.pipeline_config.write_value(
             "MARKET_OFFERS_TIMEPLACE",
@@ -340,7 +457,8 @@ class TestPipelineAndDashboard(unittest.TestCase):
     @classmethod
     def clean_up_newly_created_files(cls):
         """
-        Deletes new folders and their files created during the tests in the raw, cleaned, and model directories.
+        Deletes new folders and their files created during the tests in the
+        raw, cleaned, and model directories.
         """
         folder_map = {
             "raw_folders": cls.raw_folder,
@@ -360,9 +478,16 @@ class TestPipelineAndDashboard(unittest.TestCase):
                 for folder_path in new_folders:
                     try:
                         shutil.rmtree(Path(folder_path))
-                        print(f"Deleted new folder: {folder_path}")
-                    except Exception as e:
-                        print(f"Failed to delete {folder_path}: {e}")
+                        message = f"Deleted new folder: {folder_path}"
+                        logging.info(message)
+                        print(message)
+                    except Exception as unexpected_e:
+                        message = (
+                            "Unexecpted error.\n"
+                            f"Failed to delete {folder_path}: {unexpected_e}"
+                        )
+                        logging.error(message)
+                        print(message)
 
 
 if __name__ == "__main__":
