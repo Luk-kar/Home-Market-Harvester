@@ -78,7 +78,7 @@ LOGGING:
 ## 🤖 Testing
 
 ```
-python -m unittest tests.scraper
+python -m unittest tests.test_a_scraping
 ```
 
 It is advices to set `LOGGING: "debug": True`

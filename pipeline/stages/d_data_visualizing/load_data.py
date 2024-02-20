@@ -64,7 +64,7 @@ class DataLoader:
             Exception: Raised for any other unspecified errors that occur during data processing.
         """
         try:
-            user_apartments_df = pd.read_csv(self.user_offers_path)
+            user_apartments_df = pd.read_csv(self.user_offers_path, encoding="utf-8")
 
             self._convert_data_types(user_apartments_df)
 
@@ -90,8 +90,11 @@ class DataLoader:
             st.error(
                 f"An I/O error occurred when trying to read the file: {self.user_offers_path}"
             )
-
-        raise Exception("An unspecified error occurred.")
+        except Exception as e:
+            st.error(
+                f"An error occurred when trying to read the file: {self.user_offers_path}"
+            )
+            st.error(e)
 
     def _convert_data_types(self, user_apartments_df: pd.DataFrame):
         """
