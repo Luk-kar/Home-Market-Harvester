@@ -27,11 +27,10 @@ def initialize_environment_settings():
 
     env_content = (
         # A structure example
-        f"USER_OFFERS_PATH={str(Path('data') / 'test' / 'your_offers.csv')}\n"
-        "MODEL_PATH=model.pkl\n"  # To be created after model training
         "LOCATION_QUERY=Warszawa\n"  # Be sure that location fits the query
         "AREA_RADIUS=25\n"  # 0, 5, 10, 15, 25, 50, 75
         "SCRAPED_OFFERS_CAP=5\n"  # Sky is the limit
+        f"USER_OFFERS_PATH={str(Path('data') / 'test' / 'your_offers.csv')}\n"
         "CHROME_DRIVER_PATH=\n"  # path to the ChromeDriver
         "CHROME_BROWSER_PATH=\n"  # path to the Chrome browser
         "STREAMLIT_SERVER_PORT=8501\n"  # Default port for Streamlit
@@ -67,9 +66,9 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
 
     # Define essential variables with optional validation rules
     essential_vars = {
-        "USER_OFFERS_PATH": {"extension": ".csv"},
         "AREA_RADIUS": {"allowed_values": [0, 5, 10, 15, 25, 50, 75]},
         "SCRAPED_OFFERS_CAP": {"is_digit": True},
+        "USER_OFFERS_PATH": {"extension": ".csv"},
         "CHROME_DRIVER_PATH": {"check_exists": True},
         "CHROME_BROWSER_PATH": {"check_exists": True},
         "STREAMLIT_SERVER_PORT": {"is_port": True},
@@ -92,34 +91,39 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
         if ("extension" in rules) and (path.suffix != rules["extension"]):
             raise ValueError(
                 f"The {var} is not set to a valid {rules['extension']} file."
+                "The path is:\n"
+                f"{value}"
             )
 
         if ("allowed_values" in rules) and (int(value) not in rules["allowed_values"]):
             raise ValueError(
                 (
                     f"The {var} is set to an invalid value."
-                    "Allowed values are: {rules['allowed_values']}."
+                    f"Allowed values are: {rules['allowed_values']}."
+                    "The value is:\n"
+                    f"{value}"
                 )
             )
 
         if ("is_digit" in rules) and (not value.isdigit()):
-            raise ValueError(f"The {var} must be a digit.")
+            raise ValueError(f"The {var} must be a digit.\n""The value is:\n" f"{value})
 
         if path and ("check_exists" in rules) and (not path.exists()):
-            raise ValueError(f"The {var} path does not exist: {value}")
+            raise ValueError(f"The {var} path does not exist: 
+                             \n{value}")
 
         # Platform-specific checks for executables
         if (sys.platform == "win32") and (
             var in ["CHROME_DRIVER_PATH", "CHROME_BROWSER_PATH"]
             and path.suffix != ".exe"
         ):
-            raise ValueError(f"The {var} on Windows must be an .exe file.")
+            raise ValueError(f"The {var} on Windows must be an .exe file.\n"f"{value}")
 
         if ("is_port" in rules) and (
             not value.isdigit() or not (1 <= int(value) <= 65535)
         ):
             raise ValueError(
-                f"The {var} must be a valid port number (1-65535), but was set to: {value}"
+                f"The {var} must be a valid port number (1-65535), but was set to:\n{value}"
             )
 
 
@@ -133,7 +137,12 @@ def update_environment_variable(env_path: Path, key: str, value: str):
         value (str): The new value for the environment variable.
     """
     encoding = "utf-8"
-    env_content = env_path.read_text(encoding=encoding)
+    try:
+        env_content = env_path.read_text(encoding=encoding)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The .env file at {env_path} was not found. Please ensure the path is correct and the file exists.")
+    except IOError as e:
+        raise IOError(f"Failed to read the .env file at {env_path}. Error: {e}")
 
     safe_value = value.replace(
         "\\", "\\\\"
@@ -152,9 +161,20 @@ def update_environment_variable(env_path: Path, key: str, value: str):
             # If key doesn't exist, append it
             env_content += new_line
     except re.error as error:
-        raise ValueError(f"Error in regular expression: {error}") from error
+        raise ValueError(
+            f"Error in regular expression.\n"
+            "pattern:\n"
+            f"{pattern}"
+            "new_line:\n"
+            f"{new_line}"
+            "error:\n"
+            f"{error}"
+        ) from error
 
-    env_path.write_text(env_content, encoding=encoding)
+    try:
+        env_path.write_text(env_content, encoding=encoding)
+    except IOError as error:
+        raise IOError(f"Failed to write updates to the .env file at {env_path}.\nError: {error}") from error
 
 
 def set_user_data_path_env_var(
@@ -176,6 +196,8 @@ def set_user_data_path_env_var(
         FileNotFoundError: If the specified user data file does not exist at the provided path.
     """
     user_data_path = Path(args.user_data_path).resolve()
+
     if not user_data_path.exists():
         raise ValueError(f"The user data file does not exist: {user_data_path}")
+        
     update_environment_variable(env_path, env_var_name, str(user_data_path))
