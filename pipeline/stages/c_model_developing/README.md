@@ -23,9 +23,9 @@ This script contains the main logic for training the predictive model. It define
 
 Key Components:
 
-- Model Definition: Specifies the structure of the neural network or machine learning model.
-- Compilation: Configures the model with losses and metrics.
+- Model Definition: Specifies the structure of a machine learning model.
 - Training: Executes the training process using the provided dataset.
+- Validating: Validates the trained model by predicting on the test set and calculating the mean error.
 
 ## 📦 Requirements
 

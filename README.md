@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The Home Market Harvester is an all-encompassing data pipeline tailored to gather, purify, analyze, and display information on the real estate market. This system targets specific regions, juxtaposing chosen listings against the broader market context.
+The Home Market Harvester is an all-encompassing data pipeline tailored to gather, purify, analyze, train model, and display information on the real estate market. This system targets specific regions, juxtaposing chosen listings against the broader market context.
 
 Culminating in an interactive dashboard, it presents an aggregate view of local market trends, a comparative table of handpicked listings against overall market conditions, and a geographical map pinpointing the locations of the collected offers.
 
@@ -31,7 +31,7 @@ The project is organized into several directories, each with a specific role:
         - `c_combining_data.ipynb`: Jupyter notebook for merging data from various sources into a cohesive dataset.
         - `combined_df_schema.json`: JSON schema defining the structure and types of the combined dataframe, ensuring consistency in the merged data.
         - `d_creating_map_data.py`: Script for processing cleaned data to generate data suitable for mapping or geographical visualizations.
-      - `c_model_developing`: Development and training of machine learning models. This involves selecting features and training models.
+      - `c_model_developing`: Development and training of machine learning models. This involves selecting features, training models, and validating them.
       - `d_data_visualizing`: Creation of visual representations of the data and model outputs. It utilizes a streamlit framework.
 
 - `tests`: Unit tests for the pipeline components to ensure code reliability.
