@@ -79,9 +79,12 @@ The `tests` directory houses test scripts designed to validate the functionality
 To execute the tests for the scraping component, use the following command:
 
 ```bash
-pipenv shell # at the root
-python -m unittest tests.test_a_scraping
+pipenv shell # at the root of the project
+python -m unittest discover -s tests -p 'test_*.py'
 ```
+
+**🚨 Note**:
+It's important to remember that the pipeline relies on external data sources, which may be subject to A/B tests, frontend changes, anti-bot activity, server failures and other modifications. These factors can affect the consistency and accuracy of the data collected.
 
 ## 🔧 Configuration
 
