@@ -15,8 +15,10 @@ import datetime
 import logging
 import random
 import time
+import os
 
 # Third-party imports
+from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import WebDriverException
@@ -89,7 +91,10 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
                         driver, search_criteria, timestamp, progress, scraped_urls
                     )
                 except Exception as error:
+
                     logging.error(f"Error processing OLX offers: {error}")
+                    dump_html(driver, "olx_error.html")
+
                     raise error
 
             elif DOMAINS["otodom"] in url:
@@ -99,7 +104,10 @@ def scrape_offers(driver: WebDriver, search_criteria: dict):
                         driver, search_criteria, timestamp, progress, scraped_urls
                     )
                 except Exception as error:
+
                     logging.error(f"Error processing Otodom offers: {error}")
+                    dump_html(driver, "otodom_error.html")
+
                     raise error
 
             else:
@@ -147,3 +155,25 @@ def get_website(driver: WebDriver, url: str) -> WebDriver:
                 raise error
 
     return driver
+
+
+def dump_html(driver: WebDriver, filename: str):
+    """
+    Dumps the current HTML of the page to a file.
+
+    Args:
+        driver (WebDriver): The WebDriver instance.
+        filename (str): The name of the file to save the HTML to.
+
+    """
+
+    html_content = driver.page_source
+    pretty_html = BeautifulSoup(html_content, "html.parser").prettify()
+    log_folder = "logs"
+    if not os.path.exists(log_folder):
+        os.mkdir(log_folder)
+    filepath = os.path.join(log_folder, filename)
+    with open(filepath, "w", encoding="utf-8") as file:
+        file.write(pretty_html)
+
+    logging.error(f"The website HTML saved to:\n{filepath}.")

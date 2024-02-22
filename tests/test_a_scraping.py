@@ -12,7 +12,6 @@ import shutil
 import unittest
 
 # Third-party imports
-from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
 import enlighten
 
@@ -81,7 +80,6 @@ class TestScraper(unittest.TestCase):
         try:
             main(location_query, area_radius, scraped_offers_cap)
         except Exception as error:
-            self._dump_html("end_to_end_failure.html")
             self.fail(f"Scrape offers failed with {error}")
 
         self._verify_scraping_results()
@@ -92,7 +90,6 @@ class TestScraper(unittest.TestCase):
         try:
             self._setup_and_scrape_offers("high_volume", "olx")
         except Exception as error:
-            self._dump_html("olx_scrape_failure.html")
             self.fail(f"Scrape offers failed with {error}")
 
         self._verify_scraping_results()
@@ -103,7 +100,6 @@ class TestScraper(unittest.TestCase):
         try:
             self._setup_and_scrape_offers("high_volume", "otodom")
         except Exception as erorr:
-            self._dump_html("otodom_scrape_failure.html")
             self.fail(f"Scrape offers failed with {erorr}")
 
         self._verify_scraping_results()
@@ -192,18 +188,6 @@ class TestScraper(unittest.TestCase):
             expected_rows,
             f"Expected {expected_rows} data rows in {new_file}, found {counted_rows}.",
         )
-
-    def _dump_html(self, filename: str) -> None:
-        """Dumps the current HTML of the page to a file."""
-
-        html_content = self.driver.page_source
-        pretty_html = BeautifulSoup(html_content, "html.parser").prettify()
-        log_folder = "logs"
-        if not os.path.exists(log_folder):
-            os.mkdir(log_folder)
-        filepath = os.path.join(log_folder, filename)
-        with open(filepath, "w", encoding="utf-8") as file:
-            file.write(pretty_html)
 
 
 if __name__ == "__main__":

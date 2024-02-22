@@ -106,18 +106,19 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
             )
 
         if ("is_digit" in rules) and (not value.isdigit()):
-            raise ValueError(f"The {var} must be a digit.\n""The value is:\n" f"{value})
+            raise ValueError(
+                f"The {var} must be a digit.\n" "The value is:\n" f"{value}"
+            )
 
         if path and ("check_exists" in rules) and (not path.exists()):
-            raise ValueError(f"The {var} path does not exist: 
-                             \n{value}")
+            raise ValueError(f"The {var} path does not exist:\n" f"{value}")
 
         # Platform-specific checks for executables
         if (sys.platform == "win32") and (
             var in ["CHROME_DRIVER_PATH", "CHROME_BROWSER_PATH"]
             and path.suffix != ".exe"
         ):
-            raise ValueError(f"The {var} on Windows must be an .exe file.\n"f"{value}")
+            raise ValueError(f"The {var} on Windows must be an .exe file.\n" f"{value}")
 
         if ("is_port" in rules) and (
             not value.isdigit() or not (1 <= int(value) <= 65535)
@@ -140,7 +141,9 @@ def update_environment_variable(env_path: Path, key: str, value: str):
     try:
         env_content = env_path.read_text(encoding=encoding)
     except FileNotFoundError:
-        raise FileNotFoundError(f"The .env file at {env_path} was not found. Please ensure the path is correct and the file exists.")
+        raise FileNotFoundError(
+            f"The .env file at {env_path} was not found. Please ensure the path is correct and the file exists."
+        )
     except IOError as e:
         raise IOError(f"Failed to read the .env file at {env_path}. Error: {e}")
 
@@ -174,7 +177,9 @@ def update_environment_variable(env_path: Path, key: str, value: str):
     try:
         env_path.write_text(env_content, encoding=encoding)
     except IOError as error:
-        raise IOError(f"Failed to write updates to the .env file at {env_path}.\nError: {error}") from error
+        raise IOError(
+            f"Failed to write updates to the .env file at {env_path}.\nError: {error}"
+        ) from error
 
 
 def set_user_data_path_env_var(
@@ -199,5 +204,5 @@ def set_user_data_path_env_var(
 
     if not user_data_path.exists():
         raise ValueError(f"The user data file does not exist: {user_data_path}")
-        
+
     update_environment_variable(env_path, env_var_name, str(user_data_path))
