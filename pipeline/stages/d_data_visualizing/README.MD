@@ -1,4 +1,4 @@
-# 🏠🔍 Rent Comparison Dashboard
+# 🏠📊 Rent Comparison Dashboard
 
 The Rent Comparison Dashboard is a Streamlit-based web application designed for comparing rental properties.
 It provides users with insights into the real estate market,
@@ -27,7 +27,7 @@ streamlit run pipeline//stages//d_data_visualizing//streamlit_app.py
 The output renders in the OS's default web browser.
 You can share the outcome via the local or network URL.
 
-## 🪓 Configuration
+## ⚙️ Configuration
 
 Simply modify the config file: `pipeline//config//d_data_visualizing.py`.
 Important arguments include:
@@ -42,11 +42,18 @@ MODEL:
 
 ```
 
-## 🤖 Testing
+To upload the selected data to the dashboard, change the time-place value of:
+`MARKET_OFFERS_TIMEPLACE`
+in the file:
+`pipeline//config//run_pipeline.conf`
+
+By the date of writing this `README` there is no known method to put arguments by the command line to the `streamlit` framework.
+
+## ✅ Testing
 
 Currently, there are no automated tests for the application.
 
-## Troubleshoots
+## 🩹 Troubleshoots
 
 - When the module `config.py` is loaded, the warnings are invoked each time, instead of just once in the runtime.
 - Ensure the `USER_OFFERS_PATH` environment variable is set correctly to avoid FileNotFoundError during data loading.

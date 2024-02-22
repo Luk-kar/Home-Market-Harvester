@@ -96,7 +96,9 @@ def check_path_exists(path: str, config_name: str):
         ConfigurationError: If the path does not exist.
     """
     if not os.path.exists(path):
-        raise ConfigurationError(f"The path specified for {config_name}")
+        raise ConfigurationError(
+            (f"\nThe path:\n{path}\n" f"specified for:\n{config_name}")
+        )
 
 
 check_path_exists(WEBDRIVER["path"], "WEBDRIVER['path']")

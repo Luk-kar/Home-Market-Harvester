@@ -52,7 +52,7 @@ This command will scrape up to `10 offers` from a `25 km radius` around `Warsaw`
 The output is saved in the `data/raw/{timestamp}_{place}/{site_1}.csv, {site_2}.csv, ...`
 For example: `data/raw/2023_11_27_19_41_45_Mierzęcice__Będziński__Śląskie/olx.pl.csv`
 
-## 🪓 Configuration
+## 🔧 Configuration
 
 When arguments in the CLI are not provided the missing values are replaced by the config values.
 Simply modify the config file: `pipeline/config/a_scraping.pyy`.
@@ -75,7 +75,7 @@ LOGGING:
     "debug": False,  # also sets the headless option to True
 ```
 
-## 🤖 Testing
+## ✅ Testing
 
 ```
 python -m unittest tests.test_a_scraping
