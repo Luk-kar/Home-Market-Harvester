@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 
 # Local imports
 from pipeline.components.logging import log_and_print
@@ -41,13 +42,15 @@ def manage_streamlit_process(streamlit_process: subprocess.Popen):
 
     hour = 3600
     timeout_interval = 3 * hour
-    timer = threading.Timer(
-        timeout_interval, handle_timeout, [streamlit_process, timeout_interval]
-    )
-    timer.start()
+    start_time = time.time()
 
     print("Type 'stop' and press Enter to terminate the Dashboard and its server:")
     while True:
+        current_time = time.time()
+        if current_time - start_time > timeout_interval:
+            log_and_print("Timeout reached. Terminating the Streamlit process.")
+            terminate_streamlit(streamlit_process)
+            break
         try:
             user_input = input().strip().lower()
             if user_input in [
@@ -56,30 +59,17 @@ def manage_streamlit_process(streamlit_process: subprocess.Popen):
                 "quit",
             ]:  # We do not need to be strict here
                 terminate_streamlit(streamlit_process)
-                timer.cancel()
                 break
 
-            print(
-                "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
-            )
+            else:
+                print(
+                    "Unrecognized command. Type 'stop' and press Enter to terminate the Dashboard:"
+                )
+                time.sleep(1)
+
         except KeyboardInterrupt:
             handle_ctrl_c(streamlit_process)
-            timer.cancel()
-
-
-def handle_timeout(streamlit_process: subprocess.Popen, interval: int):
-    """
-    Handler for the timeout that checks if the process is still running and terminates it.
-
-    Args:
-        streamlit_process (subprocess.Popen): The Streamlit process to check and possibly terminate.
-        interval (int): The timeout interval in seconds.
-    """
-    if streamlit_process.poll() is None:  # Check if process is still running
-        log_and_print(
-            f"Terminating the Dashboard due to timeout after {interval // 3600} hours."
-        )
-        terminate_streamlit(streamlit_process)
+            break
 
 
 def terminate_streamlit(

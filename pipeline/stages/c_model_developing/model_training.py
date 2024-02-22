@@ -16,6 +16,7 @@ from typing import Tuple
 # Third party imports
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator
 from sklearn.impute import KNNImputer
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
@@ -281,6 +282,7 @@ def train_model(X_train: pd.DataFrame, Y_train: np.ndarray) -> LinearRegression:
             "The feature matrix must be a DataFrame."
         )
 
+    # Look at `004_model_building.ipynb` the reasons for using LinearRegression
     model = LinearRegression().fit(X_train, Y_train)
 
     log_and_print(
@@ -326,6 +328,42 @@ def save_model(project_root: Path, data_timeplace, model, X_train):
     model_manager.save_model_and_metadata()
 
 
+def validate_model(
+    X_test: pd.DataFrame, Y_test: np.ndarray, model: BaseEstimator
+) -> None:
+    """
+    Validates the trained model by predicting on the test set and calculating the mean error.
+
+    The function predicts the target values using the model and the test feature set,
+    then computes the mean absolute error between the predicted and actual target values
+    in the test set. This error is logged to provide an insight into the model's performance.
+
+    Args:
+        X_test (pd.DataFrame): The test feature set as a pandas DataFrame.
+        Y_test (np.ndarray): The actual target values for the test set as a NumPy array.
+        model (BaseEstimator): The trained model to be validated.
+
+    Raises:
+        ValueError: If the input data does not match expected dimensions or types.
+        RuntimeError: If the model prediction fails due to unexpected issues.
+    """
+
+    if not isinstance(X_test, pd.DataFrame):
+        raise ValueError("X_test must be a pandas DataFrame.")
+    if not isinstance(Y_test, np.ndarray):
+        raise ValueError("Y_test must be a NumPy array.")
+
+    try:
+        Y_pred = model.predict(X_test)
+    except Exception as e:
+        raise RuntimeError(f"Model prediction failed: {e}")
+
+    # The mean absolute error between actual and predicted values
+    model_accuracy_error = np.mean(np.abs(Y_test - Y_pred))
+
+    log_and_print(f"Mean error of the model: {model_accuracy_error:.2f}")
+
+
 def main():
     """
     Main function to execute the model training and saving workflow.
@@ -342,6 +380,9 @@ def main():
     )
 
     model = train_model(X_train, Y_train)
+
+    validate_model(X_test, Y_test, model)
+
     save_model(project_root, data_timeplace, model, X)
 
 
