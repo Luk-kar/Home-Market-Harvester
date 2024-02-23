@@ -6,7 +6,7 @@ import pandas as pd
 import sys
 import time
 import warnings
-
+from typing import Optional
 
 # Suppress future warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -38,6 +38,7 @@ project_root = set_project_root()
 # Local imports
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
+from pipeline.components.logging import log_and_print
 
 
 def get_recent_data_timeplace() -> str:
@@ -58,7 +59,9 @@ def get_recent_data_timeplace() -> str:
     data_timeplace = config_file.read_value(TIMEPLACE)
 
     if data_timeplace is None:
-        raise ValueError(f"The configuration variable {TIMEPLACE} is not set.")
+        message = f"The configuration variable {TIMEPLACE} is not set."
+        log_and_print(message, level="error")
+        raise ValueError(message)
     return data_timeplace
 
 
@@ -70,17 +73,22 @@ def get_destination_coords() -> tuple[float, float]:
         tuple: The destination coordinates.
     """
 
-    destination_coords = os.getenv("DESTINATION_COORDS")
+    destination_coords = os.getenv("DESTINATION_COORDINATES")
     if not destination_coords:
-        raise ValueError("DESTINATION_COORDS is not set." f"Value:{destination_coords}")
+        message = "DESTINATION_COORDINATES is not set."
+        log_and_print(message, level="error")
+        raise ValueError(message)
 
     try:
         destination_coords_sanitized = tuple(map(float, destination_coords.split(",")))
     except ValueError as exc:
-        raise ValueError(
-            "DESTINATION_COORDS is not in the correct format.\n"
-            f"Value\n:{destination_coords}"
-        ) from exc
+        message = (
+            "DESTINATION_COORDINATES is not in the correct format."
+            f"Value\n:{destination_coords}\n"
+            f"{exc}"
+        )
+        log_and_print(message, level="error")
+        raise ValueError(message) from exc
 
     return destination_coords_sanitized
 
@@ -122,18 +130,20 @@ def get_geolocator(user_agent: str) -> Nominatim:
     return Nominatim(user_agent=user_agent)
 
 
-def get_coordinates(geolocator, address, attempt=1, max_attempts=3) -> tuple:
+def get_coordinates(
+    geolocator: Nominatim, address: str, attempt: int = 1, max_attempts: int = 3
+) -> tuple[Optional[float], Optional[float]]:
     """
     Attempts to get the coordinates of the given address.
 
     Args:
-        geolocator: The geolocator object.
+        geolocator (Nominatim): The geolocator object.
         address (str): The address to get coordinates for.
         attempt (int): Current attempt number.
         max_attempts (int): Maximum number of attempts.
 
     Returns:
-        tuple: The latitude and longitude of the address.
+        Tuple[Optional[float], Optional[float]]: The latitude and longitude of the address, or (None, None) if not found.
     """
     try:
         location = geolocator.geocode(address, timeout=10)
@@ -145,23 +155,27 @@ def get_coordinates(geolocator, address, attempt=1, max_attempts=3) -> tuple:
         return (None, None)
 
 
-def add_geo_data_to_offers(df: pd.DataFrame, geolocator) -> pd.DataFrame:
+def add_geo_data_to_offers(
+    df_input: pd.DataFrame, geolocator: Nominatim
+) -> pd.DataFrame:
     """
     Adds geographical data to the offers DataFrame.
 
     Args:
         df (pd.DataFrame): The offers DataFrame.
-        geolocator: The geolocator object.
+        geolocator (Nominatim): The geolocator object.
 
     Returns:
         pd.DataFrame: The offers DataFrame with geographical data.
     """
     df_temp = pd.DataFrame()
-    df_temp["complete_address"] = df[("location", "complete_address")]
-    df_temp["city"] = df[("location", "city")] + ", " + df[("location", "voivodeship")]
+    df_temp["complete_address"] = df_input[("location", "complete_address")]
+    df_temp["city"] = (
+        df_input[("location", "city")] + ", " + df_input[("location", "voivodeship")]
+    )
 
     # Create unique address list
-    unique_addresses = df_temp["complete_address"].unique()
+    unique_addresses = df_temp["complete_address"].drop_duplicates()
     address_coords = {}
 
     manager = enlighten.get_manager()
@@ -172,8 +186,12 @@ def add_geo_data_to_offers(df: pd.DataFrame, geolocator) -> pd.DataFrame:
     for address in unique_addresses:
         coords = get_coordinates(geolocator, address)
         if coords == (None, None):
-            # If coordinates for the complete address are not found, try with city
-            city = df_temp[df_temp["complete_address"] == address]["city"].values[0]
+
+            # It is more safe method than parsing strings to get city name
+            matching_rows = df_temp[df_temp["complete_address"] == address]
+            city_column = matching_rows["city"]
+            city = city_column.iloc[0]
+
             coords = get_coordinates(geolocator, city)
         address_coords[address] = coords
         address_bar.update()
@@ -191,24 +209,65 @@ def calculate_time_travels(
 ) -> pd.Series:
     """
     Calculate the travel times for each address in the DataFrame to a given destination.
+
+    Args:
+        start_coords (pd.Series): A Pandas Series of start coordinates (latitude, longitude tuples).
+        destination_coords (tuple[float, float]): A tuple representing the destination coordinates (latitude, longitude).
+
+    Returns:
+        pd.Series: A Pandas Series of travel times to the destination from each start coordinate.
     """
+
     api_key = os.getenv("OPENROUTESERVICE_API_KEY")
     if not api_key:
-        raise ValueError("OPENROUTESERVICE_API_KEY is not set.\n" f"Value:{api_key}")
+        message = "OPENROUTESERVICE_API_KEY is not provided or invalid."
+        log_and_print(message, level="error")
+        raise ValueError(message)
+
+    if not isinstance(destination_coords, tuple) or len(destination_coords) != 2:
+        message = (
+            "Destination coordinates must be a tuple of two floats.\n"
+            f"destination_coords:\n{destination_coords}"
+        )
+        log_and_print(message, level="error")
+        raise ValueError(message)
+
+    unique_coords = start_coords.drop_duplicates()
+    travel_times_for_unique_coords = {}
 
     manager = enlighten.get_manager()
     travel_time_bar = manager.counter(
-        total=len(start_coords), desc="Calculating Travel Times", unit="addresses"
+        total=len(unique_coords),
+        desc="Calculating Travel Times",
+        unit="addresses",
     )
 
-    travel_times = []
-    for coords in start_coords:
-        travel_time = get_travel_time(coords, destination_coords, api_key)
-        travel_times.append(travel_time)
-        travel_time_bar.update()
+    for start_coord in unique_coords:
+        try:
+            # Assuming get_travel_time function exists and calculates the travel time
+            travel_time = get_travel_time(start_coord, destination_coords, api_key)
+            travel_times_for_unique_coords[start_coord] = travel_time
+            travel_time_bar.update()
+        except (
+            requests.exceptions.HTTPError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+            requests.exceptions.RequestException,
+            KeyError,
+        ) as api_call_exception:
+            print(f"An error occurred: {api_call_exception}")
+            continue
+        except Exception as exc:
+            message = f"An unexpected error occurred: {exc}"
+            log_and_print(message, level="error")
+            raise exc
 
     manager.stop()
-    return pd.Series(travel_times)
+
+    # Map the calculated travel times back to all start coordinates
+    all_travel_times = start_coords.map(travel_times_for_unique_coords)
+
+    return all_travel_times
 
 
 def get_travel_time(
@@ -228,14 +287,54 @@ def get_travel_time(
         response = requests.get(url, headers=headers, params=params, timeout=10)
         response.raise_for_status()  # Raises HTTPError for bad responses
         data = response.json()
-        travel_time_seconds = data["features"][0]["properties"]["segments"][0][
-            "duration"
-        ]
-        travel_time_minutes = math.ceil(travel_time_seconds / 60)
-        return travel_time_minutes
-    except Exception as e_response:
-        print(f"Error calculating travel time: {e_response}")
-        return np.nan
+
+        if "features" in data and data["features"]:
+            try:
+                travel_time_seconds = data["features"][0]["properties"]["segments"][0][
+                    "duration"
+                ]
+                if travel_time_seconds is None or travel_time_seconds < 0:
+                    message = (
+                        "Invalid travel time data found in response.\n"
+                        "travel_time_seconds:\n"
+                        f"{travel_time_seconds}"
+                    )
+                    log_and_print(message, level="warning")
+                    return np.nan
+                travel_time_minutes = math.ceil(travel_time_seconds / 60)
+                print(f"Travel time: {travel_time_minutes} minutes")
+                return travel_time_minutes
+            except KeyError as key_err:
+                print(f"Expected duration data is missing in the response.\n{key_err}")
+                return np.nan
+        else:
+            print(
+                "No route or travel time data found in response."
+                "No 'features' key in response data."
+            )
+            return np.nan
+
+    except requests.exceptions.HTTPError as http_err:
+        message = f"HTTP error occurred: {http_err}"
+        log_and_print(message, level="warning")
+
+    except requests.exceptions.ConnectionError as conn_err:
+        message = f"Connection error occurred: {conn_err}"
+        log_and_print(message, level="warning")
+
+    except requests.exceptions.Timeout as timeout_err:
+        message = f"Timeout error occurred: {timeout_err}"
+        log_and_print(message, level="warning")
+
+    except requests.exceptions.RequestException as req_err:
+        message = f"Unexpected error occurred: {req_err}"
+        log_and_print(message, level="warning")
+
+    except KeyError as key_err:
+        message = f"Key error in parsing response data: {key_err}"
+        log_and_print(message, level="warning")
+
+    return np.nan
 
 
 def main():
@@ -249,11 +348,16 @@ def main():
 
     map_df = filter_columns(combined_df)
 
+    log_and_print("Adding geographical data to the offers DataFrame.")
     geolocator = get_geolocator(user_agent="your_app_name")
-    map_df["coords"] = add_geo_data_to_offers(combined_df, geolocator)
+    coords = add_geo_data_to_offers(combined_df, geolocator)
+    log_and_print("Geographical data added.")
 
+    log_and_print("Calculating travel times to the destination.")
     destination_coords = get_destination_coords()
-    map_df["travel_time"] = calculate_time_travels(map_df["coords"], destination_coords)
+    map_df["coords"] = coords
+    map_df["travel_time"] = calculate_time_travels(coords, destination_coords)
+    log_and_print("Travel times calculated.")
 
     data_path_manager.save_df(map_df, "map")
 
