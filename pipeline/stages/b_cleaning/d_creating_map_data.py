@@ -185,7 +185,7 @@ def get_coordinates(
         return (None, None)
 
 
-def add_geo_data_to_offers(
+def add_geo_data_to_offers_concurrent(
     df_input: pd.DataFrame, geolocator: Nominatim
 ) -> pd.DataFrame:
     """
@@ -239,7 +239,7 @@ def add_geo_data_to_offers(
     return coords
 
 
-def calculate_time_travels(
+def calculate_time_travels_concurrent(
     start_coords: pd.Series, destination_coords: tuple[float, float]
 ) -> pd.Series:
     """
@@ -278,25 +278,23 @@ def calculate_time_travels(
         unit="addresses",
     )
 
-    for start_coord in unique_coords:
+    def fetch_travel_time(start_coord):
         try:
-            # Assuming get_travel_time function exists and calculates the travel time
             travel_time = get_travel_time(start_coord, destination_coords, api_key)
-            travel_times_for_unique_coords[start_coord] = travel_time
-            travel_time_bar.update()
-        except (
-            requests.exceptions.HTTPError,
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout,
-            requests.exceptions.RequestException,
-            KeyError,
-        ) as api_call_exception:
-            print(f"An error occurred: {api_call_exception}")
-            continue
+            return start_coord, travel_time
         except Exception as exc:
-            message = f"An unexpected error occurred: {exc}"
-            log_and_print(message, level="error")
-            raise exc
+
+            log_and_print(f"An error occurred for {start_coord}: {exc}", level="error")
+            return start_coord, np.nan
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {
+            executor.submit(fetch_travel_time, coord): coord for coord in unique_coords
+        }
+        for future in as_completed(futures):
+            coord, travel_time = future.result()
+            travel_times_for_unique_coords[coord] = travel_time
+            travel_time_bar.update()
 
     manager.stop()
 
@@ -342,12 +340,13 @@ def get_travel_time(
                     return np.nan
 
                 travel_time_minutes = math.ceil(travel_time_seconds / 60)
-                print(f"Travel time: {travel_time_minutes} minutes")
                 return travel_time_minutes
 
             except KeyError as key_err:
 
-                print(f"Expected duration data is missing in the response.\n{key_err}")
+                log_and_print(
+                    f"Expected duration data is missing in the response.\n{key_err}"
+                )
                 return np.nan
         else:
 
@@ -393,13 +392,15 @@ def main():
 
     log_and_print("Adding geographical data to the offers DataFrame.")
     geolocator = get_geolocator(user_agent="your_app_name")
-    coords = add_geo_data_to_offers(combined_df, geolocator)
+    coords = add_geo_data_to_offers_concurrent(combined_df, geolocator)
     log_and_print("Geographical data added.")
 
     log_and_print("Calculating travel times to the destination.")
     destination_coords = get_destination_coords()
     map_df["coords"] = coords
-    map_df["travel_time"] = calculate_time_travels(coords, destination_coords)
+    map_df["travel_time"] = calculate_time_travels_concurrent(
+        coords, destination_coords
+    )
     log_and_print("Travel times calculated.")
 
     data_path_manager.save_df(map_df, "map")
