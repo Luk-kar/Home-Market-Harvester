@@ -1,3 +1,29 @@
+"""
+This module integrates various utilities for data manipulation, 
+geocoding, and travel time calculation, primarily designed for 
+enhancing real estate market data with geographical insights and connectivity metrics.
+
+Key Functionalities:
+- Project root setup for consistent file referencing across the project.
+- Configuration management for accessing and managing project settings.
+- Data preprocessing including filtering and cleaning of real estate data.
+- Geocoding capabilities to convert addresses into geographic coordinates using the Nominatim API.
+- Integration with third-party APIs such as OpenRouteService 
+  to calculate travel times between locations.
+
+Usage:
+This module is designed to be used as part of 
+a larger pipeline in real estate data analysis projects. 
+It requires external configuration and environmental variables to be set up, 
+including API keys for geolocation and travel time services.
+
+Note:
+Ensure that all required environmental variables 
+and configurations are properly set before using this module. 
+This includes API keys and project-specific settings like 
+the destination coordinates for travel time calculations.
+"""
+
 # Standard imports
 from pathlib import Path
 import math
@@ -143,7 +169,8 @@ def get_coordinates(
         max_attempts (int): Maximum number of attempts.
 
     Returns:
-        Tuple[Optional[float], Optional[float]]: The latitude and longitude of the address, or (None, None) if not found.
+        Tuple[Optional[float], Optional[float]]: The latitude and longitude of the address,
+                                                or (None, None) if not found.
     """
     try:
         location = geolocator.geocode(address, timeout=10)
@@ -212,7 +239,8 @@ def calculate_time_travels(
 
     Args:
         start_coords (pd.Series): A Pandas Series of start coordinates (latitude, longitude tuples).
-        destination_coords (tuple[float, float]): A tuple representing the destination coordinates (latitude, longitude).
+        destination_coords (tuple[float, float]): A tuple representing
+                                                  the destination coordinates (latitude, longitude).
 
     Returns:
         pd.Series: A Pandas Series of travel times to the destination from each start coordinate.
@@ -293,21 +321,28 @@ def get_travel_time(
                 travel_time_seconds = data["features"][0]["properties"]["segments"][0][
                     "duration"
                 ]
+
                 if travel_time_seconds is None or travel_time_seconds < 0:
+
                     message = (
                         "Invalid travel time data found in response.\n"
                         "travel_time_seconds:\n"
                         f"{travel_time_seconds}"
                     )
                     log_and_print(message, level="warning")
+
                     return np.nan
+
                 travel_time_minutes = math.ceil(travel_time_seconds / 60)
                 print(f"Travel time: {travel_time_minutes} minutes")
                 return travel_time_minutes
+
             except KeyError as key_err:
+
                 print(f"Expected duration data is missing in the response.\n{key_err}")
                 return np.nan
         else:
+
             print(
                 "No route or travel time data found in response."
                 "No 'features' key in response data."
