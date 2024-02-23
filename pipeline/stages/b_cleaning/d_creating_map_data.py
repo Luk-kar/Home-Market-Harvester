@@ -63,9 +63,10 @@ def set_project_root() -> Path:
 project_root = set_project_root()
 
 # Local imports
+from pipeline.components.environment import get_destination_coords
+from pipeline.components.logging import log_and_print, setup_logging
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
-from pipeline.components.logging import log_and_print, setup_logging
 
 setup_logging()
 
@@ -92,34 +93,6 @@ def get_recent_data_timeplace() -> str:
         log_and_print(message, level="error")
         raise ValueError(message)
     return data_timeplace
-
-
-def get_destination_coords() -> tuple[float, float]:
-    """
-    Get the destination coordinates from the environment variables.
-
-    Returns:
-        tuple: The destination coordinates.
-    """
-
-    destination_coords = os.getenv("DESTINATION_COORDINATES")
-    if not destination_coords:
-        message = "DESTINATION_COORDINATES is not set."
-        log_and_print(message, level="error")
-        raise ValueError(message)
-
-    try:
-        destination_coords_sanitized = tuple(map(float, destination_coords.split(",")))
-    except ValueError as exc:
-        message = (
-            "DESTINATION_COORDINATES is not in the correct format."
-            f"Value\n:{destination_coords}\n"
-            f"{exc}"
-        )
-        log_and_print(message, level="error")
-        raise ValueError(message) from exc
-
-    return destination_coords_sanitized
 
 
 def filter_columns(df: pd.DataFrame) -> pd.DataFrame:

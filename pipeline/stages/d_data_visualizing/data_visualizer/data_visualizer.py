@@ -12,6 +12,7 @@ display a title, and initialize the dashboard with necessary data.
 import streamlit as st
 
 # Local imports
+from pipeline.components.environment import get_destination_coords
 from pipeline.stages.d_data_visualizing.data_visualizer.map_visualizer import (
     MapVisualizer,
 )
@@ -84,11 +85,13 @@ class DataVisualizer:
 
         st.markdown("---")
 
+        center_coords = get_destination_coords()
+
         map_visualizer = MapVisualizer(self.display_settings)
         map_visualizer.display(
             self.map_offers_df,
             self.texts["map"]["main_title"],
-            center_coords=(50.460740, 19.093210),
+            center_coords=center_coords,
             center_marker_name="Mierzęcice, Będziński, Śląskie",
             zoom=9,
         )
