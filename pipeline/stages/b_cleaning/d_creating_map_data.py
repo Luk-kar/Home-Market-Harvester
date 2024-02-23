@@ -25,14 +25,15 @@ the destination coordinates for travel time calculations.
 """
 
 # Standard imports
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Optional
 import math
 import os
 import pandas as pd
 import sys
 import time
 import warnings
-from typing import Optional
 
 # Suppress future warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -64,7 +65,9 @@ project_root = set_project_root()
 # Local imports
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
-from pipeline.components.logging import log_and_print
+from pipeline.components.logging import log_and_print, setup_logging
+
+setup_logging()
 
 
 def get_recent_data_timeplace() -> str:
@@ -210,18 +213,23 @@ def add_geo_data_to_offers(
         total=len(unique_addresses), desc="Geocoding Addresses", unit="addresses"
     )
 
-    for address in unique_addresses:
+    def fetch_coords(address):
         coords = get_coordinates(geolocator, address)
         if coords == (None, None):
-
-            # It is more safe method than parsing strings to get city name
-            matching_rows = df_temp[df_temp["complete_address"] == address]
-            city_column = matching_rows["city"]
-            city = city_column.iloc[0]
-
+            # Fallback to city if complete address fails
+            city = df_temp.loc[df_temp["complete_address"] == address, "city"].iloc[0]
             coords = get_coordinates(geolocator, city)
-        address_coords[address] = coords
-        address_bar.update()
+        return address, coords
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {
+            executor.submit(fetch_coords, address): address
+            for address in unique_addresses
+        }
+        for future in as_completed(futures):
+            address, coords = future.result()
+            address_coords[address] = coords
+            address_bar.update()
 
     manager.stop()
 
