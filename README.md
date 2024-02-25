@@ -55,13 +55,13 @@ pipenv shell
 The data pipeline can be executed by running the `run_pipeline.py` script found within the `pipeline` directory.
 
 ```bash
-python pipeline/run_pipeline.py --location_query "Location Name" --area_radius <radius in kilometers> --scraped_offers_cap <maximum number of offers> --user_data_path "<path to your data.csv>"
+python pipeline/run_pipeline.py --location_query "Location Name" --area_radius <radius in kilometers> --scraped_offers_cap <maximum number of offers> --destination_coords <lattitude, longitute> --user_data_path <path to your data.csv>
 ```
 
-For example, to scrape housing offers for `Warsaw` within a `25` km radius, with a maximum of `100` offers, and (Optional arg) include your comparison data located at `D:\path\user_data.csv`, use the following command:
+For example, to scrape housing offers for `Warsaw` within a `25` km radius, with a maximum of `100` offers, with journey destination point `(52.203531, 21.047047)` and (Optional arg) your comparison data located at `D:\path\user_data.csv`, use the following command:
 
 ```bash
-python pipeline/run_pipeline.py --location_query "Warszawa" --area_radius 25 --scraped_offers_cap 100 --user_data_path "D:\path\user_data.csv"
+python pipeline/run_pipeline.py --location_query "Warszawa" --area_radius 25 --scraped_offers_cap 100 --destination_coords "52.203531, 21.047047" --user_data_path "D:\path\user_data.csv"
 ```
 
 ## 💻 Development
@@ -76,7 +76,7 @@ The pipeline allows for the individual execution of each stage as a standalone P
 
 The `tests` directory houses test scripts designed to validate the functionality and reliability of different components within the pipeline. Currently, automated testing is implemented exclusively for the scraping phase.
 
-To execute the tests for the scraping component, use the following command:
+To execute the tests use the following command:
 
 ```bash
 pipenv shell # at the root of the project

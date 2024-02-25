@@ -97,7 +97,11 @@ def check_path_exists(path: str, config_name: str):
     """
     if not os.path.exists(path):
         raise ConfigurationError(
-            (f"\nThe path:\n{path}\n" f"specified for:\n{config_name}")
+            (
+                f"\nThe path:\n{path}\n"
+                f"specified for:\n{config_name}"
+                "does not exist."
+            )
         )
 
 

@@ -66,15 +66,12 @@ class DataPathCleaningManager:
             domain (str): The domain (e.g., 'olx', 'otodom, combined, map') specifying the folder.
         """
 
-        target_schema = self.paths[domain]["schema"]
         target_CSV = self.paths[domain]["cleaned"]
 
-        if not os.path.exists(target_schema):
-            self._save_dtype_and_index_schema(df, domain)
+        self._save_dtype_and_index_schema(df, domain)
 
-        if not os.path.exists(target_CSV):
-            df.to_csv(target_CSV, index=False)
-            print(f"Saving CSV to {target_CSV}")
+        df.to_csv(target_CSV, index=False)
+        print(f"Saving CSV to {target_CSV}")
 
     def _save_dtype_and_index_schema(self, df: pd.DataFrame, domain: Domain):
         """

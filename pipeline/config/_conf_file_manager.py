@@ -59,7 +59,7 @@ class ConfigManager:
         if not os.path.exists(config_file_path):
 
             if "run_pipeline.conf" == config_name:
-                config_content = "MARKET_OFFERS_TIMEPLACE="
+                config_content = "MARKET_OFFERS_TIMEPLACE=\n" "DESTINATION_COORDINATES"
             else:
                 config_content = ""
 

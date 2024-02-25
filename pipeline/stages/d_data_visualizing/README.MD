@@ -6,7 +6,7 @@ allowing them to evaluate and compare their own rental offers with the current m
 Ultimately, the dashboard accepts arguments from environment variables:
 `USER_OFFERS_PATH`, `MODEL_PATH`
 and the `run_pipeline.conf`
-`MARKET_OFFERS_TIMEPLACE`
+`MARKET_OFFERS_TIMEPLACE`, `DESTINATION_COORDINATES`
 
 ## 🔨 Usage
 
@@ -47,6 +47,8 @@ To upload the selected data to the dashboard, change the time-place value of:
 in the file:
 `pipeline//config//run_pipeline.conf`
 
+`DESTINATION_COORDINATES` is responsible for setting point of interest on the map (red dot).
+
 By the date of writing this `README` there is no known method to put arguments by the command line to the `streamlit` framework.
 
 ## ✅ Testing
@@ -57,6 +59,7 @@ Currently, there are no automated tests for the application.
 
 - When the module `config.py` is loaded, the warnings are invoked each time, instead of just once in the runtime.
 - Ensure the `USER_OFFERS_PATH` environment variable is set correctly to avoid FileNotFoundError during data loading.
+- The `DESTINATION_COORDINATES` should
 
 ## 📜 License
 
