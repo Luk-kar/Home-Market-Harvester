@@ -62,6 +62,7 @@ from pipeline.components.environment import (
 )
 from pipeline.components.logging import setup_logging
 from pipeline.components.pipeline_flow import run_pipeline
+from pipeline.components.pipeline_services import set_destination_coordinates
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -104,6 +105,16 @@ def parse_arguments() -> argparse.Namespace:
             f"Defaults to {default_args['scraped_offers_cap']}."
         ),
     )
+
+    parser.add_argument(
+        "--destination_coords",
+        type=str,
+        nargs="?",
+        help=(
+            "The coordinates of the destination for the map visualization."
+            "Provide the latitude and longitude separated by a comma."
+        ),
+    )
     parser.add_argument(
         "--user_data_path",
         type=str,
@@ -124,8 +135,14 @@ if __name__ == "__main__":
     command_args = parse_arguments()
 
     environment_path = Path(".env")
-    if command_args.user_data_path:
-        set_user_data_path_env_var(command_args, environment_path, "USER_OFFERS_PATH")
+
+    user_data_path = command_args.user_data_path
+    if user_data_path:
+        set_user_data_path_env_var(user_data_path, environment_path, "USER_OFFERS_PATH")
+
+    destination_coords = command_args.destination_coords
+    if destination_coords:
+        set_destination_coordinates(destination_coords)
 
     load_dotenv(dotenv_path=environment_path)  # Load environment variables from .env
 

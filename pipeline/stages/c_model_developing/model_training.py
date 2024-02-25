@@ -43,8 +43,6 @@ from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 from pipeline.stages.c_model_developing.model_io_operations import ModelManager
 
-setup_logging()
-
 
 def load_data(project_root: str, data_timeplace: str) -> pd.DataFrame:
     """
@@ -368,6 +366,9 @@ def main():
     """
     Main function to execute the model training and saving workflow.
     """
+
+    setup_logging()
+
     project_root = set_project_root()
     data_timeplace = get_current_scraped_folder_name()
 

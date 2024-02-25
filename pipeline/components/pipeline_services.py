@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Set
 
 # Local imports
+from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.components.exceptions import PipelineError
 
 
@@ -97,3 +98,66 @@ def validate_csv_files_presence(data_scraped_dir: Path):
     csv_files = list(data_scraped_dir.glob("*.csv"))
     if not csv_files:
         raise PipelineError(get_pipeline_error_message(data_scraped_dir))
+
+
+def set_destination_coordinates(destination: str):
+    """
+    Sets the destination coordinates in the configuration file.
+
+    This function parses a string containing latitude and longitude, validates the format,
+    the data type, and the range of the coordinates, and then writes these coordinates to
+    a configuration file.
+
+    Args:
+        destination (str): A string containing latitude and longitude separated by a comma.
+
+    Raises:
+        ValueError: If the input string is not in the correct format, if the coordinates
+                    are not valid numbers, or if the latitude and longitude are not in the
+                    acceptable range (-90 to 90 for latitude and -180 to 180 for longitude).
+        FileNotFoundError: If the configuration file does not exist.
+        Exception: For other unexpected errors during the writing process to the configuration file.
+    """
+    destination_split = [coord.strip(" ()") for coord in destination.split(",")]
+
+    error_message = (
+        "The destination coordinates should be provided as latitude and longitude separated by a comma.\n"
+        f"Parsed input: {destination_split}"
+    )
+    if len(destination_split) != 2:
+        raise ValueError(error_message)
+
+    try:
+        destination_sanitized = [float(coord) for coord in destination_split]
+    except ValueError:
+        raise ValueError(
+            "Both latitude and longitude must be valid numbers.\n"
+            f"Parsed input: {destination_split}"
+        )
+
+    # Validate latitude and longitude ranges
+    latitude, longitude = destination_sanitized
+    if not -90 <= latitude <= 90:
+        raise ValueError(
+            f"Latitude must be between -90 and 90 degrees. Value: {latitude}"
+        )
+    if not -180 <= longitude <= 180:
+        raise ValueError(
+            f"Longitude must be between -180 and 180 degrees. Value: {longitude}"
+        )
+
+    try:
+        config_manager = ConfigManager("run_pipeline.conf")
+    except ValueError as ve:
+        raise ValueError(
+            f"Failed to initialize configuration management:\n{ve}"
+        ) from ve
+    except FileNotFoundError as fnfe:
+        raise FileNotFoundError(f"Configuration file not found:\n{fnfe}") from fnfe
+
+    try:
+        config_manager.write_value("DESTINATION_COORDS", str(destination_sanitized))
+    except Exception as unexpected_error:
+        raise Exception(
+            f"Failed to write destination coordinates to configuration file:\n{unexpected_error}"
+        ) from unexpected_error

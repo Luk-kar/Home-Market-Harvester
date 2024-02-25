@@ -8,7 +8,6 @@ application's operation.
 # Standard library imports
 from pathlib import Path
 import argparse
-import os
 import re
 import sys
 
@@ -43,17 +42,24 @@ def initialize_environment_settings():
     )
 
     if not env_path.exists():
+        log_and_print(
+            f"The .env file was not found at {env_path}. Creating a new one with dummy data.",
+            level="warning",
+        )
         with open(env_path, "w", encoding=encoding) as file:
             file.write(env_content)
 
     validate_environment_variables(env_path, encoding)
 
     if env_path.read_text(encoding=encoding) == env_content:
-        raise ValueError(
+        message = (
             "Please fill in the .env file with your data.\n"
+            "Now the .env is just a template with dummy data.\n"
             f"The file {env_path} is located at the root of the project.\n"
             "Reload the environment settings."
         )
+        log_and_print(message, level="warning")
+        raise ValueError(message)
 
 
 def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
@@ -86,52 +92,59 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
         pattern = rf"{var}=(.*)"
         match = re.search(pattern, env_content)
         if not match or not match.group(1).strip():
-            raise ValueError(
-                f"The {var} environment variable is missing or not set in the .env file."
-            )
+            message = f"The {var} environment variable is missing or not set in the .env file."
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
         value = match.group(1).strip()
         path = Path(value) if "extension" in rules or "check_exists" in rules else None
 
         # Specific validations based on rules
         if ("extension" in rules) and (path.suffix != rules["extension"]):
-            raise ValueError(
-                f"The {var} is not set to a valid {rules['extension']} file."
-                "The path is:\n"
-                f"{value}"
+            message = (
+                f"The {var} is not set to a valid {rules['extension']} file.\n"
+                f"The path is:\n{value}"
             )
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
         if ("allowed_values" in rules) and (int(value) not in rules["allowed_values"]):
-            raise ValueError(
-                (
-                    f"The {var} is set to an invalid value."
-                    f"Allowed values are: {rules['allowed_values']}."
-                    "The value is:\n"
-                    f"{value}"
-                )
+            message = (
+                f"The {var} is set to an invalid value.\n"
+                f"Allowed values are: {rules['allowed_values']}.\n"
+                "The value is:\n"
+                f"{value}"
             )
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
         if ("is_digit" in rules) and (not value.isdigit()):
-            raise ValueError(
-                f"The {var} must be a digit.\n" "The value is:\n" f"{value}"
-            )
+            message = f"The {var} must be a digit.\n" "The value is:\n" f"{value}"
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
         if path and ("check_exists" in rules) and (not path.exists()):
-            raise ValueError(f"The {var} path does not exist:\n" f"{value}")
+            message = f"The {var} path does not exist:\n" f"{value}"
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
         # Platform-specific checks for executables
         if (sys.platform == "win32") and (
             var in ["CHROME_DRIVER_PATH", "CHROME_BROWSER_PATH"]
             and path.suffix != ".exe"
         ):
-            raise ValueError(f"The {var} on Windows must be an .exe file.\n" f"{value}")
+            message = (
+                f"The {var} on Windows must be an .exe file, but was set to:\n{value}"
+            )
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
         if ("is_port" in rules) and (
             not value.isdigit() or not (1 <= int(value) <= 65535)
         ):
-            raise ValueError(
-                f"The {var} must be a valid port number (1-65535), but was set to:\n{value}"
-            )
+            message = f"The {var} must be a valid port number (1-65535), but was set to:\n{value}"
+            log_and_print(message, level="error")
+            raise ValueError(message)
 
 
 def update_environment_variable(env_path: Path, key: str, value: str):
@@ -195,7 +208,7 @@ def update_environment_variable(env_path: Path, key: str, value: str):
 
 
 def set_user_data_path_env_var(
-    args: argparse.Namespace, env_path: Path, env_var_name: str = "USER_OFFERS_PATH"
+    user_data_path: str, env_path: Path, env_var_name: str = "USER_OFFERS_PATH"
 ) -> None:
     """
     Validates the user data file path provided in command line arguments
@@ -212,7 +225,7 @@ def set_user_data_path_env_var(
     Raises:
         FileNotFoundError: If the specified user data file does not exist at the provided path.
     """
-    user_data_path = Path(args.user_data_path).resolve()
+    user_data_path = Path(user_data_path).resolve()
 
     if not user_data_path.exists():
         message = f"The user data file does not exist: {user_data_path}"
@@ -220,31 +233,3 @@ def set_user_data_path_env_var(
         raise ValueError(message)
 
     update_environment_variable(env_path, env_var_name, str(user_data_path))
-
-
-def get_destination_coords() -> tuple[float, float]:
-    """
-    Get the destination coordinates from the environment variables.
-
-    Returns:
-        tuple: The destination coordinates.
-    """
-
-    destination_coords = os.getenv("DESTINATION_COORDINATES")
-    if not destination_coords:
-        message = "DESTINATION_COORDINATES is not set."
-        log_and_print(message, level="error")
-        raise ValueError(message)
-
-    try:
-        destination_coords_sanitized = tuple(map(float, destination_coords.split(",")))
-    except ValueError as exc:
-        message = (
-            "DESTINATION_COORDINATES is not in the correct format."
-            f"Value\n:{destination_coords}\n"
-            f"{exc}"
-        )
-        log_and_print(message, level="error")
-        raise ValueError(message) from exc
-
-    return destination_coords_sanitized

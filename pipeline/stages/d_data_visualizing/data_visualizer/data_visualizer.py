@@ -12,7 +12,6 @@ display a title, and initialize the dashboard with necessary data.
 import streamlit as st
 
 # Local imports
-from pipeline.components.environment import get_destination_coords
 from pipeline.stages.d_data_visualizing.data_visualizer.map_visualizer import (
     MapVisualizer,
 )
@@ -36,16 +35,23 @@ class DataVisualizer:
         user_apartments_df (pd.DataFrame): The user apartment data.
         market_apartments_df (pd.DataFrame): The market apartment data.
         map_offers_df (pd.DataFrame): The map offers data.
+        destination_coords (tuple): The coordinates of the destination.
         display_settings (dict): The display settings for the dashboard.
         dashboard_title (str): The title of the dashboard.
     """
 
     def __init__(
-        self, user_apartments_df, market_apartments_df, map_offers_df, display_settings
+        self,
+        user_apartments_df,
+        market_apartments_df,
+        map_offers_df,
+        destination_coords,
+        display_settings,
     ):
         self.user_apartments_df = user_apartments_df
         self.market_apartments_df = market_apartments_df
         self.map_offers_df = map_offers_df
+        self.destination_coords = destination_coords
         self.display_settings = display_settings
         self.selected_language = None
         self.texts = Translation()
@@ -85,13 +91,11 @@ class DataVisualizer:
 
         st.markdown("---")
 
-        center_coords = get_destination_coords()
-
         map_visualizer = MapVisualizer(self.display_settings)
         map_visualizer.display(
             self.map_offers_df,
             self.texts["map"]["main_title"],
-            center_coords=center_coords,
+            center_coords=self.destination_coords,
             center_marker_name="Mierzęcice, Będziński, Śląskie",
             zoom=9,
         )

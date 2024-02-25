@@ -68,8 +68,6 @@ from pipeline.components.logging import log_and_print, setup_logging
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 
-setup_logging()
-
 
 def get_recent_data_timeplace() -> str:
     """
@@ -356,6 +354,9 @@ def main():
     """
     Main function for creating the map data.
     """
+
+    setup_logging()
+
     data_timeplace = get_recent_data_timeplace()
 
     data_path_manager = DataPathCleaningManager(data_timeplace, project_root)

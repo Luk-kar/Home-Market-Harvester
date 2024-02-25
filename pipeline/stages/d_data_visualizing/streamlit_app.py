@@ -27,6 +27,8 @@ def set_project_root() -> Path:
 project_root = set_project_root()
 
 # Local imports
+from pipeline.components.logging import log_and_print, setup_logging
+from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.config.d_data_visualizing import DATA
 from pipeline.stages.d_data_visualizing.data_visualizer._config import (
     config as display_settings,
@@ -41,12 +43,17 @@ def streamlit_app():
     """
     Main function for the Streamlit application.
     """
+    setup_logging()
+
     user_apartments_df, market_apartments_df, map_offers_df = load_data()
+
+    destination_coords = get_destination_coords()
 
     DataVisualizer(
         user_apartments_df,
         market_apartments_df,
         map_offers_df,
+        destination_coords,
         display_settings,
     ).render_data()
 
@@ -118,6 +125,35 @@ def _check_if_file_exists(file_path: str):
         return False
 
     return True
+
+
+def get_destination_coords() -> tuple[float, float]:
+    """
+    Get the destination coordinates from the environment variables.
+
+    Returns:
+        tuple: The destination coordinates.
+    """
+
+    config_file = ConfigManager("run_pipeline.conf")
+    destination_coords = config_file.read_value("DESTINATION_COORDINATES")
+    if not destination_coords:
+        message = "DESTINATION_COORDINATES is not set."
+        log_and_print(message, level="error")
+        raise ValueError(message)
+
+    try:
+        destination_coords_sanitized = tuple(map(float, destination_coords.split(",")))
+    except ValueError as exc:
+        message = (
+            "DESTINATION_COORDINATES is not in the correct format."
+            f"Value\n:{destination_coords}\n"
+            f"{exc}"
+        )
+        log_and_print(message, level="error")
+        raise ValueError(message) from exc
+
+    return destination_coords_sanitized
 
 
 streamlit_app()
