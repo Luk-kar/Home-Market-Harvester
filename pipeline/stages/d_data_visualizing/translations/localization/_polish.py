@@ -111,5 +111,6 @@ polish = {
             },
             "nan": "-",
         },
+        "percentile_dropdown": "Wybierz oferty według czasu dojazdu",
     },
 }

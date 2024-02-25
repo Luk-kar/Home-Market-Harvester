@@ -108,5 +108,6 @@ english = {
             },
             "nan": "-",
         },
+        "percentile_dropdown": "Select offers by travel time",
     },
 }

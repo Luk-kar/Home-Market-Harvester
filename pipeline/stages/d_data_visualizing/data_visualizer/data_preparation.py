@@ -17,7 +17,7 @@ from pipeline.stages.d_data_visualizing.data_visualizer.table_visualizer.statist
 )
 
 
-def filter_data(
+def filter_table_data(
     user_apartments_df: pd.DataFrame, market_apartments_df: pd.DataFrame
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """

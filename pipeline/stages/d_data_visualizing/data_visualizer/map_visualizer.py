@@ -3,6 +3,9 @@ This module contains the MapVisualizer class,
 which is used to display map visualizations using Plotly and Scattermapbox.
 """
 
+# Standard imports
+from typing import Optional
+
 # Third-party imports
 import pandas as pd
 import plotly.graph_objects as go
@@ -26,14 +29,15 @@ class MapVisualizer:
         display: Display a map visualization using Plotly and Scattermapbox.
     """
 
-    def __init__(self, map_df: pd.DataFrame, display_settings: dict):
-        self.map_df = map_df
+    def __init__(self, display_settings: dict):
+        self.time_travel: Optional[float] = None
         self.display_settings = display_settings
         self.texts = Translation()["map"]
         self.legend_title = f"{self.texts['legend_title']}:"
 
     def display(
         self,
+        map_df: pd.DataFrame,
         title: str = "",
         center_coords: tuple[float, float] = None,
         center_marker_name: str = "Default",
@@ -44,13 +48,19 @@ class MapVisualizer:
 
         Args:
             title (str, optional): Title for the map visualization. Defaults to "".
+            map_df (pd.DataFrame): The map offers data.
             center_coords (tuple[float, float], optional): Coordinates for the center of the map.
                                                            Defaults to None.
             center_marker_name (str, optional): Name for the center marker. Defaults to "Default".
             zoom (float, optional): Zoom level of the map. Defaults to 10.0.
         """
 
-        map_df = self.map_df
+        st.markdown(
+            f"<h3 style='text-align: center;'>{title}</h3>",
+            unsafe_allow_html=True,
+        )
+        self._select_price_percentile()
+        map_df = self.filter_data_based_on_travel_time(map_df)
 
         # Extract latitude and longitude from 'coords' column in map_df
         map_df["Latitude"], map_df["Longitude"] = zip(
@@ -93,10 +103,6 @@ class MapVisualizer:
         )
 
         # Display title and map
-        st.markdown(
-            f"<h3 style='text-align: center;'>{title}</h3>",
-            unsafe_allow_html=True,
-        )
         st.plotly_chart(fig, use_container_width=True)
 
     def _extract_lat_lon(self, coord):
@@ -206,3 +212,45 @@ class MapVisualizer:
 
         fig.update_layout(**layout_update)
         return fig
+
+    def _select_price_percentile(self) -> None:
+        """
+        Display a selection box for choosing a price percentile.
+        """
+
+        column_1, column_2, column_3 = st.columns([1, 1, 1])
+
+        title = self.texts["percentile_dropdown"]
+
+        with column_2:
+            self.time_travel = st.selectbox(
+                title,
+                options=["<10", "<30", "∞"],
+                index=2,  # Default to max time
+            )
+
+    def filter_data_based_on_travel_time(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filter the map_df based on the travel time.
+
+        Args:
+            df (pd.DataFrame): The map offers data.
+
+        Returns:
+            pd.DataFrame: The filtered map offers data.
+        """
+        filtered_df = (
+            df.copy()
+        )  # Work on a copy to avoid modifying the original DataFrame
+
+        if self.time_travel == "<10":
+            return filtered_df[filtered_df["travel_time"] <= 10]
+        elif self.time_travel == "<30":
+            return filtered_df[filtered_df["travel_time"] <= 30]
+        elif self.time_travel == "∞":
+            return filtered_df
+        else:
+            raise ValueError(
+                "Invalid time_travel value."
+                f"Expected one of ['<10', '<30', '∞'], got {self.time_travel} instead."
+            )

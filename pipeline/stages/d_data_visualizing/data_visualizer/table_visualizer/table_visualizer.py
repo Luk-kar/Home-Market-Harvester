@@ -20,7 +20,7 @@ import streamlit as st
 
 # Local imports
 from pipeline.stages.d_data_visualizing.data_visualizer.data_preparation import (
-    filter_data,
+    filter_table_data,
     compile_apartments_data,
     reorder_columns,
 )
@@ -74,7 +74,7 @@ class TableVisualizer:
             market_apartments_df (pd.DataFrame): A DataFrame containing other offers.
         """
 
-        user_apartments_narrowed, market_apartments_narrowed = filter_data(
+        user_apartments_narrowed, market_apartments_narrowed = filter_table_data(
             user_apartments_df, market_apartments_df
         )
 
