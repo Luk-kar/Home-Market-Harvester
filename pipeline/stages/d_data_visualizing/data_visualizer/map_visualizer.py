@@ -19,20 +19,21 @@ class MapVisualizer:
     A class used to display map visualizations using Plotly and Scattermapbox.
 
     Args:
+        map_df (pd.DataFrame): The map offers data.
         display_settings (dict): The display settings for the dashboard.
 
     Methods:
         display: Display a map visualization using Plotly and Scattermapbox.
     """
 
-    def __init__(self, display_settings):
+    def __init__(self, map_df: pd.DataFrame, display_settings: dict):
+        self.map_df = map_df
         self.display_settings = display_settings
         self.texts = Translation()["map"]
         self.legend_title = f"{self.texts['legend_title']}:"
 
     def display(
         self,
-        map_df: pd.DataFrame,
         title: str = "",
         center_coords: tuple[float, float] = None,
         center_marker_name: str = "Default",
@@ -42,13 +43,14 @@ class MapVisualizer:
         Display a map visualization using Plotly and Scattermapbox.
 
         Args:
-            map_df (pd.DataFrame): DataFrame containing map data.
             title (str, optional): Title for the map visualization. Defaults to "".
             center_coords (tuple[float, float], optional): Coordinates for the center of the map.
                                                            Defaults to None.
             center_marker_name (str, optional): Name for the center marker. Defaults to "Default".
             zoom (float, optional): Zoom level of the map. Defaults to 10.0.
         """
+
+        map_df = self.map_df
 
         # Extract latitude and longitude from 'coords' column in map_df
         map_df["Latitude"], map_df["Longitude"] = zip(

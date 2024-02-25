@@ -91,9 +91,8 @@ class DataVisualizer:
 
         st.markdown("---")
 
-        map_visualizer = MapVisualizer(self.display_settings)
+        map_visualizer = MapVisualizer(self.map_offers_df, self.display_settings)
         map_visualizer.display(
-            self.map_offers_df,
             self.texts["map"]["main_title"],
             center_coords=self.destination_coords,
             center_marker_name="Mierzęcice, Będziński, Śląskie",
