@@ -114,6 +114,7 @@ class MapVisualizer:
             "Square Meters:",
             "Price/Sqm:",
             "Furnished:",
+            "Time travel to red dot:",
         ]
         max_label_length = max(len(label) for label in labels)
         font_style = "font-family:monospace;"
@@ -127,6 +128,8 @@ class MapVisualizer:
         sqm = hover_tooltip["area"]
         rent_sqm = hover_tooltip["price_per_meter"]
         furnished = hover_tooltip["furnished"]
+        travel_time = hover_tooltip["travel_time"]["title"]
+        unit = hover_tooltip["travel_time"]["unit"]
         boolean_values = hover_tooltip["boolean"]
         nan = hover_tooltip["nan"]
 
@@ -155,7 +158,8 @@ class MapVisualizer:
             f"<span style='{font_style}'>{f'{rent}:'.ljust(max_label_length)}</span> {row['rent']}<br>"
             f"<span style='{font_style}'>{f'{sqm}:'.ljust(max_label_length)}</span> {row['sqm']}<br>"
             f"<span style='{font_style}'>{f'{rent_sqm}:'.ljust(max_label_length)}</span> {row['rent_sqm']}<br>"
-            f"<span style='{font_style}'>{f'{furnished}:'.ljust(max_label_length)}</span> {boolean_values[row['is_furnished']]}"
+            f"<span style='{font_style}'>{f'{furnished}:'.ljust(max_label_length)}</span> {boolean_values[row['is_furnished']]}<br>"
+            f"<span style='{font_style}'>{f'{travel_time}:'.ljust(max_label_length)}</span> {row['travel_time']} {unit}<br>"
             "<extra></extra>"
         )
 

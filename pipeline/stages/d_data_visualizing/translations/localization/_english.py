@@ -98,6 +98,10 @@ english = {
             "area": "Square Meters",
             "price_per_meter": "Price/Sqm",
             "furnished": "Furnished",
+            "travel_time": {
+                "title": "Time travel to red dot",
+                "unit": "min",
+            },
             "boolean": {
                 True: "yes",
                 False: "no",

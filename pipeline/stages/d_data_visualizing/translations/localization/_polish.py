@@ -101,6 +101,10 @@ polish = {
             "area": "Metry kwadratowe",
             "price_per_meter": "Cena za metr",
             "furnished": "Umeblowane",
+            "travel_time": {
+                "title": "Czas dojazdu",
+                "unit": "min",
+            },
             "boolean": {
                 True: "tak",
                 False: "nie",
