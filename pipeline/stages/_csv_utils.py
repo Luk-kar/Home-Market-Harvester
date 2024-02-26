@@ -1,9 +1,10 @@
 # Standard imports
-from typing import Any, Dict, Literal
-import pandas as pd
-import os
-import json
 from pathlib import Path
+from typing import Any, Dict, Literal
+import json
+import logging
+import os
+import pandas as pd
 
 Data_Paths = Dict[str, Any]
 Domain = Literal["olx", "otodom", "combined"], "map"
@@ -85,6 +86,7 @@ class DataPathCleaningManager:
         self._save_dtype_and_index_schema(df, domain)
 
         df.to_csv(target_CSV, index=False)
+
         print(f"Saving CSV to {target_CSV}")
 
     def _save_dtype_and_index_schema(self, df: pd.DataFrame, domain: Domain):
@@ -109,7 +111,8 @@ class DataPathCleaningManager:
         elif domain == "map":
             schema_file_path = self.paths["map"]["schema"]
         else:
-            raise KeyError(f"Invalid domain '{domain}' specified.")
+            message = f"Invalid domain '{domain}' specified."
+            raise KeyError(message)
 
         dtype_info = {str(key): str(value) for key, value in df.dtypes.items()}
 
@@ -129,7 +132,6 @@ class DataPathCleaningManager:
         schema_info = {"dtypes": dtype_info, "index": index_info}
 
         # Ensure the directory exists; if not, create it
-        print(f"Saving schema to {schema_file_path}")
         os.makedirs(os.path.dirname(schema_file_path), exist_ok=True)
 
         with open(schema_file_path, "w") as file:
@@ -154,7 +156,8 @@ class DataPathCleaningManager:
         elif domain in ["olx", "otodom"] and not is_cleaned:
             return self._load_raw_df(domain)
         else:
-            raise KeyError(f"Invalid domain '{domain}' specified.")
+            message = f"Invalid domain '{domain}' specified."
+            raise KeyError(message)
 
     def _load_raw_df(self, domain: Domain) -> pd.DataFrame:
         data_paths = self.paths
@@ -184,7 +187,8 @@ class DataPathCleaningManager:
         elif domain in ["otodom", "combined"]:
             df = pd.read_csv(data_file, header=[0, 1])
         else:
-            raise KeyError(f"Invalid domain '{domain}' specified.")
+            message = f"Invalid domain '{domain}' specified."
+            raise KeyError(message)
 
         # Load the schema information
         schema_info = self.load_schema(domain)
@@ -201,7 +205,8 @@ class DataPathCleaningManager:
                 col = tuple(col.strip("()").replace("'", "").split(", "))
                 df[col] = df[col].astype(dtype)
         else:
-            raise KeyError(f"Invalid domain '{domain}' specified.")
+            message = f"Invalid domain '{domain}' specified."
+            raise KeyError(message)
         return df
 
     def load_schema(self, domain: Domain) -> Dict:

@@ -33,11 +33,15 @@ Note:
     from the `d_data_visualizing.translations` package for translation data.
 """
 
+# Standard imports
+import logging
+
 # Local imports
 from pipeline.stages.d_data_visualizing.translations.localization.content import (
     translations,
     Languages,
 )
+from pipeline.components.logger import log_and_print, setup_logging
 
 
 class Translation:
@@ -87,10 +91,15 @@ class Translation:
             KeyError: If the key is not found in the translations for the current language.
         """
 
+        setup_logging()
+
         try:
             return self._texts[self._language][key]
         except KeyError as error:
-            raise KeyError(
+
+            message = (
                 f"Missing translation key: '{key}' in language '{self._language}'"
                 + f"\n{self._texts[self._language]}"
-            ) from error
+            )
+            log_and_print(message, logging.ERROR)
+            raise KeyError(message) from error

@@ -18,7 +18,7 @@ from typing import Set
 
 # Local imports
 from pipeline.config._conf_file_manager import ConfigManager
-from pipeline.components.logging import log_and_print
+from pipeline.components.logger import log_and_print
 from pipeline.components.pipeline_services import (
     check_new_csv_files,
     get_existing_folders,
@@ -89,12 +89,16 @@ def decide_skip_based_on_files(
     otodom_exists = any(data_scraped_dir.glob("otodom.pl.csv"))
 
     if not olx_exists and not otodom_exists:
-        raise PipelineError(get_pipeline_error_message(data_scraped_dir))
+        message = get_pipeline_error_message(data_scraped_dir)
+        log_and_print(message, logging.ERROR)
+        raise PipelineError(message)
 
     _stages = {"OLX": "a_cleaning_OLX", "otodom": "b_cleaning_otodom"}
 
     if not any(stage_identifier in stage for stage_identifier in _stages.values()):
-        raise ValueError(f"Unsupported stage: {stage}")
+        message = f"Unsupported stage: {stage}"
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     if _stages["OLX"] in stage and not olx_exists:
         log_and_print("Skipping OLX cleaning due to missing olx.pl.csv file.")

@@ -4,6 +4,7 @@ which is used to display map visualizations using Plotly and Scattermapbox.
 """
 
 # Standard imports
+import logging
 from typing import Optional
 
 # Third-party imports
@@ -15,6 +16,7 @@ import streamlit as st
 from pipeline.stages.d_data_visualizing.translations.translation_manager import (
     Translation,
 )
+from pipeline.components.logger import log_and_print
 
 
 class MapVisualizer:
@@ -255,7 +257,7 @@ class MapVisualizer:
         elif self.travel_time == "∞":
             return df
         else:
-            raise ValueError(
-                "Invalid time_travel value."
-                f"Expected one of {self.travel_time_options}, got {self.travel_time} instead."
-            )
+
+            message = f"Invalid time_travel value. Expected one of {self.travel_time_options}, got {self.travel_time} instead."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)

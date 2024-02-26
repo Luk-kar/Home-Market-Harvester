@@ -7,6 +7,7 @@ which is responsible for creating and displaying bar chart visualizations.
 from typing import Any, Dict, List, Optional
 
 # Third-party imports
+import logging
 import matplotlib.axes._axes as Axes
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -15,6 +16,7 @@ import seaborn as sns
 import streamlit as st
 
 # Local imports
+from pipeline.components.logger import log_and_print
 from pipeline.stages.d_data_visualizing.data_visualizer.data_preparation import (
     matches_city_building_year_criteria,
 )
@@ -234,9 +236,10 @@ class BarChartVisualizer:
         )
 
         if position_out_of_range:
-            raise IndexError(
-                f"Position is out of range.\nPosition: {position},\nRange: {len(original_string)}"
-            )
+
+            message = f"Position is out of range.\nPosition: {position},\nRange: {len(original_string)}"
+            log_and_print(message, logging.ERROR)
+            raise IndexError(message)
 
         # Adjust the position for negative indices
         if position < 0:
@@ -434,9 +437,9 @@ class BarChartVisualizer:
             elif "furnished" in category:
                 break
             else:
-                raise ValueError(
-                    "Neither 'unfurnished' nor 'furnished' substrings were found for replacement."
-                )
+                message = "Neither 'unfurnished' nor 'furnished' substrings were found for replacement."
+                log_and_print(message, logging.ERROR)
+                raise ValueError(message)
 
         unfurnished_translation = self.texts["column_names"]["with_no_furniture"]
         furnished_translation = self.texts["column_names"]["with_furniture"]

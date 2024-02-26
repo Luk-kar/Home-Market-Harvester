@@ -30,7 +30,7 @@ Adjustments to the execution sequence should be made
 with an understanding of the pipeline's architecture and dependencies.
 
 Example Command:
-    python run_pipeline.py --location_query "Warszawa" --area_radius 50 --scraped_offers_cap 500 --user_data_path "/path/to/user/data.csv"
+    python run_pipeline.py --location_query "Warszawa" --area_radius 50 --scraped_offers_cap 100 --user_data_path "/path/to/user/data.csv"
 """
 
 # Standard library imports
@@ -60,7 +60,7 @@ from pipeline.components.environment import (
     initialize_environment_settings,
     set_user_data_path_env_var,
 )
-from pipeline.components.logging import setup_logging
+from pipeline.components.logger import setup_logging
 from pipeline.components.pipeline_flow import run_pipeline
 from pipeline.components.pipeline_services import set_destination_coordinates
 

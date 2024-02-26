@@ -12,7 +12,7 @@ import re
 import sys
 
 # Local imports
-from pipeline.components.logging import log_and_print, setup_logging
+from pipeline.components.logger import log_and_print, setup_logging
 
 setup_logging()
 

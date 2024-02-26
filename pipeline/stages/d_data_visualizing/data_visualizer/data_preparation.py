@@ -4,6 +4,7 @@ in the context of apartment rental analysis.
 """
 
 # Standard imports
+import logging
 from typing import Tuple
 
 # Third-party imports
@@ -15,6 +16,7 @@ from pipeline.stages.d_data_visualizing.data_visualizer.table_visualizer.statist
     calculate_yours_price_percentile_against_others,
     calculate_price_per_meter_differences,
 )
+from pipeline.components.logger import log_and_print
 
 
 def filter_table_data(
@@ -122,11 +124,17 @@ def reorder_columns(df: pd.DataFrame, column_order: dict) -> pd.DataFrame:
         pd.DataFrame: The DataFrame with reordered columns.
     """
     columns = list(df.columns)
+
     for column_name, new_position in column_order.items():
+
         if column_name in columns:
             columns.insert(new_position, columns.pop(columns.index(column_name)))
+
         else:
-            raise KeyError(f"Column '{column_name}' not found in DataFrame.")
+            message = f"Column '{column_name}' not found in DataFrame."
+            log_and_print(message, logging.ERROR)
+            raise KeyError(message)
+
     return df[columns]
 
 

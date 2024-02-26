@@ -31,7 +31,7 @@ def set_project_root() -> Path:
 project_root = set_project_root()
 
 # Local imports
-from pipeline.components.logging import log_and_print, setup_logging
+from pipeline.components.logger import log_and_print, setup_logging
 from pipeline.components.pipeline_services import sanitize_destination_coordinates
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.config.d_data_visualizing import DATA
@@ -88,9 +88,10 @@ def load_data():
     user_offers_path = DATA["user_data_path"]
 
     if not _check_if_file_exists(user_offers_path):
-        raise FileNotFoundError(
-            f"The specified file does not exist.\n{user_offers_path}"
-        )
+
+        message = f"The specified file does not exist.\n{user_offers_path}"
+        log_and_print(message, logging.ERROR)
+        raise FileNotFoundError(message)
 
     data_loader = DataLoader(
         DATA["market_data_datetime"], user_offers_path, project_root

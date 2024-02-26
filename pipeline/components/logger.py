@@ -16,8 +16,12 @@ def setup_logging():
     """
     Sets up logging to write to a file with UTF-8 encoding.
     """
+
+    root_project_path = Path(__file__).resolve().parents[2]
+    log_file_path = root_project_path / "logs" / "pipeline.log"
+
     logging.basicConfig(
-        filename=str(Path("logs") / "pipeline.log"),
+        filename=str(log_file_path),
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
         filemode="a",  # Append mode

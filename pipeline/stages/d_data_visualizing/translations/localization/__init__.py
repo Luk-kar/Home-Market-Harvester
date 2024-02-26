@@ -1,9 +1,12 @@
+# Standard imports
+import logging
+
+# Local imports
 from pipeline.stages.d_data_visualizing.translations.localization._english import (
     english,
 )
 from pipeline.stages.d_data_visualizing.translations.localization._polish import polish
-
-_checked_translation_keys = False  # Variable to track if the check has been performed
+from pipeline.components.logger import log_and_print, setup_logging
 
 
 def check_translation_keys(translations: list[dict]):
@@ -19,19 +22,25 @@ def compare_dicts(dict1: dict, dict2: dict, parent_key=""):
     """
     Recursively compares the keys of two dictionaries.
     """
+
+    setup_logging()
+
     for key in dict1:
         if key not in dict2:
-            raise ValueError(
-                f"Key {parent_key + key} is missing in the second dictionary."
-            )
+
+            message = f"Key {parent_key + key} is missing in the second dictionary."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
+
         if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
             compare_dicts(dict1[key], dict2[key], parent_key + key + ".")
 
     for key in dict2:
         if key not in dict1:
-            raise ValueError(
-                f"Key {parent_key + key} is missing in the first dictionary."
-            )
+
+            message = f"Key {parent_key + key} is missing in the first dictionary."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
 
 
 # Check translation keys when the package is imported

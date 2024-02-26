@@ -17,6 +17,7 @@ a larger pipeline in real estate data analysis projects.
 It requires external configuration and environmental variables to be set up, 
 including API keys for geolocation and travel time services.
 
+CLI:
 python pipeline/stages/b_cleaning/d_creating_map_data.py
 
 Note:
@@ -67,7 +68,7 @@ project_root = set_project_root()
 
 # Local imports
 from pipeline.components.pipeline_services import sanitize_destination_coordinates
-from pipeline.components.logging import log_and_print, setup_logging
+from pipeline.components.logger import log_and_print, setup_logging
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 
@@ -380,10 +381,10 @@ def main():
     log_and_print("Adding geographical data to the offers DataFrame.")
     geolocator = get_geolocator(user_agent="your_app_name")
     coords = add_geo_data_to_offers_concurrent(combined_df, geolocator)
+    map_df["coords"] = coords
     log_and_print("Geographical data added.")
 
     log_and_print("Calculating travel times to the destination.")
-
     destination_coords = ConfigManager("run_pipeline.conf").read_value(
         "DESTINATION_COORDINATES"
     )

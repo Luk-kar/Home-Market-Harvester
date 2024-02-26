@@ -14,7 +14,7 @@ import subprocess
 import time
 
 # Local imports
-from pipeline.components.logging import log_and_print
+from pipeline.components.logger import log_and_print
 from pipeline.components.exceptions import PipelineError
 
 
@@ -34,7 +34,9 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
         PipelineError: If the stage is not found or fails.
     """
     if not Path(_stage).exists():
-        raise PipelineError(f"Stage not found: {_stage}")
+        message = f"Stage not found: {_stage}"
+        log_and_print(message, logging.ERROR)
+        raise PipelineError(message)
 
     # https://regex101.com/r/nY3BlO/1/r/JFd40X/1
     pattern = r"^(?!.*[/\\][^/\\]*\.[^/\\]*$).*[/\\]([^/\\]+)$"
@@ -57,7 +59,9 @@ def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):
         elif _stage.endswith("streamlit_app.py"):
             process = run_streamlit(_stage, env_vars)
         else:
-            raise ValueError(f"Unsupported file type: {_stage}")
+            message = f"Unsupported file type: {_stage}"
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
 
         if exit_code is not None and exit_code != 0:
             log_and_print(
@@ -97,6 +101,10 @@ def run_command(command: list[str], env_vars: Optional[dict] = None) -> int:
         command, env=env, check=False
     )  # Use check=False to manually handle exit codes
     if result.returncode != 0:
+        log_and_print(
+            f"Command failed with exit code {result.returncode}: {' '.join(command)}",
+            logging.ERROR,
+        )
         raise subprocess.CalledProcessError(result.returncode, command)
     return result.returncode
 
@@ -201,13 +209,15 @@ def run_streamlit(script: list[str], env_vars: dict):
         print(output, end="")  # Optional: print Streamlit's output to console
 
         if "You can now view your Streamlit app in your browser." in output:
+
             log_and_print("Streamlit app initialized successfully.")
-            # WARNING about concurrent process management
+
             log_and_print(
                 "WARNING: Streamlit app is running as a concurrent process. "
                 "Ensure it is terminated appropriately when no longer needed.",
                 logging.WARNING,
             )
+
             break
 
         if process.poll() is not None:

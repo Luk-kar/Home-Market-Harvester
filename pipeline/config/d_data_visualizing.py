@@ -7,8 +7,10 @@ providing flexibility and customizability for different runtime environments.
 # Standard imports
 from os import getenv
 from pathlib import Path
+import logging
 
 # Local imports
+from pipeline.components.logger import log_and_print, setup_logging
 from pipeline.config._conf_file_manager import ConfigManager
 
 
@@ -16,13 +18,16 @@ def load_timeplace():
     """
     Load the time and place of the market data from the configuration file.
     """
+    setup_logging()
 
     config_file = ConfigManager("run_pipeline.conf")
     TIMEPLACE = "MARKET_OFFERS_TIMEPLACE"
     data_timeplace = config_file.read_value(TIMEPLACE)
 
     if not data_timeplace:
-        raise ValueError(f"The configuration variable {TIMEPLACE} is not set.")
+        message = f"The configuration variable {TIMEPLACE} is not set."
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     return data_timeplace
 

@@ -16,12 +16,14 @@ predictor.get_price_predictions(user_offers_path)
 
 # Standard imports
 from datetime import datetime
+import logging
 
 # Third-party imports
 import numpy as np
 import pandas as pd
 
 # Local imports
+from pipeline.components.logger import log_and_print
 from pipeline.stages.c_model_developing.model_io_operations import ModelManager
 
 
@@ -58,15 +60,24 @@ class ModelPredictor:
 
         # raise error if model or metadata is not loaded
         if model is None or metadata is None:
-            raise RuntimeError("Model or metadata not loaded.")
+
+            message = "Model or metadata not loaded."
+            log_and_print(message, logging.ERROR)
+            raise RuntimeError(message)
 
         # raise error if model is not a sklearn model
         if not hasattr(model, "predict"):
-            raise RuntimeError("Model does not have a predict method.")
+
+            message = "Model does not have a predict method."
+            log_and_print(message, logging.ERROR)
+            raise RuntimeError(message)
 
         # raise error if metadata is not a dictionary
         if not isinstance(metadata, dict):
-            raise RuntimeError("Metadata is not a dictionary.")
+
+            message = "Metadata is not a dictionary."
+            log_and_print(message, logging.ERROR)
+            raise RuntimeError(message)
 
         self.model = model
         self.metadata = metadata
@@ -99,14 +110,23 @@ class ModelPredictor:
         """
 
         if not isinstance(offers_df, pd.DataFrame):
-            raise ValueError("offers_df must be a pandas DataFrame.")
+
+            message = "offers_df must be a pandas DataFrame."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
 
         if self.model is None or self.metadata is None:
-            raise RuntimeError("Model or metadata not loaded.")
+
+            message = "Model or metadata not loaded."
+            log_and_print(message, logging.ERROR)
+            raise RuntimeError(message)
 
         model_data = self._predict_prices(offers_df)
         if model_data is None:
-            raise ValueError("Prediction failed.")
+
+            message = "Prediction failed."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
 
         total_price = model_data * offers_df["area"]
         return total_price
@@ -130,7 +150,10 @@ class ModelPredictor:
 
     def _prepare_dataframe(self, df: pd.DataFrame):
         if not isinstance(df, pd.DataFrame):
-            raise ValueError("Input must be a pandas DataFrame.")
+
+            message = "Input must be a pandas DataFrame."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
 
         try:
             # Create a copy of the dataframe to avoid modifying the original
@@ -139,8 +162,12 @@ class ModelPredictor:
             # Check if 'area' column exists and rename it to 'square_meters'
             if "area" in temp_df.columns:
                 temp_df.rename(columns={"area": "square_meters"}, inplace=True)
+
             elif "square_meters" not in temp_df.columns:
-                raise ValueError("'area' column not found in the DataFrame.")
+
+                message = "'area' column not found in the DataFrame."
+                log_and_print(message, logging.ERROR)
+                raise ValueError(message)
 
             # Assuming narrowed_df is a DataFrame with MultiIndex columns
             new_values = self._calculate_building_age(temp_df["build_year"])
@@ -157,9 +184,12 @@ class ModelPredictor:
                 temp_df.columns
             )
             if missing_required_columns:
-                raise ValueError(
+
+                message = (
                     f"Missing required columns in DataFrame: {missing_required_columns}"
                 )
+                log_and_print(message, logging.ERROR)
+                raise ValueError(message)
 
             # Remove extra columns that are not in the metadata's column order
             temp_df = temp_df[self.metadata["column_order"]]
@@ -168,18 +198,28 @@ class ModelPredictor:
             for col, dtype in self.metadata["columns"].items():
                 try:
                     temp_df[col] = temp_df[col].astype(dtype)
+
                 except ValueError as error:
-                    raise ValueError(
-                        f"Column '{col}' cannot be converted to {dtype}"
-                    ) from error
+
+                    message = f"Column '{col}' cannot be converted to {dtype}"
+                    log_and_print(message, logging.ERROR)
+                    raise ValueError(message) from error
 
             return temp_df
         except Exception as error:
-            raise ValueError(f"Error preparing dataframe: {error}") from error
+
+            message = f"Error preparing dataframe: {error}"
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message) from error
 
     def _predict_prices(self, df: pd.DataFrame) -> pd.Series:
+
         if not isinstance(df, pd.DataFrame):
-            raise ValueError("Input must be a pandas DataFrame.")
+
+            message = "Input must be a pandas DataFrame."
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message)
+
         try:
             # Prepare the data frame
             prepared_df = self._prepare_dataframe(df)
@@ -191,4 +231,7 @@ class ModelPredictor:
             else:
                 return None
         except Exception as error:
-            raise ValueError(f"Error predicting prices: {error}") from error
+
+            message = f"Error predicting prices: {error}"
+            log_and_print(message, logging.ERROR)
+            raise ValueError(message) from error

@@ -12,7 +12,7 @@ import subprocess
 import time
 
 # Local imports
-from pipeline.components.logging import log_and_print
+from pipeline.components.logger import log_and_print
 from pipeline.components.pipeline_flow import run_stage
 
 

@@ -13,8 +13,9 @@ Usage:
 # Standard library imports
 from datetime import datetime
 from pathlib import Path
-import sys
 from typing import Tuple
+import logging
+import sys
 
 # Third party imports
 import numpy as np
@@ -41,7 +42,7 @@ def set_project_root() -> Path:
 set_project_root()
 
 # Local imports
-from pipeline.components.logging import setup_logging, log_and_print
+from pipeline.components.logger import setup_logging, log_and_print
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 from pipeline.stages.c_model_developing.model_io_operations import ModelManager
@@ -77,7 +78,11 @@ def get_current_scraped_folder_name() -> str:
     data_timeplace = config_file.read_value(TIMEPLACE)
 
     if data_timeplace is None:
-        raise ValueError(f"The configuration variable {TIMEPLACE} is not set.")
+
+        message = f"The configuration variable {TIMEPLACE} is not set."
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
+
     return data_timeplace
 
 
@@ -132,14 +137,16 @@ def filter_relevant_rows(row: pd.Series) -> bool:
     prices_up_to = 4000
 
     if pd.isna(row["location"]["city"]):
-        raise ValueError(
-            "Unexpected NA value found in 'city'. Row data may be incomplete or corrupted."
-        )
+
+        message = "Unexpected NA value found in 'city'. Row data may be incomplete or corrupted."
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     if pd.isna(row["pricing"]["total_rent"]):
-        raise ValueError(
-            "Unexpected NA value found in 'total_rent'. Row data may be incomplete or corrupted."
-        )
+
+        message = "Unexpected NA value found in 'total_rent'. Row data may be incomplete or corrupted."
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     city = row["location"]["city"]
     building_type = row["type_and_year"]["building_type"]
@@ -200,10 +207,13 @@ def preprocess_features(
 
     if X.isnull().all().any():
         missing_data_columns = X.columns[X.isnull().all()].tolist()
-        raise ValueError(
+
+        message = (
             "All values are missing in the following columns,"
             f" which makes them unsuitable for training:\n{missing_data_columns}\n"
         )
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     X["build_year"] = calculate_building_age(X["build_year"]).values
 
@@ -254,9 +264,13 @@ def drop_multi_level_indexing(columns: pd.MultiIndex) -> pd.Index:
     """
 
     if not isinstance(columns, pd.MultiIndex) or columns.nlevels != 2:
-        raise ValueError(
+
+        message = (
             "The 'columns' parameter must be a MultiIndex with exactly two levels."
         )
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
+
     return columns.droplevel(0)
 
 
@@ -278,10 +292,13 @@ def train_model(X_train: pd.DataFrame, Y_train: np.ndarray) -> LinearRegression:
     )
 
     if not feature_names:
-        raise ValueError(
+
+        message = (
             "The feature names could not be determined.\n"
             "The feature matrix must be a DataFrame."
         )
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     # Look at `004_model_building.ipynb` the reasons for using LinearRegression
     model = LinearRegression().fit(X_train, Y_train)
@@ -350,14 +367,26 @@ def validate_model(
     """
 
     if not isinstance(X_test, pd.DataFrame):
-        raise ValueError("X_test must be a pandas DataFrame.")
+
+        message = "X_test must be a pandas DataFrame."
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
+
     if not isinstance(Y_test, np.ndarray):
-        raise ValueError("Y_test must be a NumPy array.")
+
+        message = "Y_test must be a NumPy array."
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
 
     try:
+
         Y_pred = model.predict(X_test)
-    except Exception as e:
-        raise RuntimeError(f"Model prediction failed: {e}")
+
+    except Exception as unexpected_e:
+
+        message = f"Model prediction failed: {unexpected_e}"
+        log_and_print(message, logging.ERROR)
+        raise RuntimeError(message)
 
     # The mean absolute error between actual and predicted values
     model_accuracy_error = np.mean(np.abs(Y_test - Y_pred))

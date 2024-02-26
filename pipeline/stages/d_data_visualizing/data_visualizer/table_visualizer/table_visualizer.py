@@ -11,6 +11,7 @@ Example usage:
 """
 
 # Standard imports
+import logging
 from typing import Optional
 
 # Third-party imports
@@ -19,6 +20,7 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
+from pipeline.components.logger import log_and_print
 from pipeline.stages.d_data_visualizing.data_visualizer.data_preparation import (
     filter_table_data,
     compile_apartments_data,
@@ -217,14 +219,19 @@ class TableVisualizer:
 
             if boolean is True:
                 return yes
+
             elif boolean is False:
                 return no
+
             else:
-                raise ValueError(
+
+                message = (
                     "The series must contain only boolean values:\n"
                     f"value to be replaced:|{boolean}|\n"
                     f"replacing value:     |{yes}|{no}|\n"
                 )
+                log_and_print(message, logging.ERROR)
+                raise ValueError(message)
 
         series = series.apply(translate)
         return series
@@ -254,11 +261,14 @@ class TableVisualizer:
                 for key in time_intervals.keys():
                     if key in time_period:
                         return time_period.replace(key, time_intervals[key])
-                raise ValueError(
+
+                message = (
                     "The series contains an unrecognized time period value:\n"
                     f"value to be replaced: |{time_period}|\n"
                     f"replacing value:      |{time_intervals}|\n"
                 )
+                log_and_print(message, logging.ERROR)
+                raise ValueError(message)
 
         series = series.apply(translate)
         return series
@@ -314,4 +324,6 @@ class TableVisualizer:
                 error_message += (
                     f"Columns missing in Translation: {missing_in_translation}\n"
                 )
+
+            log_and_print(error_message, logging.ERROR)
             raise ValueError(error_message)

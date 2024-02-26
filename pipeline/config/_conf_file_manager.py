@@ -5,6 +5,7 @@ class designed to facilitate the reading and writing of key-value pairs stored w
 """
 
 # Standard imports
+import logging
 import os
 
 
@@ -43,13 +44,15 @@ class ConfigManager:
         - When the configuration file does not exist,
         a new file is created with the specified name.
         """
+
         # get the file directory path
         file_dir = os.path.dirname(os.path.realpath(__file__))
 
         if not config_name.endswith(".conf"):
-            raise ValueError(
+            message = (
                 "Invalid configuration file format. Only .conf files are supported."
             )
+            raise ValueError(message)
 
         config_file_path = os.path.join(file_dir, config_name)
 
@@ -88,12 +91,14 @@ class ConfigManager:
                     if len(key_value_pair) > 1 and not is_value_emptish:
                         return value
                     else:
-                        raise ConfKeyError(
+                        message = (
                             f"Value for key '{key_to_find}' is empty or not found."
                         )
+                        raise ConfKeyError(message)
 
         # If the loop completes without returning, the key was not found
-        raise ConfKeyError(f"Key '{key_to_find}' not found in configuration.")
+        message = f"Key '{key_to_find}' not found in configuration."
+        raise ConfKeyError(message)
 
     def write_value(self, key: str, value: str):
         """
