@@ -30,7 +30,8 @@ class MapVisualizer:
     """
 
     def __init__(self, display_settings: dict):
-        self.time_travel: Optional[float] = None
+        self.travel_time: Optional[float] = None
+        self.travel_time_options = ["<10", "<20", "<30", "∞"]
         self.display_settings = display_settings
         self.texts = Translation()["map"]
         self.legend_title = f"{self.texts['legend_title']}:"
@@ -222,11 +223,13 @@ class MapVisualizer:
 
         title = self.texts["percentile_dropdown"]
 
+        lest_option = len(self.travel_time_options) - 1
+
         with column_2:
-            self.time_travel = st.selectbox(
+            self.travel_time = st.selectbox(
                 title,
-                options=["<10", "<30", "∞"],
-                index=2,  # Default to max time
+                options=self.travel_time_options,
+                index=lest_option,  # Default to max time
             )
 
     def filter_data_based_on_travel_time(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -243,14 +246,16 @@ class MapVisualizer:
             df.copy()
         )  # Work on a copy to avoid modifying the original DataFrame
 
-        if self.time_travel == "<10":
+        if self.travel_time == "<10":
             return filtered_df[filtered_df["travel_time"] <= 10]
-        elif self.time_travel == "<30":
+        elif self.travel_time == "<20":
+            return filtered_df[filtered_df["travel_time"] <= 20]
+        elif self.travel_time == "<30":
             return filtered_df[filtered_df["travel_time"] <= 30]
-        elif self.time_travel == "∞":
-            return filtered_df
+        elif self.travel_time == "∞":
+            return df
         else:
             raise ValueError(
                 "Invalid time_travel value."
-                f"Expected one of ['<10', '<30', '∞'], got {self.time_travel} instead."
+                f"Expected one of {self.travel_time_options}, got {self.travel_time} instead."
             )

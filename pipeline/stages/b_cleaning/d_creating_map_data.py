@@ -17,14 +17,14 @@ a larger pipeline in real estate data analysis projects.
 It requires external configuration and environmental variables to be set up, 
 including API keys for geolocation and travel time services.
 
+python pipeline/stages/b_cleaning/d_creating_map_data.py
+
 Note:
 Ensure that all required environmental variables 
 and configurations are properly set before using this module. 
 This includes API keys and project-specific settings like 
 the destination coordinates for travel time calculations.
 """
-
-# python pipeline/stages/b_cleaning/d_creating_map_data.py
 
 # Standard imports
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -246,6 +246,8 @@ def calculate_time_travels_concurrent(
     unique_coords = start_coords.drop_duplicates()
     travel_times_for_unique_coords = {}
 
+    request_interval = 60.0 / 40  # 40 requests per minute limitation
+
     manager = enlighten.get_manager()
     travel_time_bar = manager.counter(
         total=len(unique_coords),
@@ -253,23 +255,22 @@ def calculate_time_travels_concurrent(
         unit="addresses",
     )
 
-    def fetch_travel_time(start_coord):
+    for coord in unique_coords:
+        if pd.isna(coord):
+            travel_times_for_unique_coords[coord] = np.nan
+            continue
         try:
-            travel_time = get_travel_time(start_coord, destination_coords, api_key)
-            return start_coord, travel_time
-        except Exception as exc:
-
-            log_and_print(f"An error occurred for {start_coord}: {exc}", logging.ERROR)
-            return start_coord, np.nan
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {
-            executor.submit(fetch_travel_time, coord): coord for coord in unique_coords
-        }
-        for future in as_completed(futures):
-            coord, travel_time = future.result()
+            travel_time = get_travel_time(coord, destination_coords, api_key)
             travel_times_for_unique_coords[coord] = travel_time
-            travel_time_bar.update()
+        except Exception as exc:
+            log_and_print(
+                f"Error calculating travel time for coordinates {coord}:\n{exc}",
+                logging.WARNING,
+            )
+            travel_times_for_unique_coords[coord] = np.nan
+
+        travel_time_bar.update()
+        time.sleep(request_interval)  # Respect the rate limit
 
     manager.stop()
 
@@ -380,9 +381,6 @@ def main():
     )
     destination_coords_valid = sanitize_destination_coordinates(destination_coords)
 
-    print("destination_coords_valid: ", destination_coords_valid)
-
-    map_df["coords"] = coords
     map_df["travel_time"] = calculate_time_travels_concurrent(
         coords, destination_coords_valid
     )

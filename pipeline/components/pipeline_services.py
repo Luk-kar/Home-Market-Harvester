@@ -142,7 +142,9 @@ def set_destination_coordinates(destination: str):
         raise FileNotFoundError(message) from fnfe
 
     try:
-        config_manager.write_value("DESTINATION_COORDS", str(destination_sanitized))
+        config_manager.write_value(
+            "DESTINATION_COORDINATES", str(destination_sanitized)
+        )
     except Exception as unexpected_error:
         message = f"Failed to write destination coordinates to configuration file:\n{unexpected_error}"
         log_and_print(message, logging.ERROR)

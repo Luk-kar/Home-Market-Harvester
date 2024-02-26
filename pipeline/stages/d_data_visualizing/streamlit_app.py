@@ -1,8 +1,9 @@
 """pipeline\.stages\.
 This module contains the Streamlit application for the Home Market Harvester d_data_visualizing.
-"""
 
-# streamlit run pipeline/stages/d_data_visualizing/streamlit_app.py
+Usage:
+    streamlit run pipeline/stages/d_data_visualizing/streamlit_app.py
+"""
 
 # Standard imports
 from pathlib import Path

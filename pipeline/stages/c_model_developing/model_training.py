@@ -5,9 +5,10 @@ The pipeline includes functions for setting the project root directory, loading 
 filtering rows based on predefined criteria, preprocessing features 
 (including creating dummy variables and imputing missing values), 
 and training a linear regression model to predict property prices.
-"""
 
-# python pipeline/stages/c_model_developing/model_training.py
+Usage:
+    python pipeline/stages/c_model_developing/model_training.py
+"""
 
 # Standard library imports
 from datetime import datetime
