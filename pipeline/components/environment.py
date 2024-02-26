@@ -7,7 +7,7 @@ application's operation.
 
 # Standard library imports
 from pathlib import Path
-import argparse
+import logging
 import re
 import sys
 
@@ -58,7 +58,7 @@ def initialize_environment_settings():
             f"The file {env_path} is located at the root of the project.\n"
             "Reload the environment settings."
         )
-        log_and_print(message, level="warning")
+        log_and_print(message, logging.WARNING)
         raise ValueError(message)
 
 
@@ -93,7 +93,7 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
         match = re.search(pattern, env_content)
         if not match or not match.group(1).strip():
             message = f"The {var} environment variable is missing or not set in the .env file."
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
         value = match.group(1).strip()
@@ -105,7 +105,7 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
                 f"The {var} is not set to a valid {rules['extension']} file.\n"
                 f"The path is:\n{value}"
             )
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
         if ("allowed_values" in rules) and (int(value) not in rules["allowed_values"]):
@@ -115,17 +115,17 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
                 "The value is:\n"
                 f"{value}"
             )
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
         if ("is_digit" in rules) and (not value.isdigit()):
             message = f"The {var} must be a digit.\n" "The value is:\n" f"{value}"
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
         if path and ("check_exists" in rules) and (not path.exists()):
             message = f"The {var} path does not exist:\n" f"{value}"
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
         # Platform-specific checks for executables
@@ -136,14 +136,14 @@ def validate_environment_variables(env_path: Path, encoding: str = "utf-8"):
             message = (
                 f"The {var} on Windows must be an .exe file, but was set to:\n{value}"
             )
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
         if ("is_port" in rules) and (
             not value.isdigit() or not (1 <= int(value) <= 65535)
         ):
             message = f"The {var} must be a valid port number (1-65535), but was set to:\n{value}"
-            log_and_print(message, level="error")
+            log_and_print(message, logging.ERROR)
             raise ValueError(message)
 
 
@@ -162,12 +162,12 @@ def update_environment_variable(env_path: Path, key: str, value: str):
     except FileNotFoundError:
 
         message = f"The .env file at {env_path} was not found. Please ensure the path is correct and the file exists."
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise FileNotFoundError(message)
     except IOError as e:
 
         message = f"Failed to read the .env file at {env_path}. Error: {e}"
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise IOError(message)
 
     safe_value = value.replace(
@@ -203,7 +203,7 @@ def update_environment_variable(env_path: Path, key: str, value: str):
         message = (
             f"Failed to write updates to the .env file at {env_path}.\nError: {error}"
         )
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise IOError(message) from error
 
 
@@ -229,7 +229,7 @@ def set_user_data_path_env_var(
 
     if not user_data_path.exists():
         message = f"The user data file does not exist: {user_data_path}"
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise ValueError(message)
 
     update_environment_variable(env_path, env_var_name, str(user_data_path))

@@ -9,7 +9,7 @@ Key Functionalities:
 - Data preprocessing including filtering and cleaning of real estate data.
 - Geocoding capabilities to convert addresses into geographic coordinates using the Nominatim API.
 - Integration with third-party APIs such as OpenRouteService 
-  to calculate travel times between locations.
+  to calculate travel times between locations. (You can use also on premise solution)
 
 Usage:
 This module is designed to be used as part of 
@@ -24,10 +24,13 @@ This includes API keys and project-specific settings like
 the destination coordinates for travel time calculations.
 """
 
+# python pipeline/stages/b_cleaning/d_creating_map_data.py
+
 # Standard imports
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
+import logging
 import math
 import os
 import pandas as pd
@@ -63,7 +66,7 @@ def set_project_root() -> Path:
 project_root = set_project_root()
 
 # Local imports
-from pipeline.components.environment import get_destination_coords
+from pipeline.components.pipeline_services import sanitize_destination_coordinates
 from pipeline.components.logging import log_and_print, setup_logging
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
@@ -88,7 +91,7 @@ def get_recent_data_timeplace() -> str:
 
     if data_timeplace is None:
         message = f"The configuration variable {TIMEPLACE} is not set."
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise ValueError(message)
     return data_timeplace
 
@@ -228,15 +231,16 @@ def calculate_time_travels_concurrent(
     api_key = os.getenv("OPENROUTESERVICE_API_KEY")
     if not api_key:
         message = "OPENROUTESERVICE_API_KEY is not provided or invalid."
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise ValueError(message)
 
     if not isinstance(destination_coords, tuple) or len(destination_coords) != 2:
         message = (
             "Destination coordinates must be a tuple of two floats.\n"
             f"destination_coords:\n{destination_coords}"
+            f"type(destination_coords):\n{type(destination_coords)}"
         )
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise ValueError(message)
 
     unique_coords = start_coords.drop_duplicates()
@@ -255,7 +259,7 @@ def calculate_time_travels_concurrent(
             return start_coord, travel_time
         except Exception as exc:
 
-            log_and_print(f"An error occurred for {start_coord}: {exc}", level="error")
+            log_and_print(f"An error occurred for {start_coord}: {exc}", logging.ERROR)
             return start_coord, np.nan
 
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -306,7 +310,7 @@ def get_travel_time(
                         "travel_time_seconds:\n"
                         f"{travel_time_seconds}"
                     )
-                    log_and_print(message, level="warning")
+                    log_and_print(message, logging.WARNING)
 
                     return np.nan
 
@@ -329,23 +333,23 @@ def get_travel_time(
 
     except requests.exceptions.HTTPError as http_err:
         message = f"HTTP error occurred: {http_err}"
-        log_and_print(message, level="warning")
+        log_and_print(message, logging.WARNING)
 
     except requests.exceptions.ConnectionError as conn_err:
         message = f"Connection error occurred: {conn_err}"
-        log_and_print(message, level="warning")
+        log_and_print(message, logging.WARNING)
 
     except requests.exceptions.Timeout as timeout_err:
         message = f"Timeout error occurred: {timeout_err}"
-        log_and_print(message, level="warning")
+        log_and_print(message, logging.WARNING)
 
     except requests.exceptions.RequestException as req_err:
         message = f"Unexpected error occurred: {req_err}"
-        log_and_print(message, level="warning")
+        log_and_print(message, logging.WARNING)
 
     except KeyError as key_err:
         message = f"Key error in parsing response data: {key_err}"
-        log_and_print(message, level="warning")
+        log_and_print(message, logging.WARNING)
 
     return np.nan
 
@@ -370,10 +374,17 @@ def main():
     log_and_print("Geographical data added.")
 
     log_and_print("Calculating travel times to the destination.")
-    destination_coords = get_destination_coords()
+
+    destination_coords = ConfigManager("run_pipeline.conf").read_value(
+        "DESTINATION_COORDINATES"
+    )
+    destination_coords_valid = sanitize_destination_coordinates(destination_coords)
+
+    print("destination_coords_valid: ", destination_coords_valid)
+
     map_df["coords"] = coords
     map_df["travel_time"] = calculate_time_travels_concurrent(
-        coords, destination_coords
+        coords, destination_coords_valid
     )
     log_and_print("Travel times calculated.")
 

@@ -9,8 +9,6 @@ applications.
 # Standard library imports
 import os
 import subprocess
-import sys
-import threading
 import time
 
 # Local imports

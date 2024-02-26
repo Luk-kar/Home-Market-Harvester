@@ -2,10 +2,13 @@
 This module contains the Streamlit application for the Home Market Harvester d_data_visualizing.
 """
 
+# streamlit run pipeline/stages/d_data_visualizing/streamlit_app.py
+
 # Standard imports
+from pathlib import Path
+import logging
 import os
 import sys
-from pathlib import Path
 
 # Third-party imports
 import streamlit as st
@@ -28,6 +31,7 @@ project_root = set_project_root()
 
 # Local imports
 from pipeline.components.logging import log_and_print, setup_logging
+from pipeline.components.pipeline_services import sanitize_destination_coordinates
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.config.d_data_visualizing import DATA
 from pipeline.stages.d_data_visualizing.data_visualizer._config import (
@@ -139,19 +143,10 @@ def get_destination_coords() -> tuple[float, float]:
     destination_coords = config_file.read_value("DESTINATION_COORDINATES")
     if not destination_coords:
         message = "DESTINATION_COORDINATES is not set."
-        log_and_print(message, level="error")
+        log_and_print(message, logging.ERROR)
         raise ValueError(message)
 
-    try:
-        destination_coords_sanitized = tuple(map(float, destination_coords.split(",")))
-    except ValueError as exc:
-        message = (
-            "DESTINATION_COORDINATES is not in the correct format."
-            f"Value\n:{destination_coords}\n"
-            f"{exc}"
-        )
-        log_and_print(message, level="error")
-        raise ValueError(message) from exc
+    destination_coords_sanitized = sanitize_destination_coordinates(destination_coords)
 
     return destination_coords_sanitized
 

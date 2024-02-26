@@ -7,6 +7,8 @@ filtering rows based on predefined criteria, preprocessing features
 and training a linear regression model to predict property prices.
 """
 
+# python pipeline/stages/c_model_developing/model_training.py
+
 # Standard library imports
 from datetime import datetime
 from pathlib import Path

@@ -3,6 +3,8 @@ This module orchestrates the scraping process for real estate offers,
  managing web driver setup, data scraping, and file storage.
 """
 
+# python -m scraper "Warszawa" 25 100
+
 # Standard imports
 from typing import Optional, Dict
 import argparse

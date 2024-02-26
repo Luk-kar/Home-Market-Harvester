@@ -7,13 +7,15 @@ CSV files, thereby facilitating error-free data pipeline executions.
 """
 
 # Standard library imports
-import os
 from pathlib import Path
 from typing import Set
+import logging
+import os
 
 # Local imports
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.components.exceptions import PipelineError
+from pipeline.components.logging import log_and_print
 
 
 def get_existing_folders(directory: Path) -> Set[str]:
@@ -28,7 +30,9 @@ def get_existing_folders(directory: Path) -> Set[str]:
     """
 
     if not directory.exists() or not directory.is_dir():
-        raise FileNotFoundError(f"The specified directory does not exist: {directory}")
+        message = f"The specified directory does not exist: {directory}"
+        log_and_print(message, logging.ERROR)
+        raise FileNotFoundError(message)
 
     return {item.name for item in directory.iterdir() if item.is_dir()}
 
@@ -73,13 +77,16 @@ def check_new_csv_files(data_raw_dir: Path, initial_folders: Set[str]) -> str:
         data_scraped_dir = data_raw_dir / new_folder_name
         validate_csv_files_presence(data_scraped_dir)
         return new_folder_name
-    raise PipelineError(
+
+    message = (
         "Expected a new folder to be created during scraping, but none was found:\n"
-        f"data_raw_dir:\n{data_raw_dir}"
-        f"initial_folders:\n{initial_folders}"
-        f"current_folders:\n{current_folders}"
+        f"data_raw_dir:\n{data_raw_dir}\n"
+        f"initial_folders:\n{initial_folders}\n"
+        f"current_folders:\n{current_folders}\n"
         f"new_folders:\n{new_folders if new_folders else None}\n"
     )
+    log_and_print(message, logging.ERROR)
+    raise PipelineError(message)
 
 
 def validate_csv_files_presence(data_scraped_dir: Path):
@@ -97,7 +104,9 @@ def validate_csv_files_presence(data_scraped_dir: Path):
 
     csv_files = list(data_scraped_dir.glob("*.csv"))
     if not csv_files:
-        raise PipelineError(get_pipeline_error_message(data_scraped_dir))
+        message = get_pipeline_error_message(data_scraped_dir)
+        log_and_print(message, logging.ERROR)
+        raise PipelineError(message)
 
 
 def set_destination_coordinates(destination: str):
@@ -118,6 +127,46 @@ def set_destination_coordinates(destination: str):
         FileNotFoundError: If the configuration file does not exist.
         Exception: For other unexpected errors during the writing process to the configuration file.
     """
+    destination_sanitized = sanitize_destination_coordinates(destination)
+
+    try:
+        config_manager = ConfigManager("run_pipeline.conf")
+    except ValueError as ve:
+        message = f"Failed to initialize configuration management:\n{ve}"
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message) from ve
+
+    except FileNotFoundError as fnfe:
+        message = f"Configuration file not found:\n{fnfe}"
+        log_and_print(message, logging.ERROR)
+        raise FileNotFoundError(message) from fnfe
+
+    try:
+        config_manager.write_value("DESTINATION_COORDS", str(destination_sanitized))
+    except Exception as unexpected_error:
+        message = f"Failed to write destination coordinates to configuration file:\n{unexpected_error}"
+        log_and_print(message, logging.ERROR)
+        raise Exception(message) from unexpected_error
+
+
+def sanitize_destination_coordinates(destination: str):
+    """
+    Sanitizes the input string containing destination coordinates.
+
+    This function parses a string containing latitude and longitude, validates the format,
+    the data type, and the range of the coordinates.
+
+    Args:
+        destination (str): A string containing latitude and longitude separated by a comma.
+
+    Returns:
+        tuple: A tuple containing the sanitized latitude and longitude coordinates.
+
+    Raises:
+        ValueError: If the input string is not in the correct format, if the coordinates
+                    are not valid numbers, or if the latitude and longitude are not in the
+                    acceptable range (-90 to 90 for latitude and -180 to 180 for longitude).
+    """
     destination_split = [coord.strip(" ()") for coord in destination.split(",")]
 
     error_message = (
@@ -125,11 +174,13 @@ def set_destination_coordinates(destination: str):
         f"Parsed input: {destination_split}"
     )
     if len(destination_split) != 2:
+        log_and_print(error_message, logging.ERROR)
         raise ValueError(error_message)
 
     try:
-        destination_sanitized = [float(coord) for coord in destination_split]
+        destination_sanitized = tuple([float(coord) for coord in destination_split])
     except ValueError:
+        log_and_print(error_message, logging.ERROR)
         raise ValueError(
             "Both latitude and longitude must be valid numbers.\n"
             f"Parsed input: {destination_split}"
@@ -137,27 +188,16 @@ def set_destination_coordinates(destination: str):
 
     # Validate latitude and longitude ranges
     latitude, longitude = destination_sanitized
+
     if not -90 <= latitude <= 90:
-        raise ValueError(
-            f"Latitude must be between -90 and 90 degrees. Value: {latitude}"
-        )
+        message = f"Latitude must be between -90 and 90 degrees. Value: {latitude}"
+        log_and_print(message, logging.ERROR)
+        raise ValueError(message)
+
     if not -180 <= longitude <= 180:
-        raise ValueError(
-            f"Longitude must be between -180 and 180 degrees. Value: {longitude}"
-        )
+        message = f"Longitude must be between -180 and 180 degrees. Value: {longitude}"
+        log_and_print(message, logging.ERROR)
 
-    try:
-        config_manager = ConfigManager("run_pipeline.conf")
-    except ValueError as ve:
-        raise ValueError(
-            f"Failed to initialize configuration management:\n{ve}"
-        ) from ve
-    except FileNotFoundError as fnfe:
-        raise FileNotFoundError(f"Configuration file not found:\n{fnfe}") from fnfe
+        raise ValueError(message)
 
-    try:
-        config_manager.write_value("DESTINATION_COORDS", str(destination_sanitized))
-    except Exception as unexpected_error:
-        raise Exception(
-            f"Failed to write destination coordinates to configuration file:\n{unexpected_error}"
-        ) from unexpected_error
+    return destination_sanitized
