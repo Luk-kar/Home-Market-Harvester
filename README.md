@@ -1,4 +1,4 @@
-# 🏠🕵️‍♂️ Home Market Harvester Project
+# 🔍🏠 Home Market Harvester Project
 
 ## 📋 Overview
 

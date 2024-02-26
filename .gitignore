@@ -144,11 +144,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# temp data
-data/cleaned/*
-data/raw/*
-model/*
-
 # Spyder project settings
 .spyderproject
 .spyproject
