@@ -213,7 +213,7 @@ def add_geo_data_to_offers_concurrent(
     return coords
 
 
-def calculate_time_travels_concurrent(
+def calculate_time_travels(
     start_coords: pd.Series, destination_coords: tuple[float, float]
 ) -> pd.Series:
     """
@@ -226,6 +226,13 @@ def calculate_time_travels_concurrent(
 
     Returns:
         pd.Series: A Pandas Series of travel times to the destination from each start coordinate.
+
+    Raises:
+        ValueError: If the destination coordinates are not valid.
+
+    Note:
+        The OpenRouteService API key must be provided as an environment variable.
+        Do not use concurrency because of the rate limit of the OpenRouteService API.
     """
 
     api_key = os.getenv("OPENROUTESERVICE_API_KEY")
@@ -246,7 +253,8 @@ def calculate_time_travels_concurrent(
     unique_coords = start_coords.drop_duplicates()
     travel_times_for_unique_coords = {}
 
-    request_interval = 60.0 / 40  # 40 requests per minute limitation
+    requests_per_minute_limit = 40
+    request_interval = 60.0 / requests_per_minute_limit
 
     manager = enlighten.get_manager()
     travel_time_bar = manager.counter(
@@ -381,9 +389,7 @@ def main():
     )
     destination_coords_valid = sanitize_destination_coordinates(destination_coords)
 
-    map_df["travel_time"] = calculate_time_travels_concurrent(
-        coords, destination_coords_valid
-    )
+    map_df["travel_time"] = calculate_time_travels(coords, destination_coords_valid)
     log_and_print("Travel times calculated.")
 
     data_path_manager.save_df(map_df, "map")
