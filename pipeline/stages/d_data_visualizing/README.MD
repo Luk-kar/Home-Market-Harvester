@@ -59,7 +59,7 @@ Currently, there are no automated tests for the application.
 
 - When the module `config.py` is loaded, the warnings are invoked each time, instead of just once in the runtime.
 - Ensure the `USER_OFFERS_PATH` environment variable is set correctly to avoid FileNotFoundError during data loading.
-- The `DESTINATION_COORDINATES` should
+- Make sure that the `DESTINATION_COORDINATES` is a real location, if not the `None` will be returned.
 
 ## 📜 License
 

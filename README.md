@@ -19,6 +19,7 @@ The project is organized into several directories, each with a specific role:
 - `model`: Includes the machine learning models developed and trained on the housing data.
 - `notebooks`: Jupyter notebooks for exploratory data analysis, data cleaning, and model-building stages.
 - `pipeline`: Core components of the data pipeline, including scraping, cleaning, model development, and visualization scripts.
+- `.env`: Environment configuration file, detailing essential variables for project setup, such as API keys, file paths, and server configurations. This file is crucial for ensuring that the pipeline runs smoothly in different environments.
 
   - `components`: Contains utilities and helper functions that support the pipeline operations.
   - `config`: Organizes all configuration files necessary to control various aspects of the pipeline. Like: `a_scraping.py`, `d_data_visualizing.py`, and `run_pipeline.conf`.
