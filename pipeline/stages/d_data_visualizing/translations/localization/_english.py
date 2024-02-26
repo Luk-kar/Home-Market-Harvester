@@ -16,7 +16,7 @@ english = {
         "y_axis_offers": {
             "yours": "Yours",
             "like_yours": "Similar",
-            "all": "All in 20 km radius",
+            "all": "All in 25 km radius",
         },
         "column_names": {
             "with_furniture": "furnished",

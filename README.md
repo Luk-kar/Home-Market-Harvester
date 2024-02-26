@@ -1,4 +1,4 @@
-# 🏠📟 Home Market Harvester Project
+# 🏠🕵️‍♂️ Home Market Harvester Project
 
 ## 📋 Overview
 
@@ -7,6 +7,8 @@ The Home Market Harvester is an all-encompassing data pipeline tailored to gathe
 Culminating in an interactive dashboard, it presents an aggregate view of local market trends, a comparative table of handpicked listings against overall market conditions, and a geographical map pinpointing the locations of the collected offers.
 
 Data is collected from the websites [olx.pl](https://www.olx.pl/) and [otodom.pl](https://www.otodom.pl/), which feature listings from the Polish property market.
+
+![dashboard](doc/images/dashboard_preview.png)
 
 ## 🗂️ Project Structure
 

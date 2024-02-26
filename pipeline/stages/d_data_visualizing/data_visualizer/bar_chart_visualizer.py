@@ -144,7 +144,7 @@ class BarChartVisualizer:
         ADDITIONAL_SPACING = {
             "Yours": -1,
             "Similar": None,
-            "All in 20 km radius": 0,
+            "All in 25 km radius": 0,
         }
 
         COLUMN_MAPPINGS = {
@@ -270,7 +270,7 @@ class BarChartVisualizer:
                     (similar_df["equipment"]["furniture"] == False)
                 ],
             },
-            "All in 20 km radius": {
+            "All in 25 km radius": {
                 "furnished": whole_market_df[
                     whole_market_df["equipment"]["furniture"] == True
                 ],
