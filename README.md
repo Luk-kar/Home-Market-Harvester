@@ -2,11 +2,15 @@
 
 ## 📋 Overview
 
-The Home Market Harvester is an all-encompassing data pipeline tailored to gather, purify, analyze, train model, and display information on the real estate market. This system targets specific regions, juxtaposing chosen listings against the broader market context.
+The Home Market Harvester is an all-encompassing data pipeline tailored to `gather` -> `purify` -> `analyze` -> `train model` -> `display information` on the real estate market. This system targets specific regions, juxtaposing chosen listings against the broader market context.
 
 Culminating in an interactive dashboard, it presents an aggregate view of local market trends, a comparative table of handpicked listings against overall market conditions, and a geographical map pinpointing the locations of the collected offers.
 
-Data is collected from the websites [olx.pl](https://www.olx.pl/) and [otodom.pl](https://www.otodom.pl/), which feature listings from the Polish property market.
+Data is collected from the websites [`olx.pl`](https://www.olx.pl/) and [`otodom.pl`](https://www.otodom.pl/), which feature listings from the Polish property market.
+
+The program is engineered to execute on a local machine, utilizing exclusively open-source tools, augmented by two external services for data enhancement. These services include geolocation enrichment via [`Nominatim`](https://nominatim.org/release-docs/latest/library/Getting-Started/) and travel time estimation through [`api.openrouteservice`](https://openrouteservice.org/). It's crucial to obtain and configure the necessary API keys for [`api.openrouteservice`](https://openrouteservice.org/) to ensure the seamless operation of these features. The presentation layer of the project is developed with the [`streamlit`](https://docs.streamlit.io/) framework, enabling the deployment of an interactive dashboard accessible through a local URL, effectively making the insights publicly available.
+
+## 📊 Data Visualization
 
 ![dashboard](doc/images/dashboard_preview.png)
 
