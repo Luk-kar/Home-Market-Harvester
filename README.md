@@ -120,7 +120,7 @@ During the development, two significant insights were gained that have implicati
    Codebase Structure Simplification
 
 2. **Codebase Structure Simplification**
-   The project initially adopted a modular approach, with each step executed as a separate subprocess. This complexity hindered effective testing due to the dependencies between subprocesses. The insight gained was the advantage of a more integrated approach to the codebase. Opting for function calls within a single process or employing workflow orchestration tools facilitates easier testing and improves stability.
+   The project initially adopted a modular approach, with each step executed as a separate subprocess. This complexity hindered effective testing due to the dependencies between subprocesses. The insight gained was the advantage of a more integrated approach to the codebase. Opting for function calls within a single process facilitates easier testing and improves stability.
 
 ## 📜 License
 
