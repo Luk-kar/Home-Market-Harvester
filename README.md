@@ -33,7 +33,7 @@ The project is organized into several directories, each with a specific role:
         - `b_cleaning_otodom.ipynb`: Jupyter notebook for cleaning data related to the Otodom platform.
         - `c_combining_data.ipynb`: Jupyter notebook for merging data from various sources into a cohesive dataset.
         - `combined_df_schema.json`: JSON schema defining the structure and types of the combined dataframe, ensuring consistency in the merged data.
-        - `d_creating_map_data.py`: Script for processing cleaned data to generate data suitable for mapping or geographical visualizations.
+        - `d_creating_map_data.py`: Script for processing cleaned data to generate data suitable for mapping or geographical visualizations. It uses external services like the `Nominatim` and `api.openrouteservice`.
       - `c_model_developing`: Development and training of machine learning models. This involves selecting features, training models, and validating them.
       - `d_data_visualizing`: Creation of visual representations of the data and model outputs. It utilizes a streamlit framework.
 
