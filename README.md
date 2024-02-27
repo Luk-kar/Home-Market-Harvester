@@ -128,4 +128,4 @@ This project is licensed under the terms of the [LICENSE](LICENSE) file located 
 
 ---
 
-**Note**: This README is for the root of the project. For detailed information about specific components or stages, refer to the README files located within the respective directories.
+**Note**: This README is for the root of the project. For detailed information about specific components or stages, refer to the README files located within the respective [stages](pipeline/stages).
