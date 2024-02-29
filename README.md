@@ -32,7 +32,7 @@ Each stage of the pipeline (**`a_scraping`**, **`b_cleaning`**, **`c_model_devel
 - **Model Developing (`c_model_developing`):** Focuses on creating and refining machine learning models.
 - **Data Visualizing (`d_data_visualizing`):** Utilizes the `streamlit` framework to craft interactive dashboards showcasing the data and insights.
 
-Subdirectories like `orchestration` and `config` support these operations by providing utilities, helper functions, and configuration management to ensure smooth pipeline execution.
+Subdirectories like **`orchestration`** and **`config`** support these operations by providing utilities, helper functions, and configuration management to ensure smooth pipeline execution.
 
 ## 📦 Requirements
 
