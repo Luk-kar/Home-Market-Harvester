@@ -16,6 +16,8 @@ The program is engineered to execute on a local machine, utilizing exclusively f
 
 ## 🗂️ Project Structure
 
+![data_pipeline](doc\images\data_pipeline.png)
+
 The project is organized into several directories, each with a specific role:
 
 - `data`: Contains raw data files and processed data outputs.
