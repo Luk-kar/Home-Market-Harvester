@@ -20,7 +20,7 @@ import pandas as pd
 import streamlit as st
 
 # Local imports
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.logger import log_and_print
 from pipeline.stages.d_data_visualizing.data_visualizer.data_preparation import (
     filter_table_data,
     compile_apartments_data,

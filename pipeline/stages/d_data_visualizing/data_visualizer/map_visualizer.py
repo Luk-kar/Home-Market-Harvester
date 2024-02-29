@@ -16,7 +16,7 @@ import streamlit as st
 from pipeline.stages.d_data_visualizing.translations.translation_manager import (
     Translation,
 )
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.logger import log_and_print
 
 
 class MapVisualizer:

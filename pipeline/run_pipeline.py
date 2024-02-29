@@ -56,13 +56,13 @@ def set_sys_path_to_project_root(__file__: str):
 set_sys_path_to_project_root(__file__)
 
 # Local imports
-from pipeline.components.environment import (
+from pipeline.orchestration.environment import (
     initialize_environment_settings,
     set_user_data_path_env_var,
 )
-from pipeline.components.logger import setup_logging
-from pipeline.components.pipeline_flow import run_pipeline
-from pipeline.components.pipeline_services import set_destination_coordinates
+from pipeline.orchestration.logger import setup_logging
+from pipeline.orchestration.pipeline_flow import run_pipeline
+from pipeline.orchestration.pipeline_services import set_destination_coordinates
 
 
 def parse_arguments() -> argparse.Namespace:

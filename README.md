@@ -25,7 +25,7 @@ The project is organized into several directories, each with a specific role:
 - `pipeline`: Core components of the data pipeline, including scraping, cleaning, model development, and visualization scripts.
 - `.env`: Environment configuration file, detailing essential variables for project setup, such as API keys, file paths, and server configurations. This file is crucial for ensuring that the pipeline runs smoothly in different environments.
 
-  - `components`: Contains utilities and helper functions that support the pipeline operations.
+  - `orchestration`: Contains utilities and helper functions that support the pipeline operations.
   - `config`: Organizes all configuration files necessary to control various aspects of the pipeline. Like: `a_scraping.py`, `d_data_visualizing.py`, and `run_pipeline.conf`.
 
     - `stages`: Contains the sequentially executed stages of the pipeline, each encapsulated in its directory and named alphabetically for order of execution:
@@ -97,7 +97,7 @@ It's important to remember that the pipeline relies on external data sources, wh
 
 Configuration management for the pipeline and its distinct stages is centralized in the `pipeline/config directory`. This setup includes `.py` files designed for straightforward invocation, eliminating the need for additional input/output logic and validation. Additionally, `.conf` files are employed to handle read/write settings.
 
-A crucial configurational element within `run_pipeline.conf` is `MARKET_OFFERS_TIMEPLACE`. This value is dynamically generated at runtime during the `a_scraping` stage and serves as the directory name for storing the newly scraped data. The format of this value is `YYYY_MM_DD_HH_MM_SS_LOCATION`, such as `2024_02_20_16_37_54_Mierzęcice__Będziński__Śląskie`, effectively timestamping and geolocating the dataset. It plays a pivotal role in the orchestration of the pipeline workflow, particularly within the `run_pipeline.py` script and its associated stages:
+A crucial configurational element within `run_pipeline.conf` is `MARKET_OFFERS_TIMEPLACE`. This value is dynamically generated at runtime during the `a_scraping` stage and serves as the `directory name` for storing the newly scraped data. The format of this value is `YYYY_MM_DD_HH_MM_SS_LOCATION`, such as `2024_02_20_16_37_54_Mierzęcice__Będziński__Śląskie`, effectively timestamping and geolocating the dataset. It plays a pivotal role in the orchestration of the pipeline workflow, particularly within the `run_pipeline.py` script and its associated stages:
 
 - `b_cleaning` stage, where specific notebooks and scripts are used for data cleaning and preparation:
   - `a_cleaning_OLX.ipynb` for OLX data,

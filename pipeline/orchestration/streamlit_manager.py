@@ -12,8 +12,8 @@ import subprocess
 import time
 
 # Local imports
-from pipeline.components.logger import log_and_print
-from pipeline.components.pipeline_flow import run_stage
+from pipeline.orchestration.logger import log_and_print
+from pipeline.orchestration.pipeline_flow import run_stage
 
 
 def handle_streamlit_app(stage: str):

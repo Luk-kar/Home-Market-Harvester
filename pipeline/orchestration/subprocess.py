@@ -14,8 +14,8 @@ import subprocess
 import time
 
 # Local imports
-from pipeline.components.logger import log_and_print
-from pipeline.components.exceptions import PipelineError
+from pipeline.orchestration.logger import log_and_print
+from pipeline.orchestration.exceptions import PipelineError
 
 
 def run_stage(_stage: str, env_vars: dict, args: Optional[list] = None):

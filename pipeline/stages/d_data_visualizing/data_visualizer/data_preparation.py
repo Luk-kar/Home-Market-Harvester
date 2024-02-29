@@ -16,7 +16,7 @@ from pipeline.stages.d_data_visualizing.data_visualizer.table_visualizer.statist
     calculate_yours_price_percentile_against_others,
     calculate_price_per_meter_differences,
 )
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.logger import log_and_print
 
 
 def filter_table_data(

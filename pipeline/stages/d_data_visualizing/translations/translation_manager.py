@@ -41,7 +41,7 @@ from pipeline.stages.d_data_visualizing.translations.localization.content import
     translations,
     Languages,
 )
-from pipeline.components.logger import log_and_print, setup_logging
+from pipeline.orchestration.logger import log_and_print, setup_logging
 
 
 class Translation:

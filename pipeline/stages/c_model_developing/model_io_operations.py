@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 
 # Local imports
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.logger import log_and_print
 
 
 class ModelManager:

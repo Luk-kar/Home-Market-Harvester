@@ -67,8 +67,8 @@ def set_project_root() -> Path:
 project_root = set_project_root()
 
 # Local imports
-from pipeline.components.pipeline_services import sanitize_destination_coordinates
-from pipeline.components.logger import log_and_print, setup_logging
+from pipeline.orchestration.pipeline_services import sanitize_destination_coordinates
+from pipeline.orchestration.logger import log_and_print, setup_logging
 from pipeline.config._conf_file_manager import ConfigManager
 from pipeline.stages._csv_utils import DataPathCleaningManager
 

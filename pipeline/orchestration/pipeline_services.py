@@ -14,8 +14,8 @@ import os
 
 # Local imports
 from pipeline.config._conf_file_manager import ConfigManager
-from pipeline.components.exceptions import PipelineError
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.exceptions import PipelineError
+from pipeline.orchestration.logger import log_and_print
 
 
 def get_existing_folders(directory: Path) -> Set[str]:

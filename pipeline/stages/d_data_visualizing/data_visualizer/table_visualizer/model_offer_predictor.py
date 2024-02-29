@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 # Local imports
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.logger import log_and_print
 from pipeline.stages.c_model_developing.model_io_operations import ModelManager
 
 

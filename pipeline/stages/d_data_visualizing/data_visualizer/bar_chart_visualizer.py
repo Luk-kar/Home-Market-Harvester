@@ -16,7 +16,7 @@ import seaborn as sns
 import streamlit as st
 
 # Local imports
-from pipeline.components.logger import log_and_print
+from pipeline.orchestration.logger import log_and_print
 from pipeline.stages.d_data_visualizing.data_visualizer.data_preparation import (
     matches_city_building_year_criteria,
 )

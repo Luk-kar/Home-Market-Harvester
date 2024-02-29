@@ -18,15 +18,15 @@ from typing import Set
 
 # Local imports
 from pipeline.config._conf_file_manager import ConfigManager
-from pipeline.components.logger import log_and_print
-from pipeline.components.pipeline_services import (
+from pipeline.orchestration.logger import log_and_print
+from pipeline.orchestration.pipeline_services import (
     check_new_csv_files,
     get_existing_folders,
     get_pipeline_error_message,
 )
-from pipeline.components.exceptions import PipelineError
-from pipeline.components.subprocess import run_stage
-from pipeline.components.streamlit_manager import handle_streamlit_app
+from pipeline.orchestration.exceptions import PipelineError
+from pipeline.orchestration.subprocess import run_stage
+from pipeline.orchestration.streamlit_manager import handle_streamlit_app
 
 
 def run_pipeline(_stages: list[str], args: argparse.Namespace):

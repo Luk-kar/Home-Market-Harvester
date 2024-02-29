@@ -6,7 +6,7 @@ from pipeline.stages.d_data_visualizing.translations.localization._english impor
     english,
 )
 from pipeline.stages.d_data_visualizing.translations.localization._polish import polish
-from pipeline.components.logger import log_and_print, setup_logging
+from pipeline.orchestration.logger import log_and_print, setup_logging
 
 
 def check_translation_keys(translations: list[dict]):
