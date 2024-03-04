@@ -18,24 +18,6 @@ The program is engineered to execute on a local machine, utilizing exclusively f
 
 ![data_pipeline](doc/images/data_pipeline.png)
 
-### 🗜️ Pipeline Elements Breakdown
-
-- **`data`**: Houses both raw and processed datasets.
-- **`logs`**: Archives logs from the pipeline operations, such as scraping and system activity.
-- **`model`**: Stores machine learning models developed from the housing data.
-- **`notebooks`**: Contains Jupyter notebooks for data analysis, cleaning, and model development.
-- **`pipeline`**: The backbone of the project, encompassing scripts for scraping, cleaning, data model development, and visualization.
-- **`.env`**: A key file for setting up environment-specific variables crucial for the pipeline's functionality.
-
-Each stage of the **`pipeline`** (**`a_scraping`**, **`b_cleaning`**, **`c_model_developing`**, **`d_data_visualizing`**) is executed sequentially and is designed to achieve specific objectives:
-
-- **Scraping (`a_scraping`):** Initial data extraction from designated sources.
-- **Cleaning (`b_cleaning`):** Improves data quality by removing inaccuracies and preparing it for analysis.
-- **Model Developing (`c_model_developing`):** Focuses on creating and refining machine learning models.
-- **Data Visualizing (`d_data_visualizing`):** The interactive dashboards showcase the data and insights.
-
-Subdirectories like **`orchestration`** and **`config`** support these operations by providing utilities, helper functions, and configuration management to ensure smooth pipeline execution.
-
 ### 📚 Most important libraries
 
 **scraping:**
@@ -74,6 +56,24 @@ Subdirectories like **`orchestration`** and **`config`** support these operation
   _Used for creating static, interactive, and animated visualizations in Python. Implemented for the bar charts and the map._
 - [**`seaborn:`**](https://seaborn.pydata.org/)
   _Visualization library based on matplotlib that provides a high-level interface for drawing attractive and informative statistical graphics, making data visualization both easier and more aesthetically pleasing._
+
+### 🗜️ Pipeline Elements Breakdown
+
+- **`data`**: Houses both raw and processed datasets.
+- **`logs`**: Archives logs from the pipeline operations, such as scraping and system activity.
+- **`model`**: Stores machine learning models developed from the housing data.
+- **`notebooks`**: Contains Jupyter notebooks for data analysis, cleaning, and model development.
+- **`pipeline`**: The backbone of the project, encompassing scripts for scraping, cleaning, data model development, and visualization.
+- **`.env`**: A key file for setting up environment-specific variables crucial for the pipeline's functionality.
+
+Each stage of the **`pipeline`** (**`a_scraping`**, **`b_cleaning`**, **`c_model_developing`**, **`d_data_visualizing`**) is executed sequentially and is designed to achieve specific objectives:
+
+- **Scraping (`a_scraping`):** Initial data extraction from designated sources.
+- **Cleaning (`b_cleaning`):** Improves data quality by removing inaccuracies and preparing it for analysis.
+- **Model Developing (`c_model_developing`):** Focuses on creating and refining machine learning models.
+- **Data Visualizing (`d_data_visualizing`):** The interactive dashboards showcase the data and insights.
+
+Subdirectories like **`orchestration`** and **`config`** support these operations by providing utilities, helper functions, and configuration management to ensure smooth pipeline execution.
 
 ## 📦 Requirements
 
