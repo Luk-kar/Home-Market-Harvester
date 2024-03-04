@@ -8,7 +8,7 @@ Culminating in an interactive dashboard, it presents an aggregate view of local 
 
 Data is collected from the websites [`olx.pl`](https://www.olx.pl/) and [`otodom.pl`](https://www.otodom.pl/), which feature listings from the Polish property market.
 
-The program is engineered to execute on a local machine, utilizing exclusively free-of-charge, open-source tools, augmented by two external services for data enhancement. These services include geolocation enrichment via [`Nominatim`](https://nominatim.org/release-docs/latest/library/Getting-Started/) and travel time estimation through [`openrouteservice`](https://openrouteservice.org/). It's crucial to obtain and configure the necessary API key for [`openrouteservice`](https://openrouteservice.org/), and set the [`CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH`](<(https://stackoverflow.com/a/77614979/12490791)>) in the `.env`. The presentation layer of the project is developed with the [`streamlit`](https://docs.streamlit.io/) framework, enabling the deployment of an interactive dashboard accessible through a local URL, effectively making the insights publicly available.
+The program is engineered to execute on a local machine, utilizing exclusively free-of-charge, open-source tools, augmented by two external services for data enhancement. These services include geolocation enrichment via [`Nominatim`](https://nominatim.org/release-docs/latest/library/Getting-Started/) and travel time estimation through [`openrouteservice`](https://openrouteservice.org/). The presentation layer of the project is developed with the [`streamlit`](https://docs.streamlit.io/) framework, enabling the deployment of an interactive dashboard accessible through a local URL, effectively making the insights publicly available.
 
 ## 📊 Data Visualization
 
@@ -18,6 +18,8 @@ The program is engineered to execute on a local machine, utilizing exclusively f
 
 ![data_pipeline](doc/images/data_pipeline.png)
 
+### 🗜️ Pipeline Elements Breakdown
+
 - **`data`**: Houses both raw and processed datasets.
 - **`logs`**: Archives logs from the pipeline operations, such as scraping and system activity.
 - **`model`**: Stores machine learning models developed from the housing data.
@@ -25,14 +27,53 @@ The program is engineered to execute on a local machine, utilizing exclusively f
 - **`pipeline`**: The backbone of the project, encompassing scripts for scraping, cleaning, data model development, and visualization.
 - **`.env`**: A key file for setting up environment-specific variables crucial for the pipeline's functionality.
 
-Each stage of the pipeline (**`a_scraping`**, **`b_cleaning`**, **`c_model_developing`**, **`d_data_visualizing`**) is executed sequentially and is designed to achieve specific objectives:
+Each stage of the **`pipeline`** (**`a_scraping`**, **`b_cleaning`**, **`c_model_developing`**, **`d_data_visualizing`**) is executed sequentially and is designed to achieve specific objectives:
 
 - **Scraping (`a_scraping`):** Initial data extraction from designated sources.
 - **Cleaning (`b_cleaning`):** Improves data quality by removing inaccuracies and preparing it for analysis.
 - **Model Developing (`c_model_developing`):** Focuses on creating and refining machine learning models.
-- **Data Visualizing (`d_data_visualizing`):** Utilizes the `streamlit` framework to craft interactive dashboards showcasing the data and insights.
+- **Data Visualizing (`d_data_visualizing`):** The interactive dashboards showcase the data and insights.
 
 Subdirectories like **`orchestration`** and **`config`** support these operations by providing utilities, helper functions, and configuration management to ensure smooth pipeline execution.
+
+### 📚 Most important libraries
+
+**scraping:**
+
+- [**`Selenium:`**](https://selenium-python.readthedocs.io/)
+  _Interact with dynamically generated content and javascript interactions._
+- [**`Beautiful Soup:`**](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+  _Extracting the data from the HTML page-source._
+
+**cleaning:**
+
+- [**`NumPy:`**](https://numpy.org/)
+  _Support for large, multi-dimensional arrays and matrices._
+- [**`pandas:`**](https://pandas.pydata.org/)
+  _Tools for reading, writing, and manipulating tabular data._
+- [**`jupyter:`**](https://jupyter.org/)
+  _Facilitates incremental code development, enabling users to write and execute code in manageable chunks, thereby enabling step-by-step data visualization, review, and iterative adjustments._
+
+**data enrichment:**
+
+- [**`Nominatim:`**](https://nominatim.org/)
+  _Converting addresses into geographic coordinates, leveraging OpenStreetMap data for location-based queries. Used for enriching data used for map offers visualization._
+- [**`openrouteservice:`**](https://openrouteservice.org/)
+  _API provides routing, including the calculation of destination times in minutes, using OpenStreetMap data for precise and efficient travel planning. Used for enriching data used for map offers visualization._
+
+**model developing:**
+
+- [**`scikit-learn:`**](https://scikit-learn.org/stable/)
+  _Library for machine learning, providing powerful tools for analyzing data and uncovering patterns. It includes efficient options like regression models, which are ideal for training quickly and accurately, even with small data sets._
+
+**data visualizing:**
+
+- [**`Streamlit:`**](https://docs.streamlit.io/)
+  _Simplifies the creation of web apps for data analysis and machine learning, allowing developers to quickly turn data scripts into shareable web applications with minimal coding._
+- [**`matplotlib:`**](https://matplotlib.org/)
+  _Used for creating static, interactive, and animated visualizations in Python. Implemented for the bar charts and the map._
+- [**`seaborn:`**](https://seaborn.pydata.org/)
+  _Visualization library based on matplotlib that provides a high-level interface for drawing attractive and informative statistical graphics, making data visualization both easier and more aesthetically pleasing._
 
 ## 📦 Requirements
 
@@ -47,6 +88,19 @@ pip install pipenv
 pipenv install
 pipenv shell
 ```
+
+**🚨 Note**:
+It's important to remember that the pipeline relies on external data sources, which may be subject to A/B tests, frontend changes, anti-bot activity, server failures and other modifications.
+
+## 🔧 Configuration
+
+Located within the `pipeline/config` directory. This setup simplifies the process of adjusting API keys, file paths, and server configurations:
+
+- Dynamic Naming with `run_pipeline.conf`: The `MARKET_OFFERS_TIMEPLACE` variable dynamically names data storage directories, incorporating timestamps and locations, like `2024_02_20_16_37_54_Mierzęcice__Będziński__Śląskie`. This facilitates organized data management and retrieval.
+
+- Security with `.env` File: Sensitive information, such as `API keys`, `USER_OFFERS_PATH`, `CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH` are kept there for enhanced security.
+
+- It's crucial to obtain and configure the necessary API key for [`openrouteservice`](https://openrouteservice.org/), and set the [`CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH`](<(https://stackoverflow.com/a/77614979/12490791)>) `USER_OFFERS_PATH`, in the `.env`.
 
 ## 🔨 Usage
 
@@ -80,17 +134,6 @@ To execute the tests use the following command:
 pipenv shell # at the root of the project
 python -m unittest discover -s tests -p 'test_*.py'
 ```
-
-**🚨 Note**:
-It's important to remember that the pipeline relies on external data sources, which may be subject to A/B tests, frontend changes, anti-bot activity, server failures and other modifications.
-
-## 🔧 Configuration
-
-Located within the `pipeline/config` directory. This setup simplifies the process of adjusting API keys, file paths, and server configurations:
-
-- Dynamic Naming with `run_pipeline.conf`: The `MARKET_OFFERS_TIMEPLACE` variable dynamically names data storage directories, incorporating timestamps and locations, like `2024_02_20_16_37_54_Mierzęcice__Będziński__Śląskie`. This facilitates organized data management and retrieval.
-
-- Security with `.env` File: Sensitive information, such as `API keys`, `USER_OFFERS_PATH`, `CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH` are kept there for enhanced security.
 
 ---
 

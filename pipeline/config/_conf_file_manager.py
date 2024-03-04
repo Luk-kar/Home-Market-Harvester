@@ -5,7 +5,6 @@ class designed to facilitate the reading and writing of key-value pairs stored w
 """
 
 # Standard imports
-import logging
 import os
 
 
