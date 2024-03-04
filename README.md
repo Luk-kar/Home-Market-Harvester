@@ -94,9 +94,9 @@ It's important to remember that the pipeline relies on external data sources, wh
 
 ## 🔧 Configuration
 
-Located within the `pipeline/config` directory. This setup simplifies the process of adjusting API keys, file paths, and server configurations:
+Located within the [`pipeline/config`](pipeline/config) directory. This setup simplifies the process of adjusting API keys, file paths, and server configurations:
 
-- Dynamic Naming with `run_pipeline.conf`: The `MARKET_OFFERS_TIMEPLACE` variable dynamically names data storage directories, incorporating timestamps and locations, like `2024_02_20_16_37_54_Mierzęcice__Będziński__Śląskie`. This facilitates organized data management and retrieval.
+- Dynamic Naming with [`run_pipeline.conf`](pipeline/config/run_pipeline.conf): The `MARKET_OFFERS_TIMEPLACE` variable dynamically names data storage directories, incorporating timestamps and locations, like `2024_02_20_16_37_54_Mierzęcice__Będziński__Śląskie`. This facilitates organized data management and retrieval.
 
 - Security with `.env` File: Sensitive information, such as `API keys`, `USER_OFFERS_PATH`, `CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH` are kept there for enhanced security.
 
