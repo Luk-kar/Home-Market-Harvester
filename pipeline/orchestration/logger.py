@@ -20,6 +20,12 @@ def setup_logging():
     root_project_path = Path(__file__).resolve().parents[2]
     log_file_path = root_project_path / "logs" / "pipeline.log"
 
+    if not log_file_path.parent.exists():
+        log_file_path.parent.mkdir(parents=True)
+
+    if not log_file_path.exists():
+        log_file_path.touch()
+
     logging.basicConfig(
         filename=str(log_file_path),
         level=logging.INFO,
