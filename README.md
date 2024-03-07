@@ -100,7 +100,7 @@ Located within the [`pipeline/config`](pipeline/config) directory. This setup si
 
 - Security with `.env` File: Sensitive information, such as `API keys`, `USER_OFFERS_PATH`, `CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH` are kept there for enhanced security.
 
-- It's crucial to obtain and configure the necessary API key for [`openrouteservice`](https://openrouteservice.org/), and set the [`CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH`](<(https://stackoverflow.com/a/77614979/12490791)>) `USER_OFFERS_PATH`, in the `.env`.
+- It's crucial to obtain and configure the necessary API key for [`openrouteservice`](https://openrouteservice.org/), and set the [`CHROME_DRIVER_PATH`, `CHROME_BROWSER_PATH`](https://stackoverflow.com/a/77614979/12490791) `USER_OFFERS_PATH`, in the `.env`.
 
 ## 🔨 Usage
 
