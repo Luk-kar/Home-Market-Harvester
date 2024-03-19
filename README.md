@@ -143,13 +143,16 @@ Additionally, a `.env` file is part of the configuration for sensitive pipeline 
 
 During the development, three significant insights were gained:
 
-1. **Execution of Python Scripts**
+1. **Preservation of HTML Source Code for Data Integrity**
+    Recognizing the inherent instability of data sources in `web scraping`, the project emphasizes the individual scraping and storage of `HTML` source code for each listing. This strategy serves as a safeguard, ensuring no loss of data during manipulation and facilitating easier data extraction should structural changes occur within the listings. Given the project's scope—unlikely to exceed `2,000` records in a prolonged timeframe, such as monthly—the concern for disk space is minimal. The compact size of `HTML` files further mitigates any potential impact on storage and `input/output` performance, affirming this method's efficiency and practicality.
+
+2. **Execution of Python Scripts**
    It was found that executing Python scripts directly from `.py` files is significantly more effective than converting Jupyter notebooks to `.py` files via `nbconvert` and later running them. The latter approach often led to issues with library recognition and compatibility with the installed Python version. Direct execution avoids these issues, ensuring a smoother development process.
 
-2. **Codebase Structure Simplification**
+3. **Codebase Structure Simplification**
    The project initially adopted a modular approach, with each step executed as a separate subprocess. This complexity hindered effective testing due to changing the behavior of the subprocesses in the `unittest` environment. It is advised to take a more integrated approach to the codebase, opting for function calls within a single process.
 
-3. **Updating Environment Variables During Runtime**
+4. **Updating Environment Variables During Runtime**
    To avoid issues with dynamically updated environment variables not being recognized, directly adjust system files for I/O operations. This approach ensures reliable and consistent application of changes.
 
 ## 📜 License
