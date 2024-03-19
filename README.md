@@ -153,7 +153,7 @@ During the development, three significant insights were gained:
    The project initially adopted a modular approach, with each step executed as a separate subprocess. This complexity hindered effective testing due to changing the behavior of the subprocesses in the `unittest` environment. It is advised to take a more integrated approach to the codebase, opting for function calls within a single process.
 
 4. **Updating Environment Variables During Runtime**
-   To avoid issues with dynamically updated environment variables not being recognized, directly adjust system files for I/O operations. This approach ensures reliable and consistent application of changes.
+   To avoid issues with dynamically updated `environment variables` not being recognized, directly adjust system files for `I/O` operations. This approach ensures reliable and consistent application of changes.
 
 ## 📜 License
 
