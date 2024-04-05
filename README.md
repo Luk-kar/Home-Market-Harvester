@@ -137,8 +137,6 @@ python -m unittest discover -s tests -p 'test_*.py'
 
 ---
 
-Additionally, a `.env` file is part of the configuration for sensitive pipeline data.
-
 ## 💡 Lessons Learned
 
 During the development, three significant insights were gained:
